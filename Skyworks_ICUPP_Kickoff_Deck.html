@@ -139,6 +139,11 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff;
 /* inputs (Infrastructure slide) */
 .field{display:flex;flex-direction:column;gap:6px}
 .field-label{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.collapse>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;width:fit-content;user-select:none}
+.collapse>summary::-webkit-details-marker{display:none}
+.collapse>summary::before{content:"";width:5px;height:5px;border-right:1.5px solid var(--ink-4);border-bottom:1.5px solid var(--ink-4);transform:rotate(-45deg);transition:transform .15s;flex:none}
+.collapse[open]>summary::before{transform:rotate(45deg)}
+.collapse>summary:hover{color:var(--accent-ink)}
 input,select{height:34px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:0 10px;color:var(--ink);
   width:100%;outline:none;font-family:var(--font);font-size:12.5px;transition:border-color .12s,box-shadow .12s}
 input::placeholder{color:var(--ink-4)}
@@ -529,15 +534,16 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
             <div class="field"><span class="field-label">Access grantor / data owner</span><input id="f_owner" placeholder="Name, role / team"></div>
             <div class="field"><span class="field-label">Read-only access granted by</span><input id="f_date" placeholder="dd mmm yyyy"></div>
             <div class="field"><span class="field-label">Captured by</span><input id="f_by" placeholder="Your name"></div>
-            <div class="field" style="grid-column:1 / -1"><span class="field-label">Lineage reference systems available via API</span>
-              <div class="checkrow" id="f_lineage">
+            <details class="field collapse" style="grid-column:1 / -1">
+              <summary class="field-label">Lineage reference systems available via API</summary>
+              <div class="checkrow" id="f_lineage" style="margin-top:7px">
                 <label><input type="checkbox" data-k="SAP ERP">SAP ERP</label><label><input type="checkbox" data-k="Kinaxis">Kinaxis</label>
                 <label><input type="checkbox" data-k="SKY Apps">SKY Apps</label><label><input type="checkbox" data-k="PLM">PLM</label>
                 <label><input type="checkbox" data-k="EDI">EDI</label><label><input type="checkbox" data-k="PROMIS">PROMIS</label>
                 <label><input type="checkbox" data-k="CRM">CRM</label><label><input type="checkbox" data-k="Warehouse">Warehouse</label>
                 <label><input type="checkbox" data-k="Enterprise Analytics">Enterprise Analytics</label>
               </div>
-            </div>
+            </details>
             <div class="savebar" style="grid-column:1 / -1">
               <button class="btn primary" id="f_save">Save inputs</button>
               <button class="btn ghostbtn" id="f_export">Export JSON</button>
