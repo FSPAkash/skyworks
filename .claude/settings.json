@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -o Connectivity_Status_Report.docx -d _extract)",
+      "Bash(python -c ' *)",
+      "Bash(python _build2.py)",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\AkashPatil\\\\Skyworks\\\\D1\\\\Connectivity_Status_Report.html\")",
+      "Bash(rm -rf _extract _build.py _build2.py _logo_*.txt && ls)",
+      "Bash(rm -f _shot_*.html _shot_*.png _build.py _build2.py _logo_*.txt && ls)",
+      "Bash(rm -f _shot_*.html _shot_*.png _crop.png _build.py _build2.py _logo_*.txt _kw_*.txt && ls)",
+      "Bash(rm -f _s3c.html _s3o.html _s4.html _s7.html _s3c.png _s3o.png _s4.png _s7.png _build.py _build2.py _logo_*.txt && ls)",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Bash(python _rbuild2.py)",
+      "PowerShell(Start-Process \"C:\\\\Users\\\\AkashPatil\\\\Skyworks\\\\D1\\\\Connectivity_Status_Report.pdf\")",
+      "Bash(rm -f _rbuild.py _rbuild2.py _logo_*.txt && ls)",
+      "Bash(rm -rf _x _rbuild.py _rbuild2.py _logo_*.txt && ls)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\AkashPatil\\Skyworks\\D1"
+    ]
+  }
+}
