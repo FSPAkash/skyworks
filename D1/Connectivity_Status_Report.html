@@ -210,6 +210,9 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
   font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .q .t{font-size:12.5px;color:var(--ink-2);line-height:1.5}
 .q .t .qh{display:block;font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.q .t .qstatus{display:inline-block;margin-top:7px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;line-height:1.3}
+.q .t .qstatus.resolved{background:#e7f4ec;color:#1a7f43;border:1px solid #bfe3cc}
+.q .t .qstatus.pending{background:#fdf1dc;color:#9a6400;border:1px solid #f2d9a8}
 
 /* closing */
 .closing{align-items:center;justify-content:center;text-align:center;padding:0 80px}
@@ -368,20 +371,20 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
   <div class="topbar"><div class="tl"><span class="skybrand"><span class="skx"></span><span class="skw"></span></span><span class="sep"></span><span class="layer">05 &middot; Agent Jobs</span></div><div class="tc">SQL Server Agent Inventory</div><div class="tr"><b>06</b> / 10</div></div><div class="brandstrip"></div>
   <div class="body">
     <div class="reveal d1 eyebrow"><span class="bar"></span>SQL Server Agent &middot; Job Inventory</div>
-    <h2 class="reveal d1">1,347 agent jobs identified, 32% active</h2>
+    <h2 class="reveal d1">1,132 agent jobs identified, 31% active</h2>
     <p class="lede reveal d1">Analysed from both job-history and package-step reference perspectives.</p>
     <div class="grid reveal d2" style="grid-template-columns:repeat(4,1fr);margin-top:14px">
-      <div class="stat"><div class="label">Total agent jobs</div><div class="value">1,347</div></div>
-      <div class="stat"><div class="label">Active (enabled)</div><div class="value">425 <span class="u">&middot; 32%</span></div></div>
-      <div class="stat"><div class="label">Inactive (disabled)</div><div class="value">922 <span class="u">&middot; 68%</span></div></div>
+      <div class="stat"><div class="label">Total agent jobs</div><div class="value">1,132</div></div>
+      <div class="stat"><div class="label">Active (enabled)</div><div class="value">350 <span class="u">&middot; 31%</span></div></div>
+      <div class="stat"><div class="label">Inactive (disabled)</div><div class="value">782 <span class="u">&middot; 69%</span></div></div>
       <div class="stat"><div class="label">Jobs w/ SSIS steps</div><div class="value">454</div></div>
       <div class="stat"><div class="label">CmdExec-only jobs</div><div class="value">303</div></div>
       <div class="stat"><div class="label">Last successful run</div><div class="value">340 <span class="u">jobs</span></div></div>
       <div class="stat"><div class="label">Last failed run</div><div class="value">47 <span class="u">jobs</span></div></div>
-      <div class="stat"><div class="label">Legacy footprint</div><div class="value">68%</div></div>
+      <div class="stat"><div class="label">Legacy footprint</div><div class="value">69%</div></div>
     </div>
     <div class="notebar reveal d3" style="margin-top:16px">
-      <div class="blk"><p>The <b>68%</b> inactive share is a large legacy footprint. Deliverable 3 lineage focuses on the <b>active 425 jobs</b>; inactive jobs are referenced only for historical context.</p></div>
+      <div class="blk"><p>The <b>69%</b> inactive share is a large legacy footprint. Deliverable 3 lineage focuses on the <b>active 350 jobs</b>; inactive jobs are referenced only for historical context.</p></div>
     </div>
   </div>
 </section><section class="slide">
@@ -396,8 +399,8 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
         <div class="txt"><h4>Inputs that live outside the SQL catalog</h4><p>111 SSIS steps read flat files from a local path (E:\Project\FlatFileDataSources\). These upstream inputs must be inventoried separately for end-to-end coverage.</p></div></div>
       <div class="find"><div class="big"><div class="n">1:N</div><div class="nu">Package Reuse</div></div>
         <div class="txt"><h4>One package, many logical flows</h4><p>The same .dtsx is invoked by multiple jobs with different parameters (plant, environment, date). A single package node can represent several distinct data flows in the lineage graph.</p></div></div>
-      <div class="find"><div class="big"><div class="n">68%</div><div class="nu">Legacy Jobs</div></div>
-        <div class="txt"><h4>Most jobs are dormant</h4><p>68% of agent jobs are disabled, with several explicitly named for deletion. Not active flows, but useful historical lineage context.</p></div></div>
+      <div class="find"><div class="big"><div class="n">69%</div><div class="nu">Legacy Jobs</div></div>
+        <div class="txt"><h4>Most jobs are dormant</h4><p>69% of agent jobs are disabled, with several explicitly named for deletion. Not active flows, but useful historical lineage context.</p></div></div>
     </div>
   </div>
 </section><section class="slide">
@@ -419,9 +422,9 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
     <div class="reveal d1 eyebrow"><span class="bar"></span>Further Details Requested</div>
     <h2 class="reveal d1">Three inputs needed from the Skyworks team</h2>
     <div class="qlist reveal d2" style="margin-top:14px">
-      <div class="q"><div class="n">1</div><div class="t"><span class="qh">Object-level query logs across the ODS</span>To identify which datasets are actively consumed and prioritize them.</div></div>
-      <div class="q"><div class="n">2</div><div class="t"><span class="qh">Report metadata or report definition files</span>To map usage across the reporting layer and complete the lineage.</div></div>
-      <div class="q"><div class="n">3</div><div class="t"><span class="qh">A job-to-package-to-flat-file mapping</span>Several packages referenced by agent job steps could not be located in SSISDeployed. Is there documentation listing active SQL Agent jobs with their associated packages and flat files, mapped together?</div></div>
+      <div class="q"><div class="n">1</div><div class="t"><span class="qh">Object-level query logs across the ODS</span>To identify which datasets are actively consumed and prioritize them.<span class="qstatus resolved">Discussed in sync call on 7/1/2026 &middot; no further action needed</span></div></div>
+      <div class="q"><div class="n">2</div><div class="t"><span class="qh">Report metadata or report definition files</span>To map usage across the reporting layer and complete the lineage.<span class="qstatus resolved">Discussed in sync call on 7/1/2026 &middot; no further action needed</span></div></div>
+      <div class="q"><div class="n">3</div><div class="t"><span class="qh">A job-to-package-to-flat-file mapping</span>Several packages referenced by agent job steps could not be located in SSISDeployed. Is there documentation listing active SQL Agent jobs with their associated packages and flat files, mapped together?<span class="qstatus pending">Discussed in sync call on 7/1/2026 &middot; pending resolution</span></div></div>
     </div>
   </div>
 </section><section class="slide">

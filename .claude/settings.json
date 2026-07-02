@@ -13,7 +13,13 @@
       "Bash(python _rbuild2.py)",
       "PowerShell(Start-Process \"C:\\\\Users\\\\AkashPatil\\\\Skyworks\\\\D1\\\\Connectivity_Status_Report.pdf\")",
       "Bash(rm -f _rbuild.py _rbuild2.py _logo_*.txt && ls)",
-      "Bash(rm -rf _x _rbuild.py _rbuild2.py _logo_*.txt && ls)"
+      "Bash(rm -rf _x _rbuild.py _rbuild2.py _logo_*.txt && ls)",
+      "Bash(python -c \"import docx\")",
+      "Bash(which wkhtmltopdf *)",
+      "Bash(cp Connectivity_Status_Report.pdf Connectivity_Status_Report.pdf.bak)",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless --disable-gpu --no-pdf-header-footer --print-to-pdf=\"C:\\\\Users\\\\AkashPatil\\\\Skyworks\\\\D1\\\\Connectivity_Status_Report.pdf\" \"C:\\\\Users\\\\AkashPatil\\\\Skyworks\\\\D1\\\\Connectivity_Status_Report_PRINT.html\")",
+      "Bash(echo \"exit=$?\")",
+      "Bash(pdftotext Connectivity_Status_Report.pdf -)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1"
