@@ -236,9 +236,8 @@ ul.chk li::before{content:"";position:absolute;left:2px;top:3px;width:5px;height
     <table class="mtable">
       <thead><tr><th>Metric</th><th class="num">Count</th></tr></thead>
       <tbody>
-        <tr><td>Unique .dtsx package files identified</td><td class="num">368</td></tr>
-        <tr><td>SQL Agent job steps executing SSIS packages</td><td class="num">926</td></tr>
-        <tr><td>Unique agent jobs with SSIS steps</td><td class="num">454</td></tr>
+        <tr><td>Unique .dtsx package files identified (excluding backup folders)</td><td class="num">555</td></tr>
+        <tr><td>SQL Agent job steps executing SSIS packages</td><td class="num">454</td></tr>
         <tr><td>Primary deployment root</td><td class="num">E:\SSIS\Deployed\</td></tr>
         <tr><td>Steps referencing local-drive flat file sources</td><td class="num">111</td></tr>
       </tbody>
@@ -257,10 +256,10 @@ ul.chk li::before{content:"";position:absolute;left:2px;top:3px;width:5px;height
         <tr><td>Total agent jobs</td><td class="num">1,132</td></tr>
         <tr><td>Active (Is Enabled = 1)</td><td class="num">350 (31%)</td></tr>
         <tr><td>Inactive (Is Enabled = 0)</td><td class="num">782 (69%)</td></tr>
-        <tr><td>Jobs with SSIS package steps</td><td class="num">454</td></tr>
-        <tr><td>Jobs with CmdExec-only steps</td><td class="num">303</td></tr>
-        <tr><td>Last recorded successful run</td><td class="num">340 jobs</td></tr>
-        <tr><td>Last recorded failed run</td><td class="num">47 jobs</td></tr>
+        <tr><td>Unique Agent Jobs with SSIS Execution Dependency</td><td class="num">454</td></tr>
+        <tr><td>Total Unique SSIS Packages Involved in SSIS-Dependent Jobs</td><td class="num">539</td></tr>
+        <tr><td>Total Unique SSIS Packages Found (in the network folder)</td><td class="num">460</td></tr>
+        <tr><td>Total Unique SSIS Packages Used but Missing (in the network folder)</td><td class="num">79</td></tr>
       </tbody>
     </table>
     <p>The high proportion of inactive jobs (69%) indicates a substantial legacy footprint on the agent. For the purposes of lineage mapping in Deliverable 3, the active job set (350 jobs) will be the primary analytical focus, with inactive jobs examined for historical lineage context where relevant.</p>

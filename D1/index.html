@@ -346,12 +346,11 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
   <div class="topbar"><div class="tl"><span class="skybrand"><span class="skx"></span><span class="skw"></span></span><span class="sep"></span><span class="layer">04 &middot; SSIS</span></div><div class="tc">SSIS Package Landscape</div><div class="tr"><b>05</b> / 10</div></div><div class="brandstrip"></div>
   <div class="body">
     <div class="reveal d1 eyebrow"><span class="bar"></span>SSIS Package Landscape</div>
-    <h2 class="reveal d1">368 packages, organized by functional domain</h2>
+    <h2 class="reveal d1">555 packages, organized by functional domain</h2>
     <p class="lede reveal d1">The SSISDeployed share was inspected via SQL Agent job step references. Deployment root <b>E:\SSIS\Deployed\</b>.</p>
     <div class="grid reveal d2" style="grid-template-columns:repeat(4,1fr);margin-top:14px">
-      <div class="stat"><div class="label">Unique .dtsx packages</div><div class="value">368</div></div>
-      <div class="stat"><div class="label">Job steps running SSIS</div><div class="value">926</div></div>
-      <div class="stat"><div class="label">Jobs w/ SSIS steps</div><div class="value">454</div></div>
+      <div class="stat"><div class="label">Unique .dtsx packages</div><div class="value">555 <span class="u">&middot; excl. backups</span></div></div>
+      <div class="stat"><div class="label">Job steps running SSIS</div><div class="value">454</div></div>
       <div class="stat"><div class="label">Steps to flat files</div><div class="value">111</div></div>
     </div>
     <div class="ul reveal d3" style="margin:16px 0 8px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)">Largest deployment subdirectories by step count</div>
@@ -377,10 +376,10 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
       <div class="stat"><div class="label">Total agent jobs</div><div class="value">1,132</div></div>
       <div class="stat"><div class="label">Active (enabled)</div><div class="value">350 <span class="u">&middot; 31%</span></div></div>
       <div class="stat"><div class="label">Inactive (disabled)</div><div class="value">782 <span class="u">&middot; 69%</span></div></div>
-      <div class="stat"><div class="label">Jobs w/ SSIS steps</div><div class="value">454</div></div>
-      <div class="stat"><div class="label">CmdExec-only jobs</div><div class="value">303</div></div>
-      <div class="stat"><div class="label">Last successful run</div><div class="value">340 <span class="u">jobs</span></div></div>
-      <div class="stat"><div class="label">Last failed run</div><div class="value">47 <span class="u">jobs</span></div></div>
+      <div class="stat"><div class="label">Jobs w/ SSIS dependency</div><div class="value">454</div></div>
+      <div class="stat"><div class="label">SSIS pkgs in dependent jobs</div><div class="value">539</div></div>
+      <div class="stat"><div class="label">SSIS pkgs found (network)</div><div class="value">460</div></div>
+      <div class="stat"><div class="label">SSIS pkgs missing (network)</div><div class="value">79</div></div>
       <div class="stat"><div class="label">Legacy footprint</div><div class="value">69%</div></div>
     </div>
     <div class="notebar reveal d3" style="margin-top:16px">
@@ -411,7 +410,7 @@ table.lots{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
     <p class="lede reveal d1">Connectivity is confirmed. Two workstreams now run in parallel.</p>
     <div class="steps reveal d2" style="margin-top:18px">
       <div class="stepcard ssis"><div class="h"><span class="pre">In Progress</span>SSIS Package Parsing</div>
-        <div class="b"><div class="havitem">Parse the 368 .dtsx packages.</div><div class="havitem">Resolve the 111 flat-file references and 3 MSDB-catalog packages.</div></div></div>
+        <div class="b"><div class="havitem">Parse the 555 .dtsx packages.</div><div class="havitem">Resolve the 111 flat-file references and 3 MSDB-catalog packages.</div></div></div>
       <div class="stepcard"><div class="h"><span class="dn">D2</span>ODS Metadata Inventory</div>
         <div class="b"><div class="havitem">Build the metadata inventory across the in-scope databases.</div><div class="havitem">Catalog tables, views, procs, and schemas for lineage.</div></div></div>
     </div>
