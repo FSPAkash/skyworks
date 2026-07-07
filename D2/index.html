@@ -121,6 +121,14 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
 .bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
 .barv{font-size:11.5px;font-weight:700;color:var(--accent-ink);text-align:right;font-variant-numeric:tabular-nums}
 .barn.sm{font-size:10.5px}
+/* stacked table rows (full names, no collision) */
+.trow{margin-bottom:9px}
+.trow:last-child{margin-bottom:0}
+.trow .tn{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px}
+.trow .tn .nm{font-size:10.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .tn .nm .db{color:var(--ink-3);font-weight:500}
+.trow .tn .v{font-size:11px;font-weight:700;color:var(--accent-ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.trow .bar{height:8px}
 /* finding cards */
 .finds{display:grid;gap:12px}
 .find{display:grid;grid-template-columns:128px 1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
@@ -217,7 +225,7 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
       <div class="card"><div class="card-head"><span class="dot-r"></span>Row count by database (of 28.5B)</div>
         <div class="card-body"><div class="barrow"><span class="barn">Skyworks_ODS</span><div class="bar"><i style="width:100%"></i></div><span class="barv">9.09B</span></div><div class="barrow"><span class="barn">Skyworks_ODS_Archive</span><div class="bar"><i style="width:74%"></i></div><span class="barv">6.76B</span></div><div class="barrow"><span class="barn">LIB_ECC_RTP</span><div class="bar"><i style="width:72%"></i></div><span class="barv">6.51B</span></div><div class="barrow"><span class="barn">Skyworks_WH</span><div class="bar"><i style="width:67%"></i></div><span class="barv">6.08B</span></div><div class="barrow"><span class="barn">SAP_Snapshot_AdvPlan</span><div class="bar"><i style="width:1%"></i></div><span class="barv">43.0M</span></div><div class="barrow"><span class="barn">All others</span><div class="bar"><i style="width:1%"></i></div><span class="barv">26.4M</span></div></div></div>
       <div class="card"><div class="card-head"><span class="dot-r"></span>Largest individual tables</div>
-        <div class="card-body"><div class="barrow"><span class="barn sm">Skyworks_WH.sd.FactVersions</span><div class="bar"><i style="width:100%"></i></div><span class="barv">1.09B</span></div><div class="barrow"><span class="barn sm">LIB_ECC_RTP.sap.JCDS</span><div class="bar"><i style="width:88%"></i></div><span class="barv">1.08B</span></div><div class="barrow"><span class="barn sm">LIB_ECC_RTP.sap.JEST</span><div class="bar"><i style="width:76%"></i></div><span class="barv">1.05B</span></div><div class="barrow"><span class="barn sm">Skyworks_WH.sd.FactSalesAndDemandPlanningArchive</span><div class="bar"><i style="width:64%"></i></div><span class="barv">952M</span></div><div class="barrow"><span class="barn sm">Skyworks_ODS_Archive.sdplanning.FactPlanningAllocatedVersions_Archive</span><div class="bar"><i style="width:52%"></i></div><span class="barv">823M</span></div></div></div>
+        <div class="card-body"><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactVersions</span><span class="v">1.09B</span></div><div class="bar"><i style="width:100%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JCDS</span><span class="v">1.08B</span></div><div class="bar"><i style="width:88%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JEST</span><span class="v">1.05B</span></div><div class="bar"><i style="width:76%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactSalesAndDemandPlanningArchive</span><span class="v">952M</span></div><div class="bar"><i style="width:64%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_ODS_Archive.</span>sdplanning.FactPlanningAllocatedVersions_Archive</span><span class="v">823M</span></div><div class="bar"><i style="width:52%"></i></div></div></div></div>
     </div>
     <div class="notebar reveal d3" style="margin-top:14px">
       <div class="blk"><div class="h">Long tail</div><p><b>558</b> tables are empty (0 rows), candidate deprecations to weigh in the transition backlog.</p></div>
