@@ -26,7 +26,9 @@ body{display:flex;align-items:center;justify-content:center;overflow:hidden;
 #scaler{position:relative}
 #stage{position:relative;width:1280px;height:720px;background:#fff;overflow:hidden;
   box-shadow:0 30px 80px rgba(0,0,0,.5)}
-.slide{position:absolute;inset:0;display:grid;grid-template-rows:46px 3px 1fr 44px}
+.slide{position:absolute;inset:0;display:grid;grid-template-rows:46px 3px 1fr 44px;
+  opacity:0;visibility:hidden;transition:opacity .28s}
+.slide.active{opacity:1;visibility:visible}
 .topbar{background:var(--navy);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
   padding:0 22px;color:#fff}
 .topbar .tl{display:flex;align-items:center;gap:12px}
