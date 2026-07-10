@@ -12,7 +12,15 @@ import json
 import os
 import random
 import time
+from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory, abort
+
+try:
+    from keep_alive import init_keep_alive
+    KEEP_ALIVE_AVAILABLE = True
+except ImportError as e:
+    print(f"Keep-alive service not available: {e}")
+    KEEP_ALIVE_AVAILABLE = False
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 # Root used to resolve deliverable artifact paths. Locally this is the repo root
@@ -105,6 +113,19 @@ ROLE_ACCESS = {
 }
 
 app = Flask(__name__, static_folder=None)
+
+# Initialize keep-alive service for Render.com (must be at module level for Gunicorn)
+if KEEP_ALIVE_AVAILABLE:
+    try:
+        init_keep_alive()
+        print("Keep-alive service initialized")
+    except Exception as e:
+        print(f"Failed to initialize keep-alive: {e}")
+
+
+@app.get("/api/health")
+def health_check():
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
 
 REQUIRED_KEYS = {"product", "client", "layers", "phases", "deliverables", "chatbot"}

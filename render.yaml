@@ -5,7 +5,13 @@ services:
     rootDir: app/backend
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    # single worker on the free tier: fits 512MB and avoids duplicate keep-alive pings
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4
     envVars:
       - key: ARTIFACT_ROOT
         value: /opt/render/project/src
+      # Keep-alive: pings /api/health every 14 min so the free tier doesn't sleep.
+      # RENDER=true is auto-set by the platform. Set the public service URL below
+      # after the first deploy (Render also exposes it as RENDER_EXTERNAL_URL).
+      - key: RENDER_EXTERNAL_URL
+        value: https://fs-data-bpc.onrender.com
