@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useConfig, connReadiness } from "../config.jsx";
+import { GENIE_LOGO } from "../genielogo.js";
 
 // Natural step-by-step intake: the Co-Pilot walks the source groups one at a
 // time in I -> C -> U order, asking conversationally, then provisions the picks
@@ -102,7 +103,7 @@ export default function ChatBot() {
     <>
       {!botOpen && (
         <button className="cb-fab" onClick={() => setBotOpen(true)}>
-          <span className="cb-fab-ic">FS</span>
+          <span className="cb-fab-ic"><img src={GENIE_LOGO} alt="FS" /></span>
           <span>
             <b>FS Data Genie</b>
             <i>{gathered ? "Info gathered" : r.hasSelection ? `Sources ${r.connected}/${r.total}` : "Set up sources to connect"}</i>
@@ -113,7 +114,7 @@ export default function ChatBot() {
       {botOpen && (
         <div className="cb-panel">
           <div className="cb-head">
-            <span className="cb-head-tag">FS</span>
+            <span className="cb-head-tag"><img src={GENIE_LOGO} alt="FS" /></span>
             <div>
               <div className="cb-title">FS Data Genie</div>
               <div className="cb-progress">
@@ -172,28 +173,35 @@ export default function ChatBot() {
       )}
 
       <style>{`
+        /* Genie: only the panel/FAB background is blue see-through glass;
+           bubbles, chips and buttons keep the app's green/white treatment */
         .cb-fab{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);display:flex;align-items:center;gap:12px;
-          padding:11px 17px 11px 13px;border:1px solid var(--hair);cursor:pointer;border-radius:0;
-          background:var(--paper);box-shadow:var(--soft);z-index:60;text-align:left}
-        .cb-fab:hover{box-shadow:var(--halo);transform:translateY(-1px);transition:all .14s}
-        .cb-fab-ic{width:38px;height:38px;background:var(--fs-green);color:#fff;border-radius:0;
-          display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.04em;flex:0 0 auto}
+          padding:11px 17px 11px 13px;border:1px solid rgba(90,140,230,.35);cursor:pointer;border-radius:0;
+          background:rgba(120,170,255,.20);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);
+          box-shadow:0 10px 30px -12px rgba(50,100,220,.4);z-index:60;text-align:left}
+        .cb-fab:hover{background:rgba(120,170,255,.30);transform:translateY(-1px);transition:all .14s}
+        .cb-fab-ic{width:38px;height:38px;border-radius:0;overflow:hidden;
+          display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+        .cb-fab-ic img{width:100%;height:100%;object-fit:contain;display:block}
         .cb-fab span span,.cb-fab>span:last-child{display:flex;flex-direction:column}
         .cb-fab b{font-size:13px;color:var(--ink);font-weight:800}
         .cb-fab i{font-size:10.5px;color:var(--ink-3);font-style:normal;font-weight:600}
 
         .cb-panel{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);width:400px;
           max-height:min(660px,calc(100vh - var(--header-h) - var(--footer-h) - 32px));
-          border:1px solid var(--hair);border-radius:0;background:var(--paper);
-          box-shadow:var(--halo);display:flex;flex-direction:column;overflow:hidden;z-index:60}
-        .cb-head{background:var(--paper);color:var(--ink);padding:13px 15px;display:flex;align-items:center;gap:10px;
-          border-bottom:1px solid var(--hair)}
-        .cb-head-tag{background:var(--accent-tint);color:var(--accent-ink);font-size:10px;font-weight:800;letter-spacing:.06em;padding:4px 8px;border-radius:0;flex:0 0 auto}
+          border:1px solid rgba(90,140,230,.35);border-radius:0;
+          background:rgba(120,170,255,.16);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
+          box-shadow:0 22px 55px -20px rgba(40,90,210,.5);display:flex;flex-direction:column;overflow:hidden;z-index:60}
+        .cb-head{background:rgba(255,255,255,.3);color:var(--ink);padding:13px 15px;display:flex;align-items:center;gap:10px;
+          border-bottom:1px solid rgba(90,140,230,.28)}
+        .cb-head-tag{width:26px;height:26px;padding:0;overflow:hidden;border-radius:0;flex:0 0 auto;
+          display:flex;align-items:center;justify-content:center}
+        .cb-head-tag img{width:100%;height:100%;object-fit:contain;display:block}
         .cb-title{font-weight:800;font-size:13px;color:var(--ink)}
         .cb-progress{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);font-weight:700;margin-top:1px}
-        .cb-x{background:var(--tile);border:1px solid var(--hair);color:var(--ink-3);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:700;margin-left:auto;border-radius:0}
-        .cb-x:hover{background:var(--tile-2);color:var(--ink)}
-        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--page)}
+        .cb-x{background:rgba(255,255,255,.55);border:1px solid var(--hair);color:var(--ink-3);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:700;margin-left:auto;border-radius:0}
+        .cb-x:hover{background:#fff;color:var(--ink)}
+        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:transparent}
         .cb-msg{display:flex;flex-direction:column;max-width:88%}
         .cb-msg.bot{align-self:flex-start}
         .cb-msg.user{align-self:flex-end}
@@ -209,10 +217,10 @@ export default function ChatBot() {
           background:var(--tile);border:1px solid var(--hair);border-radius:0;padding:6px 12px 6px 9px;transition:all .12s}
         .cb-pick:hover{border-color:var(--accent-soft)}
         .cb-pick.on{background:var(--accent-tint);border-color:transparent;color:var(--accent-ink)}
-        .cb-box{width:14px;height:14px;border:1.5px solid var(--ink-4);border-radius:0;flex:0 0 auto;position:relative}
-        .cb-pick.on .cb-box{background:var(--fs-green);border-color:var(--fs-green)}
-        .cb-pick.on .cb-box::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(40deg)}
-        .cb-input{border-top:1px solid var(--hair);padding:13px;background:var(--paper)}
+        .cb-box{width:15px;height:15px;border:1.5px solid var(--ink-4);border-radius:50%;flex:0 0 auto;position:relative}
+        .cb-pick.on .cb-box{border-color:var(--fs-green)}
+        .cb-pick.on .cb-box::after{content:"";position:absolute;left:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--fs-green)}
+        .cb-input{border-top:1px solid rgba(90,140,230,.28);padding:13px;background:rgba(255,255,255,.3)}
       `}</style>
     </>
   );
