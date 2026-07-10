@@ -1,0 +1,32 @@
+{
+  "infrastructure": [
+    "SAP",
+    "ECC",
+    "S/4 HANA",
+    "PeopleSoft",
+    "CRM",
+    "SQL",
+    "Oracle",
+    "Db2",
+    "Exchange / M365",
+    "Domain Specific Information",
+    "Kinaxis",
+    "PLM",
+    "EDI",
+    "PROMIS",
+    "Warehouse",
+    "Enterprise Analytics"
+  ],
+  "collection": [
+    "ODS schemas",
+    "Tables & columns",
+    "~250 SSIS packages",
+    "Query logs (usage)"
+  ],
+  "unification": [
+    "Upstream feeds",
+    "Downstream consumers",
+    "Dataset ownership",
+    "Reference data"
+  ]
+}

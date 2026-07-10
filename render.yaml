@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fs-data-bpc
+    runtime: python
+    rootDir: app/backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: ARTIFACT_ROOT
+        value: /opt/render/project/src

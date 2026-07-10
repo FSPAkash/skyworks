@@ -1,0 +1,12 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# os
+.DS_Store
+Thumbs.db
+
+# NOTE: app/frontend/dist/ is intentionally committed (see app/.gitignore) so the
+# Python host can serve the built SPA without a Node build step.

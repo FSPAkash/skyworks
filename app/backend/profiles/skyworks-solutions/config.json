@@ -1,0 +1,574 @@
+{
+  "mode": "client",
+  "product": {
+    "name": "Data - BPC",
+    "short": "Data - BPC",
+    "bpcFull": "Business Process Co-Pilot"
+  },
+  "client": {
+    "name": "Skyworks Solutions",
+    "engagement": "ODS Assessment & Medallion Transition Planning",
+    "framework": "I-CUP",
+    "durationWeeks": 16,
+    "activeWeeks": 12,
+    "acceptanceWeeks": 4
+  },
+  "profile": {
+    "odsSizeTB": 1.7,
+    "cpus": 22,
+    "ssisJobs": 250,
+    "peakBatchesPerSec": 1231,
+    "lineageSystems": [
+      "SAP",
+      "Kinaxis",
+      "SKY Apps",
+      "PLM",
+      "EDI",
+      "PROMIS",
+      "CRM",
+      "Warehouse",
+      "Enterprise Analytics"
+    ]
+  },
+  "layers": [
+    {
+      "id": "I",
+      "key": "infrastructure",
+      "name": "Infrastructure",
+      "tag": "I \u00b7 Infrastructure",
+      "summary": "Skyworks-owned input layer. Target platform, access model, and lineage availability. FS does not provision this.",
+      "ownedBy": "Skyworks",
+      "topics": [
+        "Infra Connectivity",
+        "Collection",
+        "Data Discovery",
+        "Security"
+      ],
+      "sourceGroups": [
+        {
+          "label": "ERP",
+          "items": [
+            "SAP",
+            "ECC",
+            "S/4 HANA",
+            "PeopleSoft"
+          ]
+        },
+        {
+          "label": "CRM",
+          "items": [
+            "CRM"
+          ]
+        },
+        {
+          "label": "Databases",
+          "items": [
+            "SQL",
+            "Oracle",
+            "Db2"
+          ]
+        },
+        {
+          "label": "Email",
+          "items": [
+            "Exchange / M365"
+          ]
+        },
+        {
+          "label": "External Sources",
+          "items": [
+            "Domain Specific Information",
+            "Kinaxis",
+            "PLM",
+            "EDI",
+            "PROMIS",
+            "Warehouse",
+            "Enterprise Analytics"
+          ]
+        }
+      ],
+      "deliverables": []
+    },
+    {
+      "id": "C",
+      "key": "collection",
+      "name": "Collection",
+      "tag": "C \u00b7 Collection",
+      "summary": "Discovery and metadata ingestion. Validate connectivity, collect metadata, SSIS packages, and query logs.",
+      "ownedBy": "FS",
+      "sourceGroups": [
+        {
+          "label": "Metadata",
+          "items": [
+            "ODS schemas",
+            "Tables & columns",
+            "~250 SSIS packages"
+          ]
+        },
+        {
+          "label": "Logs",
+          "items": [
+            "Query logs (usage)"
+          ]
+        }
+      ],
+      "deliverables": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "U",
+      "key": "unification",
+      "name": "Unification",
+      "tag": "U \u00b7 Unification",
+      "summary": "End-to-end lineage mapping across ODS datasets and the nine reference systems, plus data ownership mapping.",
+      "ownedBy": "FS",
+      "sourceGroups": [
+        {
+          "label": "Lineage",
+          "items": [
+            "Upstream feeds",
+            "Downstream consumers"
+          ]
+        },
+        {
+          "label": "Identity",
+          "items": [
+            "Dataset ownership",
+            "Reference data"
+          ]
+        }
+      ],
+      "deliverables": [
+        3
+      ]
+    },
+    {
+      "id": "P",
+      "key": "presentation",
+      "name": "Presentation",
+      "tag": "P \u00b7 Presentation",
+      "summary": "Classification, alignment, simulation, and handover, packaged for Skyworks to act and own: reports, backlog, playbook, and executive summary.",
+      "ownedBy": "FS",
+      "sourceGroups": [
+        {
+          "label": "Reports",
+          "items": [
+            "Classification report",
+            "Alignment baseline",
+            "Executive summary"
+          ]
+        },
+        {
+          "label": "Models",
+          "items": [
+            "Cost & performance model",
+            "Transition backlog"
+          ]
+        },
+        {
+          "label": "Enablement",
+          "items": [
+            "Transition playbook",
+            "Walkthroughs"
+          ]
+        }
+      ],
+      "deliverables": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "id": 1,
+      "name": "Environment Setup and Discovery",
+      "weeks": "W1-3",
+      "weekStart": 1,
+      "weekEnd": 3,
+      "layer": "collection",
+      "deliverables": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Lineage Mapping and Classification",
+      "weeks": "W4-7",
+      "weekStart": 4,
+      "weekEnd": 7,
+      "layer": "unification",
+      "deliverables": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Impact Simulation & Prioritization",
+      "weeks": "W8-10",
+      "weekStart": 8,
+      "weekEnd": 10,
+      "layer": "presentation",
+      "deliverables": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Enablement & Handover",
+      "weeks": "W11-12",
+      "weekStart": 11,
+      "weekEnd": 12,
+      "layer": "presentation",
+      "deliverables": [
+        8,
+        9
+      ]
+    }
+  ],
+  "deliverables": [
+    {
+      "id": 1,
+      "code": "D1",
+      "name": "Connectivity Status Report",
+      "purpose": "Validate ODS access and identify constraints",
+      "phase": 1,
+      "layer": "collection",
+      "weeks": "W1-3",
+      "status": "delivered",
+      "artifact": "/artifacts/D1/index.html"
+    },
+    {
+      "id": 2,
+      "code": "D2",
+      "name": "ODS Metadata Inventory",
+      "purpose": "Centralized metadata catalog",
+      "phase": 1,
+      "layer": "collection",
+      "weeks": "W1-3",
+      "status": "delivered",
+      "artifact": "/artifacts/D2/index.html"
+    },
+    {
+      "id": 3,
+      "code": "D3",
+      "name": "End-to-End ODS Lineage Map",
+      "purpose": "Data flow visibility",
+      "phase": 2,
+      "layer": "unification",
+      "weeks": "W4-7",
+      "status": "in-progress",
+      "artifact": null
+    },
+    {
+      "id": 4,
+      "code": "D4",
+      "name": "ODS Dataset Classification Report",
+      "purpose": "Bronze / Silver / Gold recommendations",
+      "phase": 2,
+      "layer": "presentation",
+      "weeks": "W4-7",
+      "status": "planned",
+      "artifact": null
+    },
+    {
+      "id": 5,
+      "code": "D5",
+      "name": "Architecture Alignment Baseline",
+      "purpose": "Current-state gap analysis",
+      "phase": 2,
+      "layer": "presentation",
+      "weeks": "W4-7",
+      "status": "planned",
+      "artifact": null
+    },
+    {
+      "id": 6,
+      "code": "D6",
+      "name": "Cost & Performance Simulation Model",
+      "purpose": "Migration impact analysis",
+      "phase": 3,
+      "layer": "presentation",
+      "weeks": "W8-10",
+      "status": "planned",
+      "artifact": null
+    },
+    {
+      "id": 7,
+      "code": "D7",
+      "name": "Prioritized Transition Backlog",
+      "purpose": "Ranked migration opportunities",
+      "phase": 3,
+      "layer": "presentation",
+      "weeks": "W8-10",
+      "status": "planned",
+      "artifact": null
+    },
+    {
+      "id": 8,
+      "code": "D8",
+      "name": "Transition Playbook",
+      "purpose": "Execution guidance",
+      "phase": 4,
+      "layer": "presentation",
+      "weeks": "W11-12",
+      "status": "planned",
+      "artifact": null
+    },
+    {
+      "id": 9,
+      "code": "D9",
+      "name": "Executive Summary Report",
+      "purpose": "Leadership decision package",
+      "phase": 4,
+      "layer": "presentation",
+      "weeks": "W11-12",
+      "status": "planned",
+      "artifact": null
+    }
+  ],
+  "chatbot": {
+    "intro": "Hi, I'm the Data BPC Co-Pilot. I run intake per I-CUP section. Open the section you're working on and I'll ask only the questions that section needs.",
+    "outro": "Section intake captured. Move to the next I-CUP layer and I'll ask its questions.",
+    "sections": {
+      "infrastructure": {
+        "intro": "Infrastructure: confirm the Skyworks-owned foundation and the source systems we connect to, with connection and access details so Data - BPC can auto-pull from the ODS and reference systems.",
+        "questions": [
+          {
+            "id": "infraPosture",
+            "prompt": "What is the Infrastructure posture?",
+            "field": "Posture",
+            "options": [
+              "Provided (Skyworks owns it)",
+              "Advise",
+              "Build"
+            ]
+          },
+          {
+            "id": "infraPlatform",
+            "prompt": "What is the target platform for the medallion architecture?",
+            "field": "Target platform",
+            "options": [
+              "Microsoft Fabric",
+              "Databricks",
+              "Snowflake",
+              "Synapse"
+            ]
+          },
+          {
+            "id": "infraSources",
+            "prompt": "Which source systems are in scope? (ERP, CRM, Databases, Email, External)",
+            "field": "Source systems",
+            "options": [
+              "ODS + ERP + reference systems",
+              "ODS + databases only",
+              "All connected sources"
+            ]
+          },
+          {
+            "id": "infraErp",
+            "prompt": "Which ERP system feeds the ODS?",
+            "field": "ERP system",
+            "options": [
+              "SAP",
+              "ECC",
+              "S/4 HANA",
+              "PeopleSoft"
+            ]
+          },
+          {
+            "id": "infraDb",
+            "prompt": "Which database platform holds the ODS?",
+            "field": "Database",
+            "options": [
+              "SQL",
+              "Oracle",
+              "Db2",
+              "Mixed"
+            ]
+          },
+          {
+            "id": "infraConnType",
+            "prompt": "How should Data - BPC connect to pull data?",
+            "field": "Connection method",
+            "options": [
+              "Direct connection string",
+              "Service account + API",
+              "Read replica",
+              "Metadata export only"
+            ]
+          },
+          {
+            "id": "infraCreds",
+            "prompt": "How are login / access credentials provided for auto-pull?",
+            "field": "Credentials",
+            "options": [
+              "Service account (read-only)",
+              "Named user credentials",
+              "Key vault / secrets manager",
+              "Provided per-source later"
+            ]
+          },
+          {
+            "id": "infraAccessOwner",
+            "prompt": "Who grants and owns ODS + source access?",
+            "field": "Access owner",
+            "options": [
+              "Skyworks DBA team",
+              "Skyworks Data Platform team",
+              "System owners per source",
+              "External vendor"
+            ]
+          },
+          {
+            "id": "infraSecurity",
+            "prompt": "What security controls apply to the connection?",
+            "field": "Security",
+            "options": [
+              "MFA + IP allowlist",
+              "VPN / private link",
+              "Read-only role",
+              "Standard credentials"
+            ]
+          },
+          {
+            "id": "infraLineage",
+            "prompt": "Is an automated lineage system (API) available?",
+            "field": "Lineage system",
+            "options": [
+              "Yes, API available",
+              "Partial / manual",
+              "No lineage tooling"
+            ]
+          }
+        ]
+      },
+      "collection": {
+        "intro": "Collection: confirm what we ingest from the ODS and the access that lets Data - BPC pull it automatically.",
+        "questions": [
+          {
+            "id": "colMetadata",
+            "prompt": "Can FS ingest ODS metadata (schemas, tables, columns)?",
+            "field": "Metadata ingestion",
+            "options": [
+              "Full catalog access",
+              "Subset / by request",
+              "Manual export"
+            ]
+          },
+          {
+            "id": "colCreds",
+            "prompt": "What access level do the collection credentials have?",
+            "field": "Collection access",
+            "options": [
+              "Read-only service account",
+              "Read-only replica",
+              "Metadata export only"
+            ]
+          },
+          {
+            "id": "colSsis",
+            "prompt": "Are the ~250 SSIS packages available for inventory?",
+            "field": "SSIS packages",
+            "options": [
+              "Yes, all packages",
+              "Partial set",
+              "Not available"
+            ]
+          },
+          {
+            "id": "colLogs",
+            "prompt": "Are query logs available for usage scoring?",
+            "field": "Query logs",
+            "options": [
+              "Yes, full logs",
+              "Sampled window",
+              "Not available"
+            ]
+          }
+        ]
+      },
+      "unification": {
+        "intro": "Unification: confirm lineage, ownership, and access to the reference systems we pull from.",
+        "questions": [
+          {
+            "id": "uniOwnership",
+            "prompt": "Are dataset owners documented for lineage mapping?",
+            "field": "Data ownership",
+            "options": [
+              "Documented",
+              "Partially known",
+              "To be discovered"
+            ]
+          },
+          {
+            "id": "uniRefSystems",
+            "prompt": "Which reference systems should lineage cover?",
+            "field": "Reference systems",
+            "options": [
+              "All nine systems",
+              "Core systems only",
+              "SAP + Warehouse only"
+            ]
+          },
+          {
+            "id": "uniAccess",
+            "prompt": "Is a lineage / catalog system available to pull from?",
+            "field": "Lineage access",
+            "options": [
+              "Yes, API + credentials",
+              "Partial / manual export",
+              "No lineage tooling"
+            ]
+          }
+        ]
+      },
+      "presentation": {
+        "intro": "Presentation: confirm handover and audience.",
+        "questions": [
+          {
+            "id": "presPriority",
+            "prompt": "What should the transition backlog weight most heavily?",
+            "field": "Prioritization",
+            "options": [
+              "Usage frequency",
+              "Cost impact",
+              "Migration complexity"
+            ]
+          },
+          {
+            "id": "presAudience",
+            "prompt": "Who is the executive audience for the summary report?",
+            "field": "Executive audience",
+            "options": [
+              "CIO / CTO",
+              "Data leadership",
+              "Program steering committee"
+            ]
+          },
+          {
+            "id": "presHandover",
+            "prompt": "Preferred handover format for knowledge transfer?",
+            "field": "Handover format",
+            "options": [
+              "Live workshops",
+              "Recorded walkthroughs",
+              "Documentation only"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "brand": "skyworks"
+}

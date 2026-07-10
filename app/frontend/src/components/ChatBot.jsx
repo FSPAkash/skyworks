@@ -1,0 +1,224 @@
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useConfig, connReadiness } from "../config.jsx";
+
+// Natural step-by-step intake: the Co-Pilot walks the source groups one at a
+// time in I -> C -> U order, asking conversationally, then provisions the picks
+// as connections.
+export default function ChatBot() {
+  const { config, selection, saveSelection, sources, botOpen, setBotOpen } = useConfig();
+  const nav = useNavigate();
+  const bodyRef = useRef(null);
+
+  // flat ordered step list: one per (layer, group)
+  const steps = useMemo(() => {
+    const out = [];
+    (selection.layers || []).forEach((l) =>
+      (l.groups || []).forEach((g) =>
+        out.push({ layerKey: l.key, layerName: l.name, layerId: l.id, group: g.label, items: g.items })
+      )
+    );
+    return out;
+  }, [selection.layers]);
+
+  const [i, setI] = useState(0);                 // current step index
+  const [picks, setPicks] = useState({});        // { layerKey: Set(sources) }
+  const [msgs, setMsgs] = useState([]);          // conversation log
+  const [phase, setPhase] = useState("ask");     // ask | done
+  const [busy, setBusy] = useState(false);
+
+  const r = connReadiness(sources);
+  const started = msgs.length > 0;
+  // profile already fully provisioned (e.g. a delivered engagement): nothing to
+  // ask, just confirm the info is on file.
+  const gathered = r.hasSelection && r.complete;
+
+  const reset = () => {
+    const seed = {};
+    (selection.layers || []).forEach((l) => { seed[l.key] = new Set(selection.selected?.[l.key] || []); });
+    setPicks(seed);
+    setI(0);
+    setPhase("ask");
+    setMsgs([{ from: "bot", text: "Let's set up the data sources to connect. Going layer by layer, starting with Infrastructure." }]);
+  };
+
+  // start when opened
+  useEffect(() => {
+    if (botOpen && !started && steps.length) {
+      if (gathered) {
+        setPhase("done");
+        setMsgs([{ from: "bot", text: `Source information already gathered. ${r.total} connection${r.total === 1 ? "" : "s"} live across the layers. Open Connections to review endpoints.` }]);
+      } else {
+        reset();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [botOpen, steps.length]);
+
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, [msgs, i, phase]);
+
+  const step = steps[i];
+  const cur = step ? (picks[step.layerKey] || new Set()) : new Set();
+
+  const toggle = (src) => {
+    const s = new Set(picks[step.layerKey] || []);
+    s.has(src) ? s.delete(src) : s.add(src);
+    setPicks({ ...picks, [step.layerKey]: s });
+  };
+
+  const answerText = (set) => (set.size ? [...set].join(", ") : "None here");
+
+  const next = () => {
+    // log the user's answer for this group
+    setMsgs((m) => [...m,
+      { from: "user", text: answerText(cur) },
+    ]);
+    if (i + 1 < steps.length) {
+      const nx = steps[i + 1];
+      if (nx.layerKey !== step.layerKey) {
+        setMsgs((m) => [...m, { from: "bot", text: `Got it. On to ${nx.layerName}.` }]);
+      }
+      setI(i + 1);
+    } else {
+      finish();
+    }
+  };
+
+  const finish = async () => {
+    setBusy(true);
+    const payload = Object.fromEntries((selection.layers || []).map((l) => [l.key, [...(picks[l.key] || [])]]));
+    const total = Object.values(payload).reduce((a, arr) => a + arr.length, 0);
+    await saveSelection(payload);
+    setBusy(false);
+    setPhase("done");
+    setMsgs((m) => [...m, { from: "bot", text: total ? `Done. ${total} connection${total === 1 ? "" : "s"} set up across the layers. Open Connections to review endpoints and test each one.` : "No sources selected. Reopen anytime to add some." }]);
+  };
+
+  const goConnections = () => { setBotOpen(false); nav("/intake"); };
+
+  if (!config) return null;
+
+  return (
+    <>
+      {!botOpen && (
+        <button className="cb-fab" onClick={() => setBotOpen(true)}>
+          <span className="cb-fab-ic">FS</span>
+          <span>
+            <b>FS Data Genie</b>
+            <i>{gathered ? "Info gathered" : r.hasSelection ? `Sources ${r.connected}/${r.total}` : "Set up sources to connect"}</i>
+          </span>
+        </button>
+      )}
+
+      {botOpen && (
+        <div className="cb-panel">
+          <div className="cb-head">
+            <span className="cb-head-tag">FS</span>
+            <div>
+              <div className="cb-title">FS Data Genie</div>
+              <div className="cb-progress">
+                {steps.length > 0 && phase === "ask"
+                  ? `${step?.layerName} · step ${i + 1} of ${steps.length}`
+                  : phase === "done" ? "Setup complete" : "Source intake"}
+              </div>
+            </div>
+            <button className="cb-x" onClick={() => setBotOpen(false)}>×</button>
+          </div>
+
+          <div className="cb-body" ref={bodyRef}>
+            {msgs.map((m, k) => (
+              <div key={k} className={"cb-msg " + m.from}>
+                <div className="cb-bubble">{m.text}</div>
+              </div>
+            ))}
+
+            {phase === "ask" && step && (
+              <div className="cb-msg bot">
+                <div className="cb-ask">
+                  <div className="cb-ask-head">
+                    <span className="cb-lchip">{step.layerId}</span>
+                    <span>{groupPrompt(step)}</span>
+                  </div>
+                  <div className="cb-opts">
+                    {step.items.map((it) => {
+                      const on = cur.has(it);
+                      return (
+                        <button key={it} className={"cb-pick" + (on ? " on" : "")} onClick={() => toggle(it)}>
+                          <span className="cb-box" />{it}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="cb-input">
+            {phase === "ask" && step ? (
+              <button className="btn primary" style={{ width: "100%" }} onClick={next} disabled={busy}>
+                {i + 1 < steps.length ? "Continue" : "Finish setup"}
+              </button>
+            ) : phase === "done" ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn" onClick={reset}>Redo</button>
+                <button className="btn primary" style={{ flex: 1 }} onClick={goConnections}>Open Connections</button>
+              </div>
+            ) : (
+              <button className="btn primary" style={{ width: "100%" }} onClick={reset}>Start</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .cb-fab{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);display:flex;align-items:center;gap:12px;
+          padding:11px 17px 11px 13px;border:1px solid var(--hair);cursor:pointer;border-radius:0;
+          background:var(--paper);box-shadow:var(--soft);z-index:60;text-align:left}
+        .cb-fab:hover{box-shadow:var(--halo);transform:translateY(-1px);transition:all .14s}
+        .cb-fab-ic{width:38px;height:38px;background:var(--fs-green);color:#fff;border-radius:0;
+          display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.04em;flex:0 0 auto}
+        .cb-fab span span,.cb-fab>span:last-child{display:flex;flex-direction:column}
+        .cb-fab b{font-size:13px;color:var(--ink);font-weight:800}
+        .cb-fab i{font-size:10.5px;color:var(--ink-3);font-style:normal;font-weight:600}
+
+        .cb-panel{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);width:400px;
+          max-height:min(660px,calc(100vh - var(--header-h) - var(--footer-h) - 32px));
+          border:1px solid var(--hair);border-radius:0;background:var(--paper);
+          box-shadow:var(--halo);display:flex;flex-direction:column;overflow:hidden;z-index:60}
+        .cb-head{background:var(--paper);color:var(--ink);padding:13px 15px;display:flex;align-items:center;gap:10px;
+          border-bottom:1px solid var(--hair)}
+        .cb-head-tag{background:var(--accent-tint);color:var(--accent-ink);font-size:10px;font-weight:800;letter-spacing:.06em;padding:4px 8px;border-radius:0;flex:0 0 auto}
+        .cb-title{font-weight:800;font-size:13px;color:var(--ink)}
+        .cb-progress{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);font-weight:700;margin-top:1px}
+        .cb-x{background:var(--tile);border:1px solid var(--hair);color:var(--ink-3);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:700;margin-left:auto;border-radius:0}
+        .cb-x:hover{background:var(--tile-2);color:var(--ink)}
+        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--page)}
+        .cb-msg{display:flex;flex-direction:column;max-width:88%}
+        .cb-msg.bot{align-self:flex-start}
+        .cb-msg.user{align-self:flex-end}
+        .cb-bubble{padding:10px 13px;font-size:12.5px;line-height:1.45;border-radius:0}
+        .cb-msg.bot .cb-bubble{background:var(--paper);border:1px solid var(--hair);color:var(--ink);border-top-left-radius:4px}
+        .cb-msg.user .cb-bubble{background:var(--fs-green);color:#fff;border-top-right-radius:4px;font-weight:600}
+        .cb-ask{background:var(--paper);border:1px solid var(--hair);border-radius:0;border-top-left-radius:4px;padding:13px}
+        .cb-ask-head{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:11px;line-height:1.4}
+        .cb-lchip{width:22px;height:22px;background:var(--accent-tint);color:var(--accent-ink);border-radius:0;
+          display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:0 0 auto}
+        .cb-opts{display:flex;flex-wrap:wrap;gap:7px}
+        .cb-pick{display:inline-flex;align-items:center;gap:8px;font:700 12px var(--font);color:var(--ink-2);cursor:pointer;
+          background:var(--tile);border:1px solid var(--hair);border-radius:0;padding:6px 12px 6px 9px;transition:all .12s}
+        .cb-pick:hover{border-color:var(--accent-soft)}
+        .cb-pick.on{background:var(--accent-tint);border-color:transparent;color:var(--accent-ink)}
+        .cb-box{width:14px;height:14px;border:1.5px solid var(--ink-4);border-radius:0;flex:0 0 auto;position:relative}
+        .cb-pick.on .cb-box{background:var(--fs-green);border-color:var(--fs-green)}
+        .cb-pick.on .cb-box::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(40deg)}
+        .cb-input{border-top:1px solid var(--hair);padding:13px;background:var(--paper)}
+      `}</style>
+    </>
+  );
+}
+
+// natural prompt per group
+function groupPrompt(step) {
+  return `Which ${step.group} to connect?`;
+}
