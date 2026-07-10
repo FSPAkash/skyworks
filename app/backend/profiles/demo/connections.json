@@ -1,0 +1,148 @@
+{
+  "f3406f0636": {
+    "id": "f3406f0636",
+    "source": "S/4 HANA",
+    "layer": "infrastructure",
+    "kind": "erp",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "33c4726609": {
+    "id": "33c4726609",
+    "source": "Dynamics 365",
+    "layer": "infrastructure",
+    "kind": "crm",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "74d2d34c23": {
+    "id": "74d2d34c23",
+    "source": "Oracle",
+    "layer": "infrastructure",
+    "kind": "db",
+    "values": {
+      "host": "sql-ods.corp.internal",
+      "port": "1433",
+      "database": "ODS_PROD",
+      "authMode": "Service account",
+      "username": "svc_bpc_ro",
+      "secretRef": "kv://bpc/ods/sql-ro"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "68d0905a0e": {
+    "id": "68d0905a0e",
+    "source": "Google Workspace",
+    "layer": "infrastructure",
+    "kind": "mail",
+    "values": {
+      "tenant": "corp.onmicrosoft.com",
+      "authMode": "OAuth app (Graph)",
+      "clientId": "bpc-mail-reader",
+      "secretRef": "kv://bpc/mail/graph"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "443d35a2cc": {
+    "id": "443d35a2cc",
+    "source": "Third-party APIs",
+    "layer": "infrastructure",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "49bc695809": {
+    "id": "49bc695809",
+    "source": "Job / package inventory",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "b0203aff87": {
+    "id": "b0203aff87",
+    "source": "Audit trails",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "8db029fe6b": {
+    "id": "8db029fe6b",
+    "source": "SME interviews",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "b2098f585a": {
+    "id": "b2098f585a",
+    "source": "Transformations",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  },
+  "4529d9f02e": {
+    "id": "4529d9f02e",
+    "source": "Reference data",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "configured",
+    "testedAt": null,
+    "detail": null
+  }
+}

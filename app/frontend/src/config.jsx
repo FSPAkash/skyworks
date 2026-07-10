@@ -59,6 +59,7 @@ export function ConfigProvider({ children }) {
   const login = (u) => { setUser(u); sessionStorage.setItem("fs_user", JSON.stringify(u)); };
   const pickProfile = (p) => {
     setProfile(p); sessionStorage.setItem("fs_profile", JSON.stringify(p));
+    setBotOpen(false);  // close the Genie so it re-inits fresh for the new profile
     if (p.mode === "generic") {
       // fresh scratch session every time Start-Fresh is opened -> always blank
       const sid = "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -139,7 +140,7 @@ export function ConfigProvider({ children }) {
       login, pickProfile, logout, can, roleLabel: ROLE_LABEL,
       sources, loadSources, saveConnection, testConnection,
       selection, saveSelection, createProfile, deleteProfile, loadProfiles, saveNewProject,
-      hasUnsavedFresh, genericDirty,
+      hasUnsavedFresh, genericDirty, pid,
     }}>
       {children}
     </ConfigCtx.Provider>

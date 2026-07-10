@@ -7,7 +7,7 @@ import { GENIE_LOGO } from "../genielogo.js";
 // time in I -> C -> U order, asking conversationally, then provisions the picks
 // as connections.
 export default function ChatBot() {
-  const { config, selection, saveSelection, sources, botOpen, setBotOpen } = useConfig();
+  const { config, selection, saveSelection, sources, botOpen, setBotOpen, pid } = useConfig();
   const nav = useNavigate();
   const bodyRef = useRef(null);
 
@@ -43,18 +43,26 @@ export default function ChatBot() {
     setMsgs([{ from: "bot", text: "Let's set up the data sources to connect. Going layer by layer, starting with Infrastructure." }]);
   };
 
-  // start when opened
+  // switching profiles: wipe the conversation so it never carries stale state
+  // (e.g. fresh project -> Skyworks). Next open re-inits from the new profile.
   useEffect(() => {
-    if (botOpen && !started && steps.length) {
-      if (gathered) {
+    setMsgs([]); setPhase("ask"); setI(0); setPicks({});
+  }, [pid]);
+
+  // start / refresh when opened, or when the loaded data for this profile arrives
+  useEffect(() => {
+    if (!botOpen || !steps.length) return;
+    if (gathered) {
+      // already provisioned -> confirm, don't ask (even if a stale "ask" was shown)
+      if (phase !== "done" || !started) {
         setPhase("done");
         setMsgs([{ from: "bot", text: `Source information already gathered. ${r.total} connection${r.total === 1 ? "" : "s"} live across the layers. Open Connections to review endpoints.` }]);
-      } else {
-        reset();
       }
+    } else if (!started) {
+      reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [botOpen, steps.length]);
+  }, [botOpen, steps.length, gathered]);
 
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, [msgs, i, phase]);
 

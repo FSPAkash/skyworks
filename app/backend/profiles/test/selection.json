@@ -1,0 +1,18 @@
+{
+  "infrastructure": [
+    "ECC",
+    "HubSpot",
+    "Db2",
+    "Google Workspace",
+    "Flat files / EDI"
+  ],
+  "collection": [
+    "Job / package inventory",
+    "Audit trails",
+    "Existing docs"
+  ],
+  "unification": [
+    "Transformations",
+    "Reference data"
+  ]
+}

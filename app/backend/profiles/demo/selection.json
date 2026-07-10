@@ -1,0 +1,18 @@
+{
+  "infrastructure": [
+    "S/4 HANA",
+    "Dynamics 365",
+    "Oracle",
+    "Google Workspace",
+    "Third-party APIs"
+  ],
+  "collection": [
+    "Job / package inventory",
+    "Audit trails",
+    "SME interviews"
+  ],
+  "unification": [
+    "Transformations",
+    "Reference data"
+  ]
+}
