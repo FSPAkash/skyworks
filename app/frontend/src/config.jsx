@@ -26,18 +26,25 @@ export function ConfigProvider({ children }) {
     try { return JSON.parse(sessionStorage.getItem("fs_profile") || "null"); } catch { return null; }
   });
 
+  // Per-browser scratch-session id for the Start-Fresh project. Minted new on
+  // each generic pick so a fresh sign-in always starts blank (see backend).
+  const [sessionId, setSessionId] = useState(() => sessionStorage.getItem("fs_session") || "");
+  // whether the current Start-Fresh session has unsaved work (sources selected)
+  const [genericDirty, setGenericDirty] = useState(false);
+
   const pid = profile?.id || "generic";
-  const hdr = useCallback((extra = {}) => ({ "X-Profile": pid, "X-Role": user?.role || "", ...extra }), [pid, user]);
+  const hdr = useCallback((extra = {}) =>
+    ({ "X-Profile": pid, "X-Role": user?.role || "", "X-Session": sessionId, ...extra }), [pid, user, sessionId]);
 
   const loadProfiles = useCallback(() =>
     fetch("/api/profiles").then((r) => r.json()).then((d) => setProfiles(d.profiles || [])).catch(() => {}), []);
 
   const loadConfig = useCallback(() =>
-    fetch("/api/config", { headers: { "X-Profile": pid } }).then((r) => r.json()).then(setConfig).catch(() => setError("Could not load config.")), [pid]);
+    fetch("/api/config", { headers: { "X-Profile": pid, "X-Session": sessionId } }).then((r) => r.json()).then(setConfig).catch(() => setError("Could not load config.")), [pid, sessionId]);
   const loadSources = useCallback(() =>
-    fetch("/api/sources", { headers: { "X-Profile": pid } }).then((r) => r.json()).then(setSources).catch(() => {}), [pid]);
+    fetch("/api/sources", { headers: { "X-Profile": pid, "X-Session": sessionId } }).then((r) => r.json()).then(setSources).catch(() => {}), [pid, sessionId]);
   const loadSelection = useCallback(() =>
-    fetch("/api/selection", { headers: { "X-Profile": pid } }).then((r) => r.json()).then(setSelection).catch(() => {}), [pid]);
+    fetch("/api/selection", { headers: { "X-Profile": pid, "X-Session": sessionId } }).then((r) => r.json()).then(setSelection).catch(() => {}), [pid, sessionId]);
 
   useEffect(() => {
     loadProfiles();
@@ -50,15 +57,36 @@ export function ConfigProvider({ children }) {
   }, [user, pid, loadConfig, loadSources, loadSelection]);
 
   const login = (u) => { setUser(u); sessionStorage.setItem("fs_user", JSON.stringify(u)); };
-  const pickProfile = (p) => { setProfile(p); sessionStorage.setItem("fs_profile", JSON.stringify(p)); };
-  const logout = () => {
-    setUser(null); setProfile(null);
+  const pickProfile = (p) => {
+    setProfile(p); sessionStorage.setItem("fs_profile", JSON.stringify(p));
+    if (p.mode === "generic") {
+      // fresh scratch session every time Start-Fresh is opened -> always blank
+      const sid = "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      setSessionId(sid); sessionStorage.setItem("fs_session", sid);
+      setGenericDirty(false);
+    }
+  };
+  const resetSession = useCallback(async () => {
+    // discard the Start-Fresh scratch state on the server
+    try { await fetch("/api/session/reset", { method: "POST", headers: { "X-Session": sessionId } }); } catch {}
+  }, [sessionId]);
+  const logout = async () => {
+    if (pid === "generic") await resetSession();
+    setUser(null); setProfile(null); setGenericDirty(false);
+    setSessionId(""); sessionStorage.removeItem("fs_session");
     sessionStorage.removeItem("fs_user"); sessionStorage.removeItem("fs_profile");
   };
+  // true when in Start-Fresh with unsaved selections -> prompt to save on logout
+  const hasUnsavedFresh = () => pid === "generic" && genericDirty;
 
   const saveSelection = async (selected) => {
     const res = await fetch("/api/selection", { method: "POST", headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify({ selected }) });
     const out = await res.json();
+    // any source picked in a Start-Fresh session counts as unsaved work
+    if (pid === "generic") {
+      const any = Object.values(selected || {}).some((a) => (a || []).length);
+      setGenericDirty(any);
+    }
     await loadSelection(); await loadSources();
     return out;
   };
@@ -111,6 +139,7 @@ export function ConfigProvider({ children }) {
       login, pickProfile, logout, can, roleLabel: ROLE_LABEL,
       sources, loadSources, saveConnection, testConnection,
       selection, saveSelection, createProfile, deleteProfile, loadProfiles, saveNewProject,
+      hasUnsavedFresh, genericDirty,
     }}>
       {children}
     </ConfigCtx.Provider>

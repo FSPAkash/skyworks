@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
 import { ConfigProvider, useConfig, connReadiness } from "./config.jsx";
 import { FS_LOGO } from "./fslogo.js";
@@ -14,10 +15,28 @@ import Login from "./pages/Login.jsx";
 import ChatBot from "./components/ChatBot.jsx";
 
 function Topbar() {
-  const { config, user, logout, roleLabel } = useConfig();
+  const { config, user, logout, roleLabel, hasUnsavedFresh, saveNewProject } = useConfig();
   // The Skyworks wordmark is a specific client asset - only show it for the real
   // Skyworks engagement, not for user-saved projects that cloned the template.
   const skyBrand = config?.brand === "skyworks";
+  const [prompt, setPrompt] = useState(false);   // save-before-signout prompt
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const onSignOut = () => {
+    if (hasUnsavedFresh()) { setPrompt(true); setName(""); setErr(null); }
+    else logout();
+  };
+  const saveThenOut = async () => {
+    if (!name.trim()) { setErr("Name required."); return; }
+    setBusy(true); setErr(null);
+    const out = await saveNewProject(name.trim());
+    setBusy(false);
+    if (out.ok) { setPrompt(false); logout(); }
+    else setErr(out.error || "Could not save.");
+  };
+
   return (
     <header className="topbar">
       <div className="tb-left">
@@ -36,8 +55,43 @@ function Topbar() {
       </div>
       <div className="tb-right">
         {user && <div className="tb-user"><span className="tb-urole">{roleLabel[user.role]}</span></div>}
-        {user && <button className="tb-logout" onClick={logout}>Sign out</button>}
+        {user && <button className="tb-logout" onClick={onSignOut}>Sign out</button>}
       </div>
+
+      {prompt && createPortal(
+        <div className="so-overlay" onClick={() => !busy && setPrompt(false)}>
+          <div className="so-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="so-title">Save this project before signing out?</div>
+            <div className="so-sub">This Start Fresh Project has unsaved sources. Name it to keep it, or sign out and discard.</div>
+            <input className="so-in" placeholder="Project name" value={name} autoFocus
+              onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveThenOut()} />
+            {err && <div className="so-err">{err}</div>}
+            <div className="so-row">
+              <button className="btn" disabled={busy} onClick={() => { setPrompt(false); logout(); }}>Discard & sign out</button>
+              <button className="btn primary" disabled={busy} onClick={saveThenOut}>{busy ? "Saving…" : "Save & sign out"}</button>
+            </div>
+            <button className="so-cancel" disabled={busy} onClick={() => setPrompt(false)}>Cancel</button>
+          </div>
+          <style>{`
+            .so-overlay{position:fixed;inset:0;z-index:200;background:rgba(20,24,18,.34);
+              backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center}
+            .so-modal{width:420px;max-width:92vw;background:var(--paper);border:1px solid var(--hair);
+              box-shadow:var(--halo);padding:22px 22px 16px}
+            .so-title{font-size:16px;font-weight:800;color:var(--ink)}
+            .so-sub{font-size:12.5px;color:var(--ink-2);margin:7px 0 15px;line-height:1.5}
+            .so-in{width:100%;height:38px;border:1px solid var(--hair);padding:0 12px;font:600 13px var(--font);
+              background:var(--tile);color:var(--ink)}
+            .so-in:focus{outline:none;border-color:var(--fs-green);box-shadow:0 0 0 3px var(--accent-tint)}
+            .so-err{font-size:11.5px;color:var(--err);font-weight:700;margin-top:8px}
+            .so-row{display:flex;gap:9px;margin-top:16px}
+            .so-row .btn{flex:1}
+            .so-cancel{display:block;width:100%;margin-top:9px;background:none;border:none;color:var(--ink-3);
+              font:700 11px var(--font);text-transform:uppercase;letter-spacing:.1em;cursor:pointer;padding:6px}
+            .so-cancel:hover{color:var(--ink)}
+          `}</style>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }

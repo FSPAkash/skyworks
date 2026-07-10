@@ -189,8 +189,32 @@ def _pf(pid, name):
     return os.path.join(profile_dir(pid), name)
 
 
+# --- Start-Fresh (generic) session state ---------------------------------
+# The generic "Start Fresh Project" is a scratch session, not a stored profile.
+# Its selection/connections live IN MEMORY, keyed by a per-browser session id
+# sent via the X-Session header. This guarantees a fresh sign-in always starts
+# blank (no cross-session or cross-deploy carryover) and needs no disk, so it
+# behaves identically on Render's ephemeral filesystem. Saving a project copies
+# this scratch state onto a real (on-disk) profile.
+_GENERIC_STATE = {}  # { sessionId: {"selection": {...}, "connections": {...}} }
+
+
+def _session_id():
+    return request.headers.get("X-Session", "anon")
+
+
+def _generic_bucket():
+    return _GENERIC_STATE.setdefault(_session_id(), {"selection": {}, "connections": {}})
+
+
+def clear_generic_session(sid):
+    _GENERIC_STATE.pop(sid, None)
+
+
 def load_selection(pid):
-    p = _pf(pid, "selection.json") if pid != GENERIC_ID else os.path.join(PROFILES_DIR, f"_{GENERIC_ID}_selection.json")
+    if pid == GENERIC_ID:
+        return dict(_generic_bucket()["selection"])
+    p = _pf(pid, "selection.json")
     if os.path.exists(p):
         with open(p, encoding="utf-8") as f:
             return json.load(f)
@@ -198,14 +222,18 @@ def load_selection(pid):
 
 
 def save_selection(pid, data):
-    os.makedirs(profile_dir(pid) if pid != GENERIC_ID else PROFILES_DIR, exist_ok=True)
-    p = _pf(pid, "selection.json") if pid != GENERIC_ID else os.path.join(PROFILES_DIR, f"_{GENERIC_ID}_selection.json")
-    with open(p, "w", encoding="utf-8") as f:
+    if pid == GENERIC_ID:
+        _generic_bucket()["selection"] = data
+        return
+    os.makedirs(profile_dir(pid), exist_ok=True)
+    with open(_pf(pid, "selection.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
 def load_connections(pid):
-    p = _pf(pid, "connections.json") if pid != GENERIC_ID else os.path.join(PROFILES_DIR, f"_{GENERIC_ID}_connections.json")
+    if pid == GENERIC_ID:
+        return dict(_generic_bucket()["connections"])
+    p = _pf(pid, "connections.json")
     if os.path.exists(p):
         with open(p, encoding="utf-8") as f:
             return json.load(f)
@@ -213,9 +241,11 @@ def load_connections(pid):
 
 
 def save_connections(pid, data):
-    os.makedirs(profile_dir(pid) if pid != GENERIC_ID else PROFILES_DIR, exist_ok=True)
-    p = _pf(pid, "connections.json") if pid != GENERIC_ID else os.path.join(PROFILES_DIR, f"_{GENERIC_ID}_connections.json")
-    with open(p, "w", encoding="utf-8") as f:
+    if pid == GENERIC_ID:
+        _generic_bucket()["connections"] = data
+        return
+    os.makedirs(profile_dir(pid), exist_ok=True)
+    with open(_pf(pid, "connections.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
@@ -307,8 +337,19 @@ def new_profile():
     conns = load_connections(GENERIC_ID)
     if conns:
         save_connections(pid, conns)
+    # the scratch session has been promoted to a real profile; drop it so the
+    # next Start-Fresh session begins blank
+    clear_generic_session(_session_id())
     return jsonify({"ok": True, "id": pid, "name": name,
                     "engagement": cfg["client"].get("engagement", "")})
+
+
+@app.post("/api/session/reset")
+def session_reset():
+    """Discard the current Start-Fresh scratch session (called on sign-out).
+    Ensures the next fresh session starts blank."""
+    clear_generic_session(_session_id())
+    return jsonify({"ok": True})
 
 
 DELETE_PIN = "2345"  # mock demo gate for deleting a profile from the login screen
