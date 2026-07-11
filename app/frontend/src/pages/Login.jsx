@@ -2,15 +2,20 @@ import { useState } from "react";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 
-const ROLE_DESC = {
-  "c-level": "Presentation deliverables and Gantt.",
-  "data-science": "Full access, every layer.",
-  "delivery": "Journey, deliverables, Gantt, connections.",
-  "admin": "Full access plus profiles.",
+// Concise description of the role itself - what this person does on the
+// engagement, not the pages they can open.
+const ROLE_SHOWS = {
+  "c-level": "Tracks progress and outcomes at a glance.",
+  "architect": "Shapes target architecture and lineage.",
+  "engineer": "Builds connections and ingests metadata.",
+  "analyst": "Classifies, enriches and interprets the data.",
+  "delivery": "Runs the engagement end to end.",
+  "admin": "Configures the workspace and onboards projects.",
 };
 
 export default function Login() {
   const { profiles, users, profile, pickProfile, login, roleLabel, deleteProfile } = useConfig();
+  const shownFor = (role) => ROLE_SHOWS[role] || "Overview.";
   const [step, setStep] = useState(profile ? 1 : 0);
   const OPEN_PIN = "2345";
   const [delId, setDelId] = useState(null);   // profile id in delete-confirm mode
@@ -57,7 +62,7 @@ export default function Login() {
           <div className="login-head">
             <img src={FS_LOGO} alt="Findability Sciences" className="login-logo" />
           </div>
-          <div className="login-title">Data <span className="login-dash">-</span> BPC</div>
+          <div className="login-title"><span className="login-dash">BPC</span> for Data</div>
 
           {step === 0 ? (
             <>
@@ -89,7 +94,7 @@ export default function Login() {
                       </div>
                     ) : (
                       <>
-                        <span className={"lrow-tag " + (p.mode === "generic" ? "" : "on")}>{p.mode === "generic" ? "New" : "Client"}</span>
+                        <span className={"lrow-tag " + (p.mode === "generic" ? "" : "on")}>{p.mode === "generic" ? "New" : p.isDemo ? "Mock" : "Client"}</span>
                         <span className="lrow-name">{p.name}</span>
                         {p.mode !== "generic" && (
                           <button className="lrow-trash" title="Delete project" onClick={(e) => startDelete(e, p.id)} aria-label="Delete project">
@@ -111,9 +116,11 @@ export default function Login() {
               </div>
               <div className="login-list">
                 {users.map((u) => (
-                  <button key={u.id} className="lrow" onClick={() => login(u)}>
-                    <span className="lrow-name">{roleLabel[u.role]}</span>
-                    <span className="lrow-desc">{ROLE_DESC[u.role]}</span>
+                  <button key={u.id} className="lrow role" onClick={() => login(u)}>
+                    <div className="lrow-rmain">
+                      <span className="lrow-name">{roleLabel[u.role]}</span>
+                      <span className="lrow-shows"><span className="lrow-shows-lbl">Role</span>{shownFor(u.role)}</span>
+                    </div>
                     <svg className="lrow-arrow" width="16" height="16" viewBox="0 0 16 16"><path d="M3 8h9M8 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                 ))}
@@ -168,7 +175,13 @@ export default function Login() {
         .lrow-tag.on{background:var(--accent-tint);color:var(--accent-ink)}
         .lrow-name{font-size:14px;font-weight:800}
         .lrow-desc{font-size:11px;color:var(--ink-3);font-weight:600}
-        .lrow-arrow{margin-left:auto;color:var(--ink-4)}
+        .lrow.role{align-items:flex-start}
+        .lrow-rmain{display:flex;flex-direction:column;gap:5px;min-width:0}
+        .lrow-shows{font-size:11px;color:var(--ink-2);font-weight:600;line-height:1.5;display:flex;flex-wrap:wrap;
+          align-items:center;gap:6px}
+        .lrow-shows-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--accent-ink);
+          background:var(--accent-tint);padding:2px 6px;border-radius:0}
+        .lrow-arrow{margin-left:auto;color:var(--ink-4);flex:0 0 auto;align-self:center}
         .lrow:hover .lrow-arrow{color:var(--accent)}
         .lrow-trash{margin-left:auto;background:transparent;border:1px solid transparent;color:var(--ink-4);
           width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:0;padding:0}

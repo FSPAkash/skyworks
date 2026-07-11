@@ -4,7 +4,9 @@ const ConfigCtx = createContext(null);
 
 const ROLE_LABEL = {
   "c-level": "C-Level",
-  "data-science": "Data Science",
+  "architect": "Solution Architect",
+  "engineer": "Data Engineer",
+  "analyst": "Data Analyst",
   "delivery": "Delivery / PM",
   "admin": "Admin",
 };
@@ -15,8 +17,10 @@ export function ConfigProvider({ children }) {
   const [botOpen, setBotOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [access, setAccess] = useState({});
+  const [roleLayers, setRoleLayers] = useState({});
+  const [roleSubparts, setRoleSubparts] = useState({});
   const [profiles, setProfiles] = useState([]);
-  const [sources, setSources] = useState({ targets: [], layers: {} });
+  const [sources, setSources] = useState({ targets: [], layers: {}, categories: {}, meters: [] });
   const [selection, setSelection] = useState({ available: {}, selected: {} });
 
   const [user, setUser] = useState(() => {
@@ -48,23 +52,41 @@ export function ConfigProvider({ children }) {
 
   useEffect(() => {
     loadProfiles();
-    fetch("/api/users").then((r) => r.json()).then((d) => { setUsers(d.users || []); setAccess(d.access || {}); }).catch(() => {});
+    fetch("/api/users").then((r) => r.json()).then((d) => {
+      setUsers(d.users || []); setAccess(d.access || {});
+      setRoleLayers(d.layers || {}); setRoleSubparts(d.subparts || {});
+    }).catch(() => {});
   }, [loadProfiles]);
 
   useEffect(() => {
     if (!user) return;
+    // clear stale per-profile data synchronously so a newly picked profile never
+    // shows the previous one's connections/selection during the refetch gap
+    setSources({ targets: [], layers: {}, categories: {}, meters: [] });
+    setSelection({ available: {}, selected: {} });
     loadConfig(); loadSources(); loadSelection();
   }, [user, pid, loadConfig, loadSources, loadSelection]);
 
   const login = (u) => { setUser(u); sessionStorage.setItem("fs_user", JSON.stringify(u)); };
+  // wipe any prior profile's per-profile data immediately so the next profile
+  // never renders with stale connections/selection/config
+  const clearProfileData = () => {
+    setSources({ targets: [], layers: {}, categories: {}, meters: [] });
+    setSelection({ available: {}, selected: {} });
+    setConfig(null);
+  };
   const pickProfile = (p) => {
+    clearProfileData();
     setProfile(p); sessionStorage.setItem("fs_profile", JSON.stringify(p));
-    setBotOpen(false);  // close the Genie so it re-inits fresh for the new profile
     if (p.mode === "generic") {
       // fresh scratch session every time Start-Fresh is opened -> always blank
       const sid = "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
       setSessionId(sid); sessionStorage.setItem("fs_session", sid);
       setGenericDirty(false);
+      // open the Genie so the user knows to start source setup here
+      setBotOpen(true);
+    } else {
+      setBotOpen(false);  // close the Genie so it re-inits fresh for the new profile
     }
   };
   const resetSession = useCallback(async () => {
@@ -73,6 +95,7 @@ export function ConfigProvider({ children }) {
   }, [sessionId]);
   const logout = async () => {
     if (pid === "generic") await resetSession();
+    clearProfileData();
     setUser(null); setProfile(null); setGenericDirty(false);
     setSessionId(""); sessionStorage.removeItem("fs_session");
     sessionStorage.removeItem("fs_user"); sessionStorage.removeItem("fs_profile");
@@ -119,6 +142,28 @@ export function ConfigProvider({ children }) {
     return out;
   };
 
+  // Admin: upload a SOW PDF; backend extracts Overview fields (no dollar amounts)
+  const uploadSow = async (file, name) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (name) fd.append("name", name);
+    const res = await fetch("/api/profiles/from-sow", { method: "POST", headers: hdr(), body: fd });
+    const out = await res.json();
+    if (out.ok) await loadProfiles();
+    return out;
+  };
+
+  // Admin: build a profile from a hand-filled Overview form (no SOW / no JSON)
+  const createFromForm = async (form) => {
+    const res = await fetch("/api/profiles/from-form", {
+      method: "POST", headers: hdr({ "Content-Type": "application/json" }),
+      body: JSON.stringify(form),
+    });
+    const out = await res.json();
+    if (out.ok) await loadProfiles();
+    return out;
+  };
+
   const createProfile = async (json) => {
     const res = await fetch("/api/profiles", { method: "POST", headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify(json) });
     const out = await res.json();
@@ -133,13 +178,30 @@ export function ConfigProvider({ children }) {
   };
 
   const can = (routeKey) => user && (access[user.role] || []).includes(routeKey);
+  // which assessment layers this role may open
+  const rolesLoaded = Object.keys(roleLayers).length > 0;
+  const canLayer = (layerKey) => user && (roleLayers[user.role] || []).includes(layerKey);
+  // whether this role works on a given sub-part (only sub-parts listed in
+  // roleSubparts are gated; unlisted sub-parts are visible to any layer viewer)
+  const canSubpart = (subId) => {
+    if (!user) return false;
+    const roles = roleSubparts[subId];
+    if (!roles) return true;
+    return roles.includes(user.role);
+  };
+  const runDemo = async () => {
+    const res = await fetch("/api/demo/run", { method: "POST", headers: hdr() });
+    const out = await res.json();
+    await loadSelection(); await loadSources(); await loadConfig();
+    return out;
+  };
 
   return (
     <ConfigCtx.Provider value={{
       config, error, botOpen, setBotOpen, users, access, user, profile, profiles,
-      login, pickProfile, logout, can, roleLabel: ROLE_LABEL,
-      sources, loadSources, saveConnection, testConnection,
-      selection, saveSelection, createProfile, deleteProfile, loadProfiles, saveNewProject,
+      login, pickProfile, logout, can, canLayer, canSubpart, rolesLoaded, roleLabel: ROLE_LABEL,
+      sources, loadSources, saveConnection, testConnection, runDemo,
+      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow,
       hasUnsavedFresh, genericDirty, pid,
     }}>
       {children}

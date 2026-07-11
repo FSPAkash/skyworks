@@ -1,152 +1,305 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { useConfig, layerConnStatus } from "../config.jsx";
-import Stepper from "../components/Stepper.jsx";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useConfig } from "../config.jsx";
 
-const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", external: "External" };
+const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", cloud: "Cloud", llm: "LLM", external: "External" };
+const STATE_CLASS = { delivered: "delivered", "in-progress": "in-progress", planned: "planned" };
 
-const ACTIVITIES = {
-  infrastructure: ["Confirm posture (Provided / Advise / Build)", "Confirm target platform", "Confirm access model & owner", "Assess lineage availability"],
-  collection: ["Connectivity validation", "Metadata ingestion", "Package / job collection", "Query log collection"],
-  unification: ["End-to-end lineage analysis", "Data ownership mapping", "Dataset usage analysis"],
-  presentation: ["Classification & alignment", "Cost / performance & backlog", "Executive recommendations", "Playbook & knowledge transfer"],
-};
+// ---- connection form (folded in from the old Connections page) ----
+function ConnForm({ target }) {
+  const { saveConnection, testConnection } = useConfig();
+  const conn = target.connection;
+  const [values, setValues] = useState(() => {
+    const seed = {};
+    target.fields.forEach((f) => { if (f.prefill) seed[f.key] = f.prefill; });
+    return { ...seed, ...(conn?.values || {}) };
+  });
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [open, setOpen] = useState(false);
+  const status = conn?.status || "not-configured";
+  const set = (k, v) => setValues((p) => ({ ...p, [k]: v }));
+
+  const doTest = async () => {
+    setBusy(true); setResult(null);
+    await saveConnection(target.id, values);
+    const out = await testConnection(target.id);
+    setBusy(false); setResult(out);
+    if (out.ok) setOpen(false);
+  };
+
+  return (
+    <div className={"conn " + status}>
+      <div className="conn-head" onClick={() => setOpen((o) => !o)}>
+        <span className={"cdot " + status} />
+        <span className="conn-src">{target.source}</span>
+        <span className="chip">{KIND_LABEL[target.kind]}</span>
+        <span className="conn-status-txt">
+          {status === "connected" && conn?.detail
+            ? `${conn.detail.pingMs}ms · ${conn.detail.discovered} ${conn.detail.unit}`
+            : status === "configured" ? "Configured" : status === "not-configured" ? "Not connected" : status}
+        </span>
+        <span className="conn-toggle">{open ? "Close" : status === "connected" ? "Edit" : "Connect"}</span>
+      </div>
+      {open && (
+        <div className="conn-body">
+          <div className="conn-fields">
+            {target.fields.map((f) => (
+              <label key={f.key} className="fld">
+                <span className="fld-lbl">{f.label}{f.required && <i> *</i>}</span>
+                {f.type === "select" ? (
+                  <select value={values[f.key] || ""} onChange={(e) => set(f.key, e.target.value)}>
+                    <option value="">Select…</option>
+                    {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                ) : (
+                  <input value={values[f.key] || ""} onChange={(e) => set(f.key, e.target.value)} placeholder={f.prefill} autoComplete="off" />
+                )}
+                {f.secret && <span className="fld-hint">Reference only, resolved at pull time.</span>}
+              </label>
+            ))}
+          </div>
+          <div className="conn-actions">
+            <button className="btn primary" onClick={doTest} disabled={busy}>{busy ? "Testing…" : "Test connection"}</button>
+          </div>
+          {result && <div className={"conn-result " + (result.ok ? "ok" : "err")}>
+            {result.ok ? `Connected · ${result.detail.pingMs}ms · ${result.detail.discovered} ${result.detail.unit}` : result.error}
+          </div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Infrastructure: all connections split Sources / Cloud / LLM + meters ----
+function InfraConnections() {
+  const { sources, setBotOpen } = useConfig();
+  const cats = ["sources", "cloud", "llm"];
+  const catMeta = sources.categories || {};
+  const meters = sources.meters || [];
+  const hasAny = (sources.targets || []).length > 0;
+
+  return (
+    <div>
+      {!hasAny && (
+        <div className="gate" style={{ marginBottom: 16 }}>
+          <div className="g-ic">?</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, color: "var(--green-ink)", fontSize: 15 }}>No connections yet</div>
+            <div style={{ fontSize: 13, color: "var(--ink-2)" }}>Use the Genie to pick the sources to connect, or run the demo.</div>
+          </div>
+          <button className="btn primary" onClick={() => setBotOpen(true)}>Open Genie</button>
+        </div>
+      )}
+
+      {cats.map((cat) => {
+        const cm = catMeta[cat];
+        if (!cm || cm.total === 0) return null;
+        const targets = (sources.targets || []).filter((t) => t.category === cat);
+        const cMeters = meters.filter((m) => m.category === cat);
+        const complete = cm.connected === cm.total;
+        return (
+          <div key={cat} className="card" style={{ marginBottom: 14 }}>
+            <div className="card-head">
+              <span className="chip accent">{cm.label}</span>
+              <span className={"conncount " + (complete ? "ok" : cm.connected ? "part" : "none")}>
+                {cm.connected}/{cm.total} · connected
+              </span>
+            </div>
+            <div className="card-body" style={{ padding: 12 }}>
+              {/* meters */}
+              {cMeters.length > 0 && (
+                <div className="meters">
+                  {cMeters.map((m) => (
+                    <div key={m.label} className="meter">
+                      <div className="meter-top"><span>{m.label}</span><b>{m.value}{m.unit}</b></div>
+                      <div className="meter-track"><div className="meter-fill" style={{ width: `${m.value}%` }} /></div>
+                      <div className="meter-detail">{m.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* connections */}
+              {targets.map((t) => <ConnForm key={t.id} target={t} />)}
+            </div>
+          </div>
+        );
+      })}
+
+      <style>{`
+        .conncount{margin-left:auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+          padding:3px 9px;border-radius:0}
+        .conncount.ok{color:var(--ok);background:var(--ok-soft)}
+        .conncount.part{color:var(--warn);background:var(--warn-soft)}
+        .conncount.none{color:var(--ink-3);background:var(--tile)}
+        .meters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+        @media(max-width:720px){.meters{grid-template-columns:1fr}}
+        .meter{background:var(--tile);border:1px solid var(--hair);padding:11px 13px}
+        .meter-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--ink-2);font-weight:600}
+        .meter-top b{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
+        .meter-track{height:7px;background:var(--paper);border:1px solid var(--hair);margin:7px 0 5px;overflow:hidden}
+        .meter-fill{height:100%;background:var(--fs-green)}
+        .meter-detail{font-size:10.5px;color:var(--ink-3)}
+        .conn{border:1px solid var(--hair);margin-bottom:8px;background:var(--paper)}
+        .conn.connected{border-color:var(--green-soft)}
+        .conn.not-configured{border-color:var(--hair)}
+        .conn-head{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer}
+        .conn.connected .conn-head{background:var(--ok-soft)}
+        .conn-head:hover{filter:brightness(.99)}
+        .cdot{width:9px;height:9px;flex:0 0 auto;border-radius:50%}
+        .cdot.connected{background:var(--ok)}
+        .cdot.configured{background:var(--warn)}
+        .cdot.not-configured,.cdot.error{background:var(--line-strong)}
+        .conn-src{font-weight:800;color:var(--ink);min-width:130px}
+        .conn-status-txt{font-size:11.5px;color:var(--ink-3);flex:1}
+        .conn-toggle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--green-ink)}
+        .conn-body{border-top:1px solid var(--hair);padding:14px;background:var(--tile)}
+        .conn-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        @media(max-width:820px){.conn-fields{grid-template-columns:1fr}}
+        .fld{display:flex;flex-direction:column;gap:4px}
+        .fld-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;color:var(--ink-3)}
+        .fld-lbl i{color:var(--err);font-style:normal}
+        .fld input,.fld select{height:34px;border:1px solid var(--hair);padding:0 10px;font:600 12.5px var(--font);background:var(--paper);color:var(--ink)}
+        .fld input:focus,.fld select:focus{outline:none;border-color:var(--fs-green);box-shadow:0 0 0 3px var(--accent-tint)}
+        .fld-hint{font-size:10.5px;color:var(--ink-4)}
+        .conn-actions{display:flex;gap:8px;margin-top:14px}
+        .conn-result{margin-top:12px;padding:9px 12px;font-size:12px;font-weight:700;border:1px solid}
+        .conn-result.ok{color:var(--ok);border-color:var(--green-soft);background:var(--ok-soft)}
+        .conn-result.err{color:var(--err);border-color:var(--err);background:var(--err-soft)}
+      `}</style>
+    </div>
+  );
+}
+
+// ---- sub-part metrics: mocked numbers so a box is never just a titled line ----
+function SubMetrics({ metrics }) {
+  if (!metrics || !metrics.length) return null;
+  return (
+    <div className="submetrics">
+      {metrics.map((m) => (
+        <div key={m.label} className="sm">
+          <div className="sm-v">{m.value}{m.unit && <span className="sm-u"> {m.unit}</span>}</div>
+          <div className="sm-l">{m.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---- generic sub-part grid (role-gated) ----
+function SubParts({ layer }) {
+  const { canSubpart } = useConfig();
+  const parts = (layer.subparts || []).filter((s) => canSubpart(s.id));
+  if (parts.length === 0) return null;
+  return (
+    <div className="grid g2" style={{ marginBottom: 20 }}>
+      {parts.map((s) => (
+        <div key={s.id} className="card">
+          <div className="card-head">
+            {s.name}
+            {s.state && <span className={"st " + (STATE_CLASS[s.state] || "planned")} style={{ marginLeft: "auto" }}>{s.state}</span>}
+          </div>
+          <div className="card-body">
+            <p style={{ margin: 0, fontSize: 13, color: "var(--ink-2)", lineHeight: 1.55 }}>{s.desc}</p>
+            <SubMetrics metrics={s.metrics} />
+          </div>
+        </div>
+      ))}
+      <style>{`
+        .submetrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2)}
+        .sm{background:var(--tile);border:1px solid var(--hair);padding:9px 11px}
+        .sm-v{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+        .sm-u{font-size:11px;font-weight:700;color:var(--accent-ink)}
+        .sm-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-top:2px}
+      `}</style>
+    </div>
+  );
+}
+
+// ---- per-layer Presentation: statuses + deliverables ----
+function LayerPresentation({ layer }) {
+  const { config } = useConfig();
+  const pres = layer.presentation || {};
+  const dels = (pres.deliverables || []).map((id) => config.deliverables.find((d) => d.id === id)).filter(Boolean);
+  const statuses = pres.statuses || [];
+  if (!statuses.length && !dels.length) return null;
+
+  return (
+    <div className="card" style={{ marginTop: 8 }}>
+      <div className="card-head"><span className="dot-r" /> Presentation</div>
+      <div className="card-body">
+        {statuses.length > 0 && (
+          <div className="statuses">
+            {statuses.map((s) => (
+              <div key={s.label} className="status-row">
+                <span className={"ms-dot " + (STATE_CLASS[s.state] || "planned")} />
+                <span style={{ flex: 1, fontSize: 12.5, color: "var(--ink-2)" }}>{s.label}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {dels.length > 0 && (
+          <div className="grid g2" style={{ marginTop: statuses.length ? 16 : 0 }}>
+            {dels.map((d) => (
+              <div key={d.id} className="deliv-tile">
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="chip accent">{d.code}</span>
+                  <b style={{ fontSize: 12.5 }}>{d.name}</b>
+                  <span className={"st " + (STATE_CLASS[d.status] || "planned")} style={{ marginLeft: "auto" }}>{d.status}</span>
+                </div>
+                <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>{d.purpose}</p>
+                {d.artifact
+                  ? <a className="btn primary" href={d.artifact} target="_blank" rel="noreferrer" style={{ height: 30 }}>Open</a>
+                  : d.status !== "delivered"
+                    ? <span className="chip">{d.status === "in-progress" ? "In progress" : "Not yet delivered"}</span>
+                    : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <style>{`
+        .statuses{display:grid;gap:2px}
+        .status-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-2)}
+        .status-row:last-child{border-bottom:none}
+        .ms-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:var(--line-strong)}
+        .ms-dot.delivered{background:var(--ok)}
+        .ms-dot.in-progress{background:var(--accent)}
+        .deliv-tile{border:1px solid var(--hair);padding:13px;background:var(--paper)}
+      `}</style>
+    </div>
+  );
+}
 
 export default function LayerPage() {
   const { key } = useParams();
   const nav = useNavigate();
-  const { config, sources } = useConfig();
+  const { config, canLayer } = useConfig();
   const layer = config.layers.find((l) => l.key === key);
   if (!layer) return <p className="lede">Unknown layer.</p>;
 
-  const idx = config.layers.findIndex((l) => l.key === key);
-  const next = config.layers[idx + 1];
-  const dels = layer.deliverables.map((id) => config.deliverables.find((d) => d.id === id));
-  const s = layerConnStatus(sources, key);
-  const targets = sources.targets.filter((t) => t.layer === key);
-  const isPull = targets.length > 0;
+  const layers = config.layers;
+  const idx = layers.findIndex((l) => l.key === key);
+  const next = layers.slice(idx + 1).find((l) => canLayer(l.key));
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div className="eyebrow"><span className="bar" /> {layer.tag}</div>
-          <h1 className="page">{layer.name}</h1>
-        </div>
-        <Stepper activeKey={key} />
-      </div>
+      <div className="eyebrow"><span className="bar" /> {layer.name}</div>
+      <h1 className="page">{layer.name}</h1>
       <p className="lede">{layer.summary}</p>
 
-      {layer.topics && layer.topics.length > 0 && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
-          {layer.topics.map((t) => <span key={t} className="chip accent">{t}</span>)}
+      {key === "infrastructure"
+        ? <InfraConnections />
+        : <SubParts layer={layer} />}
+
+      <LayerPresentation layer={layer} />
+
+      {next && (
+        <div style={{ marginTop: 24 }}>
+          <button className="btn primary" onClick={() => nav(`/layer/${next.key}`)}>Next · {next.name}</button>
         </div>
       )}
-
-      <div className="grid g2" style={{ alignItems: "start" }}>
-        {/* activities */}
-        <div className="card">
-          <div className="card-head">Activities</div>
-          <div className="card-body">
-            {(ACTIVITIES[key] || []).map((a) => (
-              <div key={a} className="hav">{a}</div>
-            ))}
-          </div>
-        </div>
-
-        {/* sources for this layer */}
-        <div className="card">
-          <div className="card-head">Sources in this layer</div>
-          <div className="card-body">
-            {(layer.sourceGroups || []).map((g) => (
-              <div key={g.label} style={{ marginBottom: 10 }}>
-                <div className="ul" style={{ marginBottom: 5 }}>{g.label}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {g.items.map((it) => <span key={it} className="chip">{it}</span>)}
-                </div>
-              </div>
-            ))}
-            {(!layer.sourceGroups || layer.sourceGroups.length === 0) && (
-              <p style={{ fontSize: 12.5, color: "var(--ink-3)", margin: 0 }}>No sources defined.</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* source connections for this layer */}
-      {isPull && (
-        <div className="card" style={{ marginTop: 14 }}>
-          <div className="card-head">
-            <span className="dot-r" /> Source connections ({s.connected}/{s.total} connected)
-            <Link to="/intake" className="btn primary" style={{ marginLeft: "auto", height: 30 }}>
-              {s.complete ? "Review connections" : "Connect sources"}
-            </Link>
-          </div>
-          <div className="card-body" style={{ padding: 0 }}>
-            <div className="tablewrap">
-              <table className="lots" style={{ border: "none" }}>
-                <thead><tr><th>Source</th><th style={{ width: 110 }}>Type</th><th style={{ width: 90 }}>Status</th><th>Detail</th></tr></thead>
-                <tbody>
-                  {targets.map((t) => {
-                    const c = t.connection;
-                    const stt = c?.status || "not-configured";
-                    return (
-                      <tr key={t.id}>
-                        <td style={{ fontWeight: 700 }}>{t.source}</td>
-                        <td><span className="chip">{KIND_LABEL[t.kind]}</span></td>
-                        <td><span className={"st " + (stt === "connected" ? "delivered" : stt === "configured" ? "in-progress" : "planned")}>{stt === "not-configured" ? "not set" : stt}</span></td>
-                        <td style={{ color: "var(--ink-3)", fontSize: 12 }}>
-                          {c?.detail ? `${c.detail.pingMs}ms · ${c.detail.discovered} ${c.detail.unit}` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* deliverables produced */}
-      <div className="ul" style={{ margin: "22px 0 10px" }}>Deliverables produced in this layer</div>
-      {dels.length === 0 ? (
-        <div className="card"><div className="card-body">
-          <p style={{ margin: 0, fontSize: 13, color: "var(--ink-3)" }}>
-            {layer.ownedBy !== "FS"
-              ? `This is the ${layer.ownedBy}-owned input layer. No FS deliverable is produced here.`
-              : "No deliverables mapped to this layer."}
-          </p>
-        </div></div>
-      ) : (
-        <div className="grid g2">
-          {dels.map((d) => (
-            <div key={d.id} className="card">
-              <div className="card-head">
-                <span className="chip accent">{d.code}</span> {d.name}
-                <span className={"st " + d.status} style={{ marginLeft: "auto" }}>{d.status}</span>
-              </div>
-              <div className="card-body">
-                <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--ink-2)" }}>{d.purpose}</p>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <span className="wkn">{d.weeks}</span>
-                  <span className="mono">Ph {d.phase}</span>
-                  {d.artifact ? (
-                    <a className="btn primary" href={d.artifact} target="_blank" rel="noreferrer" style={{ marginLeft: "auto" }}>Open deliverable</a>
-                  ) : (
-                    <span className="chip" style={{ marginLeft: "auto" }}>Not yet delivered</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-        <Link to="/journey" className="btn">Back to journey</Link>
-        {next && <button className="btn primary" onClick={() => nav(`/layer/${next.key}`)}>Next layer · {next.name}</button>}
-        {!next && <Link to="/gantt" className="btn primary">View delivery Gantt</Link>}
-      </div>
     </div>
   );
 }

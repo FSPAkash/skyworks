@@ -1,21 +1,20 @@
 {
   "infrastructure": [
     "SAP",
-    "ECC",
-    "S/4 HANA",
-    "PeopleSoft",
-    "CRM",
+    "Kinaxis",
+    "PROMIS",
     "SQL",
     "Oracle",
     "Db2",
-    "Exchange / M365",
-    "Domain Specific Information",
-    "Kinaxis",
+    "CRM",
     "PLM",
     "EDI",
-    "PROMIS",
+    "Microsoft Fabric",
     "Warehouse",
-    "Enterprise Analytics"
+    "Metadata Ingest Model",
+    "Usage Scoring Model",
+    "Classification Model",
+    "Summarization Model"
   ],
   "collection": [
     "ODS schemas",

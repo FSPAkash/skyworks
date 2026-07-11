@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { Routes, Route, NavLink, useNavigate, useParams } from "react-router-dom";
 import { ConfigProvider, useConfig, connReadiness } from "./config.jsx";
 import { FS_LOGO } from "./fslogo.js";
 import { SKY_LOGO } from "./skylogo.js";
 import Overview from "./pages/Overview.jsx";
-import Journey from "./pages/Journey.jsx";
 import LayerPage from "./pages/LayerPage.jsx";
-import Deliverables from "./pages/Deliverables.jsx";
-import GanttPage from "./pages/GanttPage.jsx";
-import Intake from "./pages/Intake.jsx";
 import Admin from "./pages/Admin.jsx";
 import Login from "./pages/Login.jsx";
 import ChatBot from "./components/ChatBot.jsx";
@@ -50,7 +46,7 @@ function Topbar() {
         )}
       </div>
       <div className="tb-center">
-        <span className="tb-badge">Data <span className="dash">-</span> <span className="bpc">BPC</span></span>
+        <span className="tb-badge"><span className="bpc">BPC</span> for Data</span>
         <span className="tb-sub">{config ? config.client.engagement : ""}</span>
       </div>
       <div className="tb-right">
@@ -107,49 +103,31 @@ function Footer() {
 }
 
 function Sidebar() {
-  const { config, sources, can } = useConfig();
+  const { config, sources, can, canLayer } = useConfig();
   const r = connReadiness(sources);
   const link = ({ isActive }) => "navlink" + (isActive ? " active" : "");
+  // layers other than Infrastructure lock until every selected source is connected
   const gated = !r.complete;
 
   return (
     <nav className="sidebar">
-      {can("intake") && (
-        <>
-          <div className="nav-group">Start here</div>
-          <NavLink to="/intake" className={link}>
-            <span className="ic num">1</span> Connections
-            <span className="nav-tag">{r.complete ? "Ready" : `${r.connected}/${r.total}`}</span>
-          </NavLink>
-        </>
-      )}
+      <div className="nav-group">Overview &amp; Admin</div>
+      {can("overview") && <NavLink to="/" end className={({ isActive }) => "navlink nav-hero" + (isActive ? " active" : "")}><span className="dotm" /> Overview</NavLink>}
+      {can("admin") && <NavLink to="/admin" className={link}><span className="dotm" /> Admin Settings</NavLink>}
 
-      <div className="nav-group">Console</div>
-      {can("overview") && <NavLink to="/" end className={link}><span className="dotm" /> Overview</NavLink>}
-      {can("journey") && (
-        <NavLink to="/journey" className={link}>
-          <span className="dotm" /> I-CUP Journey {gated && <span className="nav-tag">Locked</span>}
-        </NavLink>
-      )}
-      {can("deliverables") && <NavLink to="/deliverables" className={link}><span className="dotm" /> Deliverables</NavLink>}
-      {can("gantt") && <NavLink to="/gantt" className={link}><span className="dotm" /> Delivery Gantt</NavLink>}
-
-      {can("journey") && config && (
+      {can("layers") && config && (
         <>
-          <div className="nav-group">I-CUP Layers</div>
-          {config.layers.map((l) => (
-            <NavLink key={l.key} to={`/layer/${l.key}`} className={link}>
-              <span className="ic">{l.id}</span> {l.name}
-              {gated && <span className="nav-tag">Locked</span>}
-            </NavLink>
-          ))}
-        </>
-      )}
-
-      {can("admin") && (
-        <>
-          <div className="nav-group">Admin</div>
-          <NavLink to="/admin" className={link}><span className="dotm" /> Client Config</NavLink>
+          <div className="nav-group">Assessment Layers</div>
+          {config.layers.filter((l) => canLayer(l.key)).map((l) => {
+            const locked = gated && l.key !== "infrastructure";
+            return (
+              <NavLink key={l.key} to={`/layer/${l.key}`} className={link}>
+                <span className="ic">{l.id}</span> {l.name}
+                {l.key === "infrastructure" && <span className="nav-tag">{r.complete ? "Ready" : r.hasSelection ? `${r.connected}/${r.total}` : "Set up"}</span>}
+                {locked && <span className="nav-tag">Locked</span>}
+              </NavLink>
+            );
+          })}
         </>
       )}
     </nav>
@@ -159,11 +137,12 @@ function Sidebar() {
 // Save-as-project bar: shown while working in the Start Fresh Project, lets any
 // user name and store the current session as its own profile.
 function SaveProjectBar() {
-  const { profile, saveNewProject } = useConfig();
+  const { profile, saveNewProject, runDemo, can } = useConfig();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [engagement, setEngagement] = useState("");
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   const [err, setErr] = useState(null);
   if (profile?.mode !== "generic") return null;
 
@@ -174,6 +153,7 @@ function SaveProjectBar() {
     setBusy(false);
     if (!out.ok) setErr(out.error || "Could not save.");
   };
+  const demo = async () => { setDemoBusy(true); await runDemo(); setDemoBusy(false); };
 
   return (
     <div className="savebar">
@@ -181,7 +161,8 @@ function SaveProjectBar() {
       {!open ? (
         <>
           <span className="sb-txt">Working in an unsaved project.</span>
-          <button className="btn primary" style={{ height: 32, marginLeft: "auto" }} onClick={() => setOpen(true)}>Save as project</button>
+          {can("layers") && <button className="btn" style={{ height: 32, marginLeft: "auto" }} onClick={demo} disabled={demoBusy}>{demoBusy ? "Running…" : "Run full project"}</button>}
+          <button className="btn primary" style={{ height: 32, marginLeft: can("layers") ? 0 : "auto" }} onClick={() => setOpen(true)}>Save as project</button>
         </>
       ) : (
         <div className="sb-form">
@@ -210,27 +191,59 @@ function SaveProjectBar() {
   );
 }
 
-// route guard: role access; journey/layer also need all sources connected
-function Guard({ routeKey, needsConn, children }) {
-  const { sources, can, setBotOpen } = useConfig();
+// simple route guard by role key (overview / layers / admin)
+function Guard({ routeKey, children }) {
+  const { can } = useConfig();
+  const nav = useNavigate();
+  const allowed = can(routeKey);
+  useEffect(() => { if (!allowed) nav("/", { replace: true }); }, [allowed, nav]);
+  if (!allowed) return null;
+  return children;
+}
+
+// layer route guard: role must be allowed the layer; non-infra layers also need
+// all connections ready (infrastructure is where you connect, so it's open).
+function LayerGuard() {
+  const { key } = useParams();
+  const { canLayer, rolesLoaded, sources, setBotOpen } = useConfig();
   const nav = useNavigate();
   const r = connReadiness(sources);
-  const allowed = can(routeKey);
-  const connOk = !needsConn || r.complete;
+  const allowed = canLayer(key);
+  const connOk = key === "infrastructure" || r.complete;
   useEffect(() => {
+    if (!rolesLoaded) return;   // wait until role map is loaded before deciding
     if (!allowed) { nav("/", { replace: true }); return; }
-    if (!connOk) { nav("/intake", { replace: true }); setBotOpen(true); }
-  }, [allowed, connOk, nav, setBotOpen]);
+    if (!connOk) { nav("/layer/infrastructure", { replace: true }); setBotOpen(true); }
+  }, [rolesLoaded, allowed, connOk, key, nav, setBotOpen]);
+  if (!rolesLoaded) return <div className="lede">Loading…</div>;
   if (!allowed || !connOk) return null;
-  return children;
+  return <LayerPage />;
+}
+
+// Whenever the active profile changes, snap back to the Overview so a page left
+// open under the previous profile never lingers when switching. Keyed on `pid`
+// only: `nav` must NOT be a dependency or the effect can re-fire every render
+// and trap the app on "/", blocking all navigation.
+function RouteReset() {
+  const { pid } = useConfig();
+  const nav = useNavigate();
+  const seen = useRef(pid);
+  useEffect(() => {
+    if (seen.current !== pid) {   // real profile switch, not a re-render
+      seen.current = pid;
+      nav("/", { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid]);
+  return null;
 }
 
 function Shell() {
   const { config, error, user, profile, can } = useConfig();
   if (!user || !profile) return <Login />;
-  const home = can("overview") ? <Overview /> : <Deliverables />;
   return (
     <div className="app">
+      <RouteReset />
       <Topbar />
       <Sidebar />
       <main className="main">
@@ -239,19 +252,15 @@ function Shell() {
         {!config && !error && <div className="lede">Loading…</div>}
         {config && (
           <Routes>
-            <Route path="/" element={home} />
-            <Route path="/intake" element={<Guard routeKey="intake"><Intake /></Guard>} />
-            <Route path="/journey" element={<Guard routeKey="journey" needsConn><Journey /></Guard>} />
-            <Route path="/layer/:key" element={<Guard routeKey="layer" needsConn><LayerPage /></Guard>} />
-            <Route path="/deliverables" element={<Guard routeKey="deliverables"><Deliverables /></Guard>} />
-            <Route path="/gantt" element={<Guard routeKey="gantt"><GanttPage /></Guard>} />
+            <Route path="/" element={<Overview />} />
+            <Route path="/layer/:key" element={<LayerGuard />} />
             <Route path="/admin" element={<Guard routeKey="admin"><Admin /></Guard>} />
-            <Route path="*" element={home} />
+            <Route path="*" element={<Overview />} />
           </Routes>
         )}
       </main>
       <Footer />
-      {config && can("intake") && <ChatBot />}
+      {config && can("layers") && <ChatBot key={profile.id} />}
     </div>
   );
 }

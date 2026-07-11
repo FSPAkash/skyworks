@@ -1,0 +1,492 @@
+{
+  "mode": "client",
+  "product": {
+    "name": "BPC for Data",
+    "short": "BPC",
+    "bpcFull": "Business Process Co-Pilot"
+  },
+  "client": {
+    "name": "Northwind Trading (Mock Client)",
+    "engagement": "Enterprise Data Estate Assessment",
+    "framework": "Assessment",
+    "durationWeeks": 12,
+    "activeWeeks": 10,
+    "acceptanceWeeks": 2
+  },
+  "overview": {
+    "headline": "Connect the data estate, catalog and enrich it, map lineage end to end, and hand over the findings.",
+    "background": "BPC connects the source systems, cloud platform, and models the assessment runs on, ingests metadata, enriches it with usage context, maps end-to-end lineage, and packages findings and recommendations for handover.",
+    "outcome": "Findings, lineage, and recommendations are delivered as final outputs the client owns.",
+    "highlights": [
+      {
+        "label": "Data estate",
+        "value": "4.2",
+        "unit": "TB"
+      },
+      {
+        "label": "Pipelines",
+        "value": "112"
+      },
+      {
+        "label": "Sources",
+        "value": "18"
+      },
+      {
+        "label": "Weeks",
+        "value": "12"
+      }
+    ],
+    "alignment": {
+      "current": 58,
+      "target": 100,
+      "label": "Current alignment"
+    },
+    "milestones": [
+      {
+        "name": "Setup & Discovery",
+        "when": "Phase 1",
+        "trigger": "Connectivity and metadata inventory",
+        "status": "delivered"
+      },
+      {
+        "name": "Mapping & Classification",
+        "when": "Phase 2",
+        "trigger": "Lineage and classification",
+        "status": "in-progress"
+      },
+      {
+        "name": "Handover",
+        "when": "Phase 3",
+        "trigger": "Recommendations and enablement",
+        "status": "planned"
+      }
+    ]
+  },
+  "profile": null,
+  "layers": [
+    {
+      "id": "I",
+      "key": "infrastructure",
+      "name": "Infrastructure",
+      "summary": "Every connection the assessment runs on, categorized into Sources, Cloud, and LLM, with live connectivity and usage.",
+      "ownedBy": "Client",
+      "sourceGroups": [
+        {
+          "label": "ERP",
+          "category": "sources",
+          "items": [
+            "SAP",
+            "ECC",
+            "S/4 HANA",
+            "PeopleSoft"
+          ]
+        },
+        {
+          "label": "CRM",
+          "category": "sources",
+          "items": [
+            "Salesforce",
+            "Dynamics 365",
+            "HubSpot"
+          ]
+        },
+        {
+          "label": "Databases",
+          "category": "sources",
+          "items": [
+            "SQL",
+            "Oracle",
+            "Db2"
+          ]
+        },
+        {
+          "label": "Email",
+          "category": "sources",
+          "items": [
+            "Exchange",
+            "Microsoft 365",
+            "Google Workspace"
+          ]
+        },
+        {
+          "label": "Cloud Platform",
+          "category": "cloud",
+          "items": [
+            "Cloud Platform",
+            "Data Lake"
+          ]
+        },
+        {
+          "label": "BPC Models",
+          "category": "llm",
+          "items": [
+            "BPC Models"
+          ]
+        }
+      ],
+      "subparts": [
+        {
+          "id": "sources",
+          "name": "Sources",
+          "desc": "Source systems the assessment reads from.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Sources in scope", "value": "18" },
+            { "label": "Total volume", "value": "4.2", "unit": "TB" },
+            { "label": "Connections", "value": "All established" },
+            { "label": "Environment", "value": "Prod replica" }
+          ]
+        },
+        {
+          "id": "cloud",
+          "name": "Cloud",
+          "desc": "Target platform and compute.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Platform", "value": "Data Lake" },
+            { "label": "Compute", "value": "auto-scale" },
+            { "label": "Storage used", "value": "3.1", "unit": "TB" }
+          ]
+        },
+        {
+          "id": "llm",
+          "name": "LLM",
+          "desc": "Models driving ingestion, scoring, and classification.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Models active", "value": "4 / 4" },
+            { "label": "Tokens used", "value": "8.4", "unit": "M" },
+            { "label": "Inference calls", "value": "12,900" }
+          ]
+        }
+      ],
+      "presentation": {
+        "deliverables": [
+          1
+        ],
+        "statuses": [
+          {
+            "label": "Connectivity validated",
+            "value": "18 sources · 4.2 TB",
+            "state": "delivered"
+          },
+          {
+            "label": "Access model",
+            "value": "read-only accounts",
+            "state": "delivered"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C",
+      "key": "collection",
+      "name": "Collection",
+      "summary": "Discovery and metadata ingestion: domain intelligence, an automated catalog, enrichment, and transformation analysis.",
+      "ownedBy": "FS",
+      "sourceGroups": [
+        {
+          "label": "Metadata",
+          "category": "sources",
+          "items": [
+            "Schemas",
+            "Tables & columns",
+            "Job / package inventory"
+          ]
+        },
+        {
+          "label": "Logs",
+          "category": "sources",
+          "items": [
+            "Query logs",
+            "Event logs"
+          ]
+        }
+      ],
+      "subparts": [
+        {
+          "id": "domain-intelligence",
+          "name": "Domain Intelligence",
+          "desc": "Business domain context and data ownership captured with subject-matter experts.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Domains", "value": "8" },
+            { "label": "Owners mapped", "value": "84%" },
+            { "label": "SME sessions", "value": "6" }
+          ]
+        },
+        {
+          "id": "automated-data-catalog",
+          "name": "Automated Data Catalog",
+          "desc": "Automated ingestion of tables, schemas, columns, and sizes.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Tables", "value": "2,140" },
+            { "label": "Columns profiled", "value": "48,300" },
+            { "label": "Rows cataloged", "value": "6.7", "unit": "B" },
+            { "label": "Schemas", "value": "41" }
+          ]
+        },
+        {
+          "id": "data-enrichment",
+          "name": "Data Enrichment",
+          "desc": "Usage patterns, access tools, and frequency from log analysis.",
+          "state": "delivered",
+          "metrics": [
+            { "label": "Pipelines", "value": "112" },
+            { "label": "Usage scored", "value": "91%" },
+            { "label": "Hot tables", "value": "310" }
+          ]
+        },
+        {
+          "id": "transformation",
+          "name": "Transformation",
+          "desc": "Pipeline parsing and ETL / database assessment of transformation logic.",
+          "state": "in-progress",
+          "metrics": [
+            { "label": "Pipelines parsed", "value": "112" },
+            { "label": "Transform steps", "value": "1,480" },
+            { "label": "Parsed", "value": "78%" }
+          ]
+        }
+      ],
+      "presentation": {
+        "deliverables": [
+          2
+        ],
+        "statuses": [
+          {
+            "label": "Metadata ingested",
+            "value": "2,140 tables · 48,300 columns",
+            "state": "delivered"
+          },
+          {
+            "label": "Packages parsed",
+            "value": "112 pipelines",
+            "state": "delivered"
+          }
+        ]
+      }
+    },
+    {
+      "id": "U",
+      "key": "unification",
+      "name": "Unification",
+      "summary": "End-to-end lineage across datasets and reference systems, with ownership mapping and manual additions where automation is limited.",
+      "ownedBy": "FS",
+      "sourceGroups": [
+        {
+          "label": "Lineage",
+          "category": "sources",
+          "items": [
+            "Upstream feeds",
+            "Downstream consumers"
+          ]
+        },
+        {
+          "label": "Identity",
+          "category": "sources",
+          "items": [
+            "Dataset ownership",
+            "Reference data"
+          ]
+        }
+      ],
+      "subparts": [
+        {
+          "id": "e2e-viz",
+          "name": "End-to-End Visualization",
+          "desc": "Lineage from upstream sources through transformations to downstream consumption.",
+          "state": "in-progress",
+          "metrics": [
+            { "label": "Lineage nodes", "value": "1,820" },
+            { "label": "Edges mapped", "value": "6,400" },
+            { "label": "Coverage", "value": "74%" }
+          ]
+        },
+        {
+          "id": "manual-additions",
+          "name": "Manual Additions",
+          "desc": "Analyst-added lineage where API or metadata access is limited.",
+          "state": "in-progress",
+          "metrics": [
+            { "label": "Manual edges", "value": "96" },
+            { "label": "Gaps flagged", "value": "21" },
+            { "label": "Resolved", "value": "15" }
+          ]
+        },
+        {
+          "id": "ownership",
+          "name": "Ownership Mapping",
+          "desc": "Dataset ownership and reference-data resolution.",
+          "state": "in-progress",
+          "metrics": [
+            { "label": "Core datasets", "value": "260" },
+            { "label": "Owned", "value": "80%" },
+            { "label": "Reference sets", "value": "19" }
+          ]
+        }
+      ],
+      "presentation": {
+        "deliverables": [
+          3
+        ],
+        "statuses": [
+          {
+            "label": "Lineage coverage",
+            "value": "74% mapped",
+            "state": "in-progress"
+          },
+          {
+            "label": "Ownership mapped",
+            "value": "core datasets",
+            "state": "in-progress"
+          }
+        ]
+      }
+    },
+    {
+      "id": "P",
+      "key": "presentation",
+      "name": "Presentation",
+      "summary": "The face of the assessment: classification, alignment, simulation, backlog, and enablement, packaged for the client to act and own.",
+      "ownedBy": "FS",
+      "sourceGroups": [],
+      "subparts": [
+        {
+          "id": "classification",
+          "name": "Classification & Alignment",
+          "desc": "Dataset classification and current-state alignment baseline.",
+          "state": "in-progress",
+          "metrics": [
+            { "label": "Bronze", "value": "980" },
+            { "label": "Silver", "value": "740" },
+            { "label": "Gold", "value": "420" },
+            { "label": "Alignment", "value": "58%" }
+          ]
+        },
+        {
+          "id": "simulation",
+          "name": "Impact & Backlog",
+          "desc": "Cost/performance simulation and prioritized transition backlog.",
+          "state": "planned",
+          "metrics": [
+            { "label": "Backlog items", "value": "queued" },
+            { "label": "Simulation", "value": "phase 3" }
+          ]
+        },
+        {
+          "id": "enablement",
+          "name": "Enablement",
+          "desc": "Playbook, walkthroughs, and executive summary.",
+          "state": "planned",
+          "metrics": [
+            { "label": "Playbook", "value": "phase 3" },
+            { "label": "Exec summary", "value": "phase 3" }
+          ]
+        }
+      ],
+      "presentation": {
+        "deliverables": [
+          3,
+          4
+        ],
+        "statuses": [
+          {
+            "label": "Findings packaged",
+            "value": "in progress",
+            "state": "in-progress"
+          }
+        ]
+      }
+    }
+  ],
+  "phases": [
+    {
+      "id": 1,
+      "name": "Setup & Discovery",
+      "weeks": "W1-3",
+      "weekStart": 1,
+      "weekEnd": 3,
+      "layer": "collection",
+      "deliverables": [
+        1
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Mapping & Classification",
+      "weeks": "W4-6",
+      "weekStart": 4,
+      "weekEnd": 6,
+      "layer": "unification",
+      "deliverables": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Handover",
+      "weeks": "W7-10",
+      "weekStart": 7,
+      "weekEnd": 10,
+      "layer": "presentation",
+      "deliverables": [
+        4
+      ]
+    }
+  ],
+  "deliverables": [
+    {
+      "id": 1,
+      "code": "D1",
+      "name": "Connectivity Status Report",
+      "purpose": "Validation of source access and any connectivity limitations",
+      "phase": 1,
+      "layer": "infrastructure",
+      "weeks": "W1-3",
+      "status": "delivered",
+      "artifact": "/artifacts/demo/index.html"
+    },
+    {
+      "id": 2,
+      "code": "D2",
+      "name": "Metadata Inventory",
+      "purpose": "Centralized catalog of sources and metadata",
+      "phase": 1,
+      "layer": "collection",
+      "weeks": "W1-3",
+      "status": "delivered",
+      "artifact": "/artifacts/demo/index.html"
+    },
+    {
+      "id": 3,
+      "code": "D3",
+      "name": "Lineage & Dependency Map",
+      "purpose": "Connected view across sources",
+      "phase": 2,
+      "layer": "unification",
+      "weeks": "W4-6",
+      "status": "in-progress",
+      "artifact": null
+    },
+    {
+      "id": 4,
+      "code": "D4",
+      "name": "Assessment Summary",
+      "purpose": "Findings, recommendations, and handover package",
+      "phase": 3,
+      "layer": "presentation",
+      "weeks": "W7-10",
+      "status": "planned",
+      "artifact": null
+    }
+  ],
+  "chatbot": {
+    "intro": "Let's set up the data sources to connect.",
+    "outro": "Source information captured.",
+    "sections": {}
+  },
+  "isDemo": true
+}

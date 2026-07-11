@@ -112,6 +112,9 @@ button{font-family:var(--font)}
   font-weight:600;cursor:pointer;margin:1px 0;border-radius:0}
 .navlink:hover{background:var(--tile)}
 .navlink.active{color:var(--accent-ink);background:var(--accent-tint);font-weight:700}
+.navlink.nav-hero{font-size:14px;font-weight:800;color:var(--ink);padding:11px}
+.navlink.nav-hero .dotm{background:var(--fs-green);width:6px;height:6px}
+.navlink.nav-hero.active{background:var(--accent-tint)}
 .navlink .ic{width:21px;height:21px;border:1px solid var(--hair);background:var(--tile);border-radius:0;
   display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--ink-3);flex:0 0 auto}
 .navlink.active .ic{background:var(--fs-green);border-color:var(--fs-green);color:#fff}

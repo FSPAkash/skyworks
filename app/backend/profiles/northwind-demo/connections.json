@@ -1,0 +1,499 @@
+{
+  "91328ea7e9": {
+    "id": "91328ea7e9",
+    "source": "SAP",
+    "layer": "infrastructure",
+    "kind": "erp",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 54,
+      "discovered": 152,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "aa43340082": {
+    "id": "aa43340082",
+    "source": "ECC",
+    "layer": "infrastructure",
+    "kind": "erp",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 50,
+      "discovered": 86,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "f3406f0636": {
+    "id": "f3406f0636",
+    "source": "S/4 HANA",
+    "layer": "infrastructure",
+    "kind": "erp",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 28,
+      "discovered": 49,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "0e8cc149a9": {
+    "id": "0e8cc149a9",
+    "source": "PeopleSoft",
+    "layer": "infrastructure",
+    "kind": "erp",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 112,
+      "discovered": 121,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "d2344140db": {
+    "id": "d2344140db",
+    "source": "Salesforce",
+    "layer": "infrastructure",
+    "kind": "crm",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 69,
+      "discovered": 92,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "33c4726609": {
+    "id": "33c4726609",
+    "source": "Dynamics 365",
+    "layer": "infrastructure",
+    "kind": "crm",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 63,
+      "discovered": 296,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "416113c04a": {
+    "id": "416113c04a",
+    "source": "HubSpot",
+    "layer": "infrastructure",
+    "kind": "crm",
+    "values": {
+      "baseUrl": "https://api.corp.internal/v2",
+      "authMode": "OAuth client credentials",
+      "clientId": "bpc-connector",
+      "secretRef": "kv://bpc/erp/oauth"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 132,
+      "discovered": 63,
+      "unit": "objects",
+      "endpoint": "https://api.corp.internal/v2"
+    }
+  },
+  "a5280973e0": {
+    "id": "a5280973e0",
+    "source": "SQL",
+    "layer": "infrastructure",
+    "kind": "db",
+    "values": {
+      "host": "sql-ods.corp.internal",
+      "port": "1433",
+      "database": "ODS_PROD",
+      "authMode": "Service account",
+      "username": "svc_bpc_ro",
+      "secretRef": "kv://bpc/ods/sql-ro"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 46,
+      "discovered": 786,
+      "unit": "tables",
+      "endpoint": "sql-ods.corp.internal"
+    }
+  },
+  "74d2d34c23": {
+    "id": "74d2d34c23",
+    "source": "Oracle",
+    "layer": "infrastructure",
+    "kind": "db",
+    "values": {
+      "host": "sql-ods.corp.internal",
+      "port": "1433",
+      "database": "ODS_PROD",
+      "authMode": "Service account",
+      "username": "svc_bpc_ro",
+      "secretRef": "kv://bpc/ods/sql-ro"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 128,
+      "discovered": 465,
+      "unit": "tables",
+      "endpoint": "sql-ods.corp.internal"
+    }
+  },
+  "b4c74de82c": {
+    "id": "b4c74de82c",
+    "source": "Db2",
+    "layer": "infrastructure",
+    "kind": "db",
+    "values": {
+      "host": "sql-ods.corp.internal",
+      "port": "1433",
+      "database": "ODS_PROD",
+      "authMode": "Service account",
+      "username": "svc_bpc_ro",
+      "secretRef": "kv://bpc/ods/sql-ro"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 112,
+      "discovered": 561,
+      "unit": "tables",
+      "endpoint": "sql-ods.corp.internal"
+    }
+  },
+  "e42d0afab9": {
+    "id": "e42d0afab9",
+    "source": "Exchange",
+    "layer": "infrastructure",
+    "kind": "mail",
+    "values": {
+      "tenant": "corp.onmicrosoft.com",
+      "authMode": "OAuth app (Graph)",
+      "clientId": "bpc-mail-reader",
+      "secretRef": "kv://bpc/mail/graph"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 37,
+      "discovered": 36,
+      "unit": "mailboxes",
+      "endpoint": "corp.onmicrosoft.com"
+    }
+  },
+  "1a55c629ec": {
+    "id": "1a55c629ec",
+    "source": "Microsoft 365",
+    "layer": "infrastructure",
+    "kind": "mail",
+    "values": {
+      "tenant": "corp.onmicrosoft.com",
+      "authMode": "OAuth app (Graph)",
+      "clientId": "bpc-mail-reader",
+      "secretRef": "kv://bpc/mail/graph"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 86,
+      "discovered": 15,
+      "unit": "mailboxes",
+      "endpoint": "corp.onmicrosoft.com"
+    }
+  },
+  "68d0905a0e": {
+    "id": "68d0905a0e",
+    "source": "Google Workspace",
+    "layer": "infrastructure",
+    "kind": "mail",
+    "values": {
+      "tenant": "corp.onmicrosoft.com",
+      "authMode": "OAuth app (Graph)",
+      "clientId": "bpc-mail-reader",
+      "secretRef": "kv://bpc/mail/graph"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 90,
+      "discovered": 18,
+      "unit": "mailboxes",
+      "endpoint": "corp.onmicrosoft.com"
+    }
+  },
+  "c5e77d1acf": {
+    "id": "c5e77d1acf",
+    "source": "Cloud Platform",
+    "layer": "infrastructure",
+    "kind": "cloud",
+    "values": {
+      "workspace": "bpc-analytics",
+      "region": "eastus",
+      "authMode": "Service principal",
+      "secretRef": "kv://bpc/cloud/sp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 32,
+      "discovered": 46,
+      "unit": "workspaces",
+      "endpoint": "bpc-analytics"
+    }
+  },
+  "00d4d336fd": {
+    "id": "00d4d336fd",
+    "source": "Data Lake",
+    "layer": "infrastructure",
+    "kind": "cloud",
+    "values": {
+      "workspace": "bpc-analytics",
+      "region": "eastus",
+      "authMode": "Service principal",
+      "secretRef": "kv://bpc/cloud/sp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 129,
+      "discovered": 30,
+      "unit": "workspaces",
+      "endpoint": "bpc-analytics"
+    }
+  },
+  "8396a4368f": {
+    "id": "8396a4368f",
+    "source": "BPC Models",
+    "layer": "infrastructure",
+    "kind": "llm",
+    "values": {
+      "endpoint": "https://models.bpc.internal/v1",
+      "model": "bpc-metadata-ingest",
+      "authMode": "API key",
+      "secretRef": "kv://bpc/llm/key"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 17,
+      "discovered": 6,
+      "unit": "models",
+      "endpoint": "https://models.bpc.internal/v1"
+    }
+  },
+  "2bb7b7ff0f": {
+    "id": "2bb7b7ff0f",
+    "source": "Schemas",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 75,
+      "discovered": 47,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "082b1c86b3": {
+    "id": "082b1c86b3",
+    "source": "Tables & columns",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 107,
+      "discovered": 27,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "49bc695809": {
+    "id": "49bc695809",
+    "source": "Job / package inventory",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 140,
+      "discovered": 40,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "97eaec6b42": {
+    "id": "97eaec6b42",
+    "source": "Query logs",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 109,
+      "discovered": 23,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "3df5097ede": {
+    "id": "3df5097ede",
+    "source": "Event logs",
+    "layer": "collection",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 87,
+      "discovered": 3,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "4cc3cd3689": {
+    "id": "4cc3cd3689",
+    "source": "Upstream feeds",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 61,
+      "discovered": 10,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "70a5da6491": {
+    "id": "70a5da6491",
+    "source": "Downstream consumers",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 112,
+      "discovered": 5,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "4621f5cbd0": {
+    "id": "4621f5cbd0",
+    "source": "Dataset ownership",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 62,
+      "discovered": 38,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  },
+  "4529d9f02e": {
+    "id": "4529d9f02e",
+    "source": "Reference data",
+    "layer": "unification",
+    "kind": "external",
+    "values": {
+      "location": "sftp://feeds.corp.internal/ods",
+      "authMode": "Key pair",
+      "secretRef": "kv://bpc/feeds/sftp"
+    },
+    "status": "connected",
+    "testedAt": 1783765055,
+    "detail": {
+      "pingMs": 133,
+      "discovered": 5,
+      "unit": "datasets",
+      "endpoint": "sftp://feeds.corp.internal/ods"
+    }
+  }
+}

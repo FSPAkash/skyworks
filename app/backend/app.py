@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import random
+import re
 import time
 from datetime import datetime
 from flask import Flask, jsonify, request, send_from_directory, abort
@@ -74,8 +75,27 @@ FILE_FIELDS = [
     {"key": "secretRef", "label": "Secret reference (vault path / key name)",
      "prefill": "kv://bpc/feeds/sftp", "required": True, "secret": True},
 ]
+CLOUD_FIELDS = [
+    {"key": "workspace", "label": "Workspace / account", "prefill": "bpc-analytics", "required": True},
+    {"key": "region", "label": "Region", "prefill": "eastus", "required": True},
+    {"key": "authMode", "label": "Auth mode", "type": "select",
+     "options": ["Service principal", "Managed identity", "Access key"], "prefill": "Service principal", "required": True},
+    {"key": "secretRef", "label": "Secret reference (vault path / key name)",
+     "prefill": "kv://bpc/cloud/sp", "required": True, "secret": True},
+]
+LLM_FIELDS = [
+    {"key": "endpoint", "label": "Model endpoint", "prefill": "https://models.bpc.internal/v1", "required": True},
+    {"key": "model", "label": "Model", "type": "select",
+     "options": ["bpc-metadata-ingest", "bpc-usage-scorer", "bpc-classifier", "bpc-summarizer"], "prefill": "bpc-metadata-ingest", "required": True},
+    {"key": "authMode", "label": "Auth mode", "type": "select",
+     "options": ["API key", "Managed identity"], "prefill": "API key", "required": True},
+    {"key": "secretRef", "label": "Secret reference (vault path / key name)",
+     "prefill": "kv://bpc/llm/key", "required": True, "secret": True},
+]
 
-# maps a source label (from config sourceGroups) to a connector kind
+# Each source label maps to a connector kind; the kind rolls up to a top-level
+# CATEGORY (sources / cloud / llm) used by the Infrastructure view. A config
+# source may override its category by prefixing the group or via CATEGORY_BY_KIND.
 CONNECTORS = {
     "SAP":        {"kind": "erp",  "fields": API_FIELDS},
     "ECC":        {"kind": "erp",  "fields": API_FIELDS},
@@ -93,23 +113,72 @@ CONNECTORS = {
     "Exchange / M365": {"kind": "mail", "fields": MAIL_FIELDS},
     "Microsoft 365": {"kind": "mail", "fields": MAIL_FIELDS},
     "Google Workspace": {"kind": "mail", "fields": MAIL_FIELDS},
+    # cloud platforms
+    "Microsoft Fabric": {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Databricks":       {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Snowflake":        {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Synapse":          {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Warehouse":        {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Cloud Platform":   {"kind": "cloud", "fields": CLOUD_FIELDS},
+    "Data Lake":        {"kind": "cloud", "fields": CLOUD_FIELDS},
+    # LLM / model endpoints (the BPC accelerator)
+    "BPC Models":       {"kind": "llm", "fields": LLM_FIELDS},
+    "Metadata Ingest Model": {"kind": "llm", "fields": LLM_FIELDS},
+    "Usage Scoring Model":   {"kind": "llm", "fields": LLM_FIELDS},
+    "Classification Model":  {"kind": "llm", "fields": LLM_FIELDS},
+    "Summarization Model":   {"kind": "llm", "fields": LLM_FIELDS},
 }
 DEFAULT_CONNECTOR = {"kind": "external", "fields": FILE_FIELDS}
 
-# mock users for role-based access (demo only, no real auth)
+# kind -> top-level connection category shown in Infrastructure
+CATEGORY_BY_KIND = {
+    "erp": "sources", "crm": "sources", "db": "sources", "mail": "sources", "external": "sources",
+    "cloud": "cloud", "llm": "llm",
+}
+CATEGORY_LABEL = {"sources": "Sources", "cloud": "Cloud", "llm": "LLM"}
+
+# mock users for role-based access (demo only, no real auth). Roles mirror the
+# SOW delivery personas; each sees only the parts of the assessment they work on.
 USERS = [
-    {"id": "exec",  "name": "C-Level",       "role": "c-level",      "title": "Executive leadership"},
-    {"id": "ds",    "name": "Data Science",  "role": "data-science", "title": "Data science team"},
-    {"id": "pm",    "name": "Delivery / PM", "role": "delivery",     "title": "Delivery and project management"},
-    {"id": "admin", "name": "Admin",         "role": "admin",        "title": "Platform administration"},
+    {"id": "exec",     "name": "C-Level",          "role": "c-level",   "title": "Executive leadership"},
+    {"id": "architect","name": "Solution Architect","role": "architect", "title": "Architecture & lineage"},
+    {"id": "engineer", "name": "Data Engineer",    "role": "engineer",  "title": "Ingestion, ETL & connectivity"},
+    {"id": "analyst",  "name": "Data Analyst",     "role": "analyst",   "title": "Domain, scoring & enrichment"},
+    {"id": "pm",       "name": "Delivery / PM",    "role": "delivery",  "title": "Delivery and project management"},
+    {"id": "admin",    "name": "Admin",            "role": "admin",     "title": "Platform administration"},
 ]
 
-# what each role may see (route keys the frontend also enforces)
+# Route keys each role may open. Layers are one route ("layers"); which LAYERS
+# and which SUB-PARTS a role sees is controlled by ROLE_LAYERS / ROLE_SUBPARTS.
+# C-Level: overview only. PM: everything except admin settings. Admin: all.
 ROLE_ACCESS = {
-    "c-level":      ["overview", "deliverables", "gantt"],
-    "data-science": ["overview", "journey", "layer", "deliverables", "gantt", "intake"],
-    "delivery":     ["overview", "journey", "layer", "deliverables", "gantt", "intake"],
-    "admin":        ["overview", "journey", "layer", "deliverables", "gantt", "intake", "admin"],
+    "c-level":   ["overview"],
+    "architect": ["overview", "layers"],
+    "engineer":  ["overview", "layers"],
+    "analyst":   ["overview", "layers"],
+    "delivery":  ["overview", "layers"],
+    "admin":     ["overview", "layers", "admin"],
+}
+
+# which assessment layers each role may open
+_ALL_LAYERS = ["infrastructure", "collection", "unification", "presentation"]
+ROLE_LAYERS = {
+    "c-level":   [],
+    "architect": ["infrastructure", "unification", "presentation"],
+    "engineer":  ["infrastructure", "collection", "unification"],
+    "analyst":   ["collection", "unification", "presentation"],
+    "delivery":  _ALL_LAYERS,
+    "admin":     _ALL_LAYERS,
+}
+
+# which Collection sub-parts a role works on (sub-part id -> roles). PM/Admin see
+# all. Sub-parts a role can't see are hidden. Layers other than Collection show
+# all their sub-parts to any role that can open the layer.
+ROLE_SUBPARTS = {
+    "domain-intelligence":   ["analyst", "delivery", "admin"],
+    "automated-data-catalog":["engineer", "analyst", "delivery", "admin"],
+    "data-enrichment":       ["analyst", "delivery", "admin"],
+    "transformation":        ["engineer", "delivery", "admin"],   # ETL / DB assessment
 }
 
 app = Flask(__name__, static_folder=None)
@@ -169,11 +238,12 @@ def read_config(pid):
 
 
 def list_profiles():
-    out = [{"id": GENERIC_ID, "name": "Start Fresh Project", "mode": "generic", "engagement": "New I-CUP Project"}]
+    out = [{"id": GENERIC_ID, "name": "Start Fresh Project", "mode": "generic", "engagement": "New Data Assessment"}]
     for pid in sorted(os.listdir(PROFILES_DIR)):
         cfg = read_config(pid)
         if cfg:
             out.append({"id": pid, "name": cfg["client"]["name"], "mode": cfg.get("mode", "client"),
+                        "isDemo": bool(cfg.get("isDemo")),
                         "engagement": cfg["client"].get("engagement", "")})
     return out
 
@@ -197,6 +267,8 @@ def _pf(pid, name):
 # behaves identically on Render's ephemeral filesystem. Saving a project copies
 # this scratch state onto a real (on-disk) profile.
 _GENERIC_STATE = {}  # { sessionId: {"selection": {...}, "connections": {...}} }
+# profiles/sessions with "Run full project" applied -> config presented as done
+_FULL_DEMO = set()
 
 
 def _session_id():
@@ -209,6 +281,7 @@ def _generic_bucket():
 
 def clear_generic_session(sid):
     _GENERIC_STATE.pop(sid, None)
+    _FULL_DEMO.discard(f"{GENERIC_ID}::{sid}")
 
 
 def load_selection(pid):
@@ -253,6 +326,14 @@ def connector_for(label):
     return CONNECTORS.get(label, DEFAULT_CONNECTOR)
 
 
+def category_for(group, kind):
+    """Top-level connection category. A sourceGroup may set an explicit
+    'category' in config; otherwise it's derived from the connector kind."""
+    if isinstance(group, dict) and group.get("category") in CATEGORY_LABEL:
+        return group["category"]
+    return CATEGORY_BY_KIND.get(kind, "sources")
+
+
 def all_targets(pid):
     """Every possible pull-layer source in this profile's config."""
     cfg = read_config(pid)
@@ -266,7 +347,8 @@ def all_targets(pid):
                 conn = connector_for(item)
                 targets.append({"id": cid, "layer": layer["key"], "layerName": layer["name"],
                                 "group": group["label"], "source": item,
-                                "kind": conn["kind"], "fields": conn["fields"]})
+                                "kind": conn["kind"], "category": category_for(group, conn["kind"]),
+                                "fields": conn["fields"]})
     return targets
 
 
@@ -286,9 +368,12 @@ def profiles():
 
 @app.get("/api/config")
 def config():
-    cfg = read_config(active_pid())
+    pid = active_pid()
+    cfg = read_config(pid)
     if not cfg:
         abort(404)
+    if _demo_key(pid) in _FULL_DEMO:
+        cfg = apply_full_demo(cfg)
     return jsonify(cfg)
 
 
@@ -352,6 +437,273 @@ def session_reset():
     return jsonify({"ok": True})
 
 
+def _test_detail(pid, cid, kind, values):
+    """Deterministic mock handshake result (shared by test + run-demo)."""
+    rng = random.Random(int(hashlib.md5((pid + cid).encode()).hexdigest(), 16))
+    ping = rng.randint(11, 140)
+    if kind == "db":
+        objects, unit = rng.randint(120, 900), "tables"
+    elif kind in ("erp", "crm"):
+        objects, unit = rng.randint(40, 300), "objects"
+    elif kind == "mail":
+        objects, unit = rng.randint(3, 40), "mailboxes"
+    elif kind == "cloud":
+        objects, unit = rng.randint(6, 80), "workspaces"
+    elif kind == "llm":
+        objects, unit = rng.randint(1, 6), "models"
+    else:
+        objects, unit = rng.randint(2, 60), "datasets"
+    return {"pingMs": ping, "discovered": objects, "unit": unit,
+            "endpoint": values.get("host") or values.get("baseUrl") or values.get("tenant")
+            or values.get("workspace") or values.get("endpoint") or values.get("location", "")}
+
+
+def auto_provision(pid, select_all=True):
+    """Select every source in the profile and mark all connections 'connected'
+    with prefilled values + mock detail. Powers the demo profile and the
+    'Run full project' button so meters and connections show live data."""
+    targets = all_targets(pid)
+    if select_all:
+        sel = {}
+        for t in targets:
+            sel.setdefault(t["layer"], [])
+            if t["source"] not in sel[t["layer"]]:
+                sel[t["layer"]].append(t["source"])
+        save_selection(pid, sel)
+    conns = load_connections(pid)
+    for t in targets:
+        cid = t["id"]
+        vals = prefill_values(t)
+        conns[cid] = {"id": cid, "source": t["source"], "layer": t["layer"], "kind": t["kind"],
+                      "values": vals, "status": "connected", "testedAt": int(time.time()),
+                      "detail": _test_detail(pid, cid, t["kind"], vals)}
+    save_connections(pid, conns)
+
+
+def _demo_key(pid):
+    return f"{pid}::{_session_id()}" if pid == GENERIC_ID else pid
+
+
+def apply_full_demo(cfg):
+    """Present a config as a finished engagement: every deliverable delivered,
+    alignment at target, milestones complete, statuses green."""
+    for d in cfg.get("deliverables", []):
+        d["status"] = "delivered"
+        if not d.get("artifact"):
+            d["artifact"] = "/artifacts/demo/index.html"
+    # give a blank Start-Fresh project a schedule once the full project is run
+    cl = cfg.setdefault("client", {})
+    if not cl.get("activeWeeks"):
+        cl["activeWeeks"] = 10
+        cl["acceptanceWeeks"] = cl.get("acceptanceWeeks") or 2
+        cl["durationWeeks"] = cl.get("durationWeeks") or 12
+    ov = cfg.setdefault("overview", {})
+    if ov.get("alignment"):
+        ov["alignment"]["current"] = ov["alignment"].get("target", 100)
+    for m in ov.get("milestones", []):
+        m["status"] = "delivered"
+    for layer in cfg.get("layers", []):
+        for s in (layer.get("presentation", {}) or {}).get("statuses", []):
+            s["state"] = "delivered"
+        # populate sub-part boxes: promote demoMetrics -> metrics, mark delivered
+        for sp in layer.get("subparts", []):
+            if sp.get("demoMetrics") and not sp.get("metrics"):
+                sp["metrics"] = sp["demoMetrics"]
+            sp["state"] = "delivered"
+    return cfg
+
+
+@app.post("/api/demo/run")
+def demo_run():
+    """Run the full project on the active profile: connect every source and mark
+    the engagement complete end to end."""
+    pid = active_pid()
+    auto_provision(pid)
+    _FULL_DEMO.add(_demo_key(pid))
+    return jsonify({"ok": True})
+
+
+def _strip_money(text):
+    """Remove any line containing a currency amount or fee wording. No dollar
+    figure is ever parsed, stored, or shown."""
+    out = []
+    money = re.compile(r"\$|\bUSD\b|\bfee\b|\bpayment\b|\binvoice\b|\bcost of\b", re.I)
+    for ln in text.splitlines():
+        if money.search(ln):
+            continue
+        out.append(ln)
+    return "\n".join(out)
+
+
+def parse_sow_pdf(raw):
+    """Extract Overview-relevant fields from a SOW PDF (no dollar amounts).
+    Returns a dict merged onto the generic template to form a profile config."""
+    from pypdf import PdfReader
+    import io
+    reader = PdfReader(io.BytesIO(raw))
+    text = _strip_money("\n".join((p.extract_text() or "") for p in reader.pages))
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    joined = "\n".join(lines)
+
+    # engagement / client name
+    client = None
+    m = re.search(r"between\s+(.+?)\s*\(", joined)
+    if m:
+        client = m.group(1).strip()
+    # engagement: prefer a named "... Assessment/Readiness/Modernization" phrase
+    # from the body, not a section heading.
+    engagement = None
+    m = re.search(r"conduct a[n]?\s+(.+?assessment|.+?readiness assessment|.+?modernization[^.,]*)", joined, re.I)
+    if m:
+        engagement = re.sub(r"\s+", " ", m.group(1)).strip(" .,")
+    if not engagement:
+        for l in lines:
+            if re.search(r"\b(assessment|modernization|readiness)\b", l, re.I) and 12 < len(l) < 70 \
+               and not re.search(r"methodology|deliverable|phase|scope", l, re.I):
+                engagement = l.strip(" ."); break
+
+    # weeks
+    weeks = None
+    m = re.search(r"(\d+)\s*weeks", joined, re.I)
+    if m:
+        weeks = int(m.group(1))
+
+    # deliverables: "# Deliverable Description" table rows. The name is the
+    # leading Title-Case phrase; a run-on description follows, which we trim.
+    # a deliverable name usually ends at one of these nouns; cut right after it
+    _END = re.compile(r"^(Report|Inventory|Map|Backlog|Playbook|Scorecard|Summary|"
+                      r"Baseline|Model|Catalog|Assessment|Analysis|Plan|Matrix)\b", re.I)
+
+    def clean_name(s):
+        s = re.sub(r"([a-z])([A-Z])", r"\1 \2", s)   # split runs like "InventoryCatalog"
+        s = re.sub(r"\s+", " ", s).strip()
+        words = s.split(" ")
+        out = []
+        for w in words:
+            out.append(w)
+            if len(out) >= 2 and _END.match(w):
+                break
+            if out and len(out) >= 2 and w and w[0].islower():
+                out.pop(); break
+            if len(out) >= 6:
+                break
+        return " ".join(out).strip(" .,-")
+
+    dels = []
+    for m in re.finditer(r"(?:^|\n)\s*(\d{1,2})\s+([A-Z][A-Za-z0-9 /&\-]{6,70})", joined):
+        n, name = int(m.group(1)), clean_name(m.group(2))
+        if 1 <= n <= 20 and name and not any(d["n"] == n for d in dels):
+            dels.append({"n": n, "name": name})
+    dels = sorted(dels, key=lambda d: d["n"])[:12]
+
+    # candidate systems (upstream/reference) mentioned
+    known = ["SAP", "Kinaxis", "PLM", "EDI", "PROMIS", "CRM", "Warehouse",
+             "Enterprise Analytics", "Oracle", "Db2", "SQL", "Snowflake",
+             "Databricks", "Microsoft Fabric", "Synapse", "Salesforce"]
+    systems = [s for s in known if re.search(re.escape(s), joined, re.I)]
+
+    return {"client": client, "engagement": engagement, "weeks": weeks,
+            "deliverables": dels, "systems": systems, "chars": len(text)}
+
+
+@app.post("/api/profiles/from-sow")
+def profile_from_sow():
+    """Admin uploads a SOW PDF; we extract Overview fields (never any dollar
+    amount) and build a profile from the generic template."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"ok": False, "error": "No PDF uploaded."}), 400
+    raw = f.read()
+    try:
+        parsed = parse_sow_pdf(raw)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Could not read PDF: {e}"}), 400
+
+    name = (request.form.get("name") or parsed.get("client") or "SOW Project").strip()
+    pid = slugify(name)
+    if pid == GENERIC_ID or os.path.exists(os.path.join(profile_dir(pid), "config.json")):
+        return jsonify({"ok": False, "error": "A project with a similar name already exists."}), 409
+
+    cfg = read_config(GENERIC_ID)
+    cfg["mode"] = "client"
+    cfg["client"]["name"] = name
+    if parsed.get("engagement"):
+        cfg["client"]["engagement"] = parsed["engagement"]
+    if parsed.get("weeks"):
+        cfg["client"]["durationWeeks"] = parsed["weeks"]
+    cfg["sowSource"] = {"parsed": True, "deliverables": len(parsed["deliverables"]),
+                        "systems": parsed["systems"], "chars": parsed["chars"]}
+    # overlay parsed deliverable names onto the template's deliverables where present
+    if parsed["deliverables"]:
+        base = cfg.get("deliverables", [])
+        merged = []
+        for i, d in enumerate(parsed["deliverables"]):
+            tmpl = base[i] if i < len(base) else {}
+            merged.append({**tmpl, "id": d["n"], "code": f"D{d['n']}", "name": d["name"],
+                           "status": tmpl.get("status", "planned"),
+                           "artifact": tmpl.get("artifact")})
+        cfg["deliverables"] = merged
+
+    os.makedirs(profile_dir(pid), exist_ok=True)
+    with open(_pf(pid, "config.json"), "w", encoding="utf-8") as f2:
+        json.dump(cfg, f2, indent=2)
+    return jsonify({"ok": True, "id": pid, "name": name, "parsed": {
+        "engagement": parsed.get("engagement"), "weeks": parsed.get("weeks"),
+        "deliverables": len(parsed["deliverables"]), "systems": parsed["systems"]}})
+
+
+@app.post("/api/profiles/from-form")
+def profile_from_form():
+    """Admin fills the Overview fields by hand (no SOW / no JSON). Builds a
+    profile from the generic template with the supplied overview data."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    d = request.get_json(silent=True) or {}
+    name = (d.get("name") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "error": "Client / project name is required."}), 400
+    pid = slugify(name)
+    if pid == GENERIC_ID or os.path.exists(os.path.join(profile_dir(pid), "config.json")):
+        return jsonify({"ok": False, "error": "A project with a similar name already exists."}), 409
+
+    def num(v, dflt):
+        try: return int(v)
+        except (TypeError, ValueError): return dflt
+
+    cfg = read_config(GENERIC_ID)
+    cfg["mode"] = "client"
+    cl = cfg["client"]
+    cl["name"] = name
+    if d.get("engagement"): cl["engagement"] = d["engagement"].strip()
+    if d.get("framework"): cl["framework"] = d["framework"].strip()
+    cl["durationWeeks"] = num(d.get("durationWeeks"), cl.get("durationWeeks", 12))
+    cl["activeWeeks"] = num(d.get("activeWeeks"), cl.get("activeWeeks", 10))
+    cl["acceptanceWeeks"] = num(d.get("acceptanceWeeks"), cl.get("acceptanceWeeks", 2))
+
+    ov = cfg.setdefault("overview", {})
+    if d.get("headline"): ov["headline"] = d["headline"].strip()
+    if d.get("background"): ov["background"] = d["background"].strip()
+    if d.get("outcome"): ov["outcome"] = d["outcome"].strip()
+    # highlights: list of {label, value, unit}
+    hl = [h for h in (d.get("highlights") or [])
+          if (h.get("label") or "").strip() and (str(h.get("value")).strip())]
+    if hl:
+        ov["highlights"] = [{"label": h["label"].strip(), "value": str(h["value"]).strip(),
+                             **({"unit": h["unit"].strip()} if (h.get("unit") or "").strip() else {})}
+                            for h in hl]
+    al = ov.setdefault("alignment", {"current": 0, "target": 100, "label": "Assessment progress"})
+    al["current"] = num(d.get("alignmentCurrent"), al.get("current", 0))
+    al["target"] = num(d.get("alignmentTarget"), al.get("target", 100))
+    if d.get("alignmentLabel"): al["label"] = d["alignmentLabel"].strip()
+
+    os.makedirs(profile_dir(pid), exist_ok=True)
+    with open(_pf(pid, "config.json"), "w", encoding="utf-8") as f2:
+        json.dump(cfg, f2, indent=2)
+    return jsonify({"ok": True, "id": pid, "name": name})
+
+
 DELETE_PIN = "2345"  # mock demo gate for deleting a profile from the login screen
 
 
@@ -373,7 +725,8 @@ def delete_profile(pid):
 
 @app.get("/api/users")
 def users():
-    return jsonify({"users": USERS, "access": ROLE_ACCESS})
+    return jsonify({"users": USERS, "access": ROLE_ACCESS,
+                    "layers": ROLE_LAYERS, "subparts": ROLE_SUBPARTS})
 
 
 # --- source selection (the Co-Pilot chooses which systems exist) ---
@@ -415,6 +768,49 @@ def set_selection():
     return jsonify({"ok": True, "selected": sel})
 
 
+def usage_meters(pid, targets):
+    """Deterministic mock 'usage' meters per connection category, so the
+    Infrastructure view always has something live to show. Values are seeded by
+    (pid, category) so they're stable per profile."""
+    def seeded(cat, lo, hi):
+        s = int(hashlib.md5((pid + "::meter::" + cat).encode()).hexdigest(), 16)
+        return random.Random(s).randint(lo, hi)
+
+    cats = {c: [t for t in targets if t["category"] == c] for c in CATEGORY_LABEL}
+    connected = lambda arr: sum(1 for t in arr if (t.get("connection") or {}).get("status") == "connected")
+    meters = []
+    # Meters represent live usage, so only show them for categories that actually
+    # have a CONNECTED target - never for merely selected/configured ones.
+    # Sources: freshness / rows pulled
+    src = cats["sources"]
+    if connected(src):
+        meters.append({"category": "sources", "label": "Records ingested",
+                       "value": seeded("src_rows", 40, 96), "unit": "%", "kind": "bar",
+                       "detail": f"{seeded('src_m', 2, 48)}.{seeded('src_d',0,9)}M rows this cycle"})
+        meters.append({"category": "sources", "label": "Source freshness",
+                       "value": seeded("src_fresh", 70, 99), "unit": "%", "kind": "bar",
+                       "detail": f"last sync {seeded('src_sync', 2, 55)}m ago"})
+    # Cloud: compute / storage
+    cld = cats["cloud"]
+    if connected(cld):
+        meters.append({"category": "cloud", "label": "Compute utilization",
+                       "value": seeded("cld_cpu", 35, 88), "unit": "%", "kind": "bar",
+                       "detail": f"{seeded('cld_cu', 40, 260)} CU active"})
+        meters.append({"category": "cloud", "label": "Storage used",
+                       "value": seeded("cld_stor", 20, 75), "unit": "%", "kind": "bar",
+                       "detail": f"{seeded('cld_tb', 1, 9)}.{seeded('cld_tf',0,9)} TB / 12 TB"})
+    # LLM: token usage / calls
+    llm = cats["llm"]
+    if connected(llm):
+        meters.append({"category": "llm", "label": "LLM token usage",
+                       "value": seeded("llm_tok", 30, 82), "unit": "%", "kind": "bar",
+                       "detail": f"{seeded('llm_m', 1, 9)}.{seeded('llm_k',0,9)}M / 12M tokens"})
+        meters.append({"category": "llm", "label": "Inference calls",
+                       "value": seeded("llm_calls", 45, 95), "unit": "%", "kind": "bar",
+                       "detail": f"{seeded('llm_c', 4, 90)}k calls this cycle"})
+    return meters
+
+
 # --- connections (only for selected sources) ---
 @app.get("/api/sources")
 def sources():
@@ -424,13 +820,19 @@ def sources():
     for t in targets:
         t["connection"] = conns.get(t["id"])
     by_layer = {}
+    by_category = {}
     for t in targets:
         st = (t["connection"] or {}).get("status", "not-configured")
         by_layer.setdefault(t["layer"], {"total": 0, "connected": 0, "name": t["layerName"]})
         by_layer[t["layer"]]["total"] += 1
+        cat = t["category"]
+        by_category.setdefault(cat, {"total": 0, "connected": 0, "label": CATEGORY_LABEL[cat]})
+        by_category[cat]["total"] += 1
         if st == "connected":
             by_layer[t["layer"]]["connected"] += 1
-    return jsonify({"targets": targets, "layers": by_layer})
+            by_category[cat]["connected"] += 1
+    return jsonify({"targets": targets, "layers": by_layer,
+                    "categories": by_category, "meters": usage_meters(pid, targets)})
 
 
 @app.post("/api/connections/<cid>")
@@ -462,21 +864,9 @@ def test_connection(cid):
     if missing:
         return jsonify({"ok": False, "status": "error",
                         "error": "Missing required fields: " + ", ".join(missing)}), 400
-    seed = int(hashlib.md5((pid + cid).encode()).hexdigest(), 16)
-    rng = random.Random(seed)
     time.sleep(0.4)
-    ping = rng.randint(11, 140)
     kind = target["kind"]
-    if kind == "db":
-        objects, unit = rng.randint(120, 900), "tables"
-    elif kind in ("erp", "crm"):
-        objects, unit = rng.randint(40, 300), "objects"
-    elif kind == "mail":
-        objects, unit = rng.randint(3, 40), "mailboxes"
-    else:
-        objects, unit = rng.randint(2, 60), "datasets"
-    detail = {"pingMs": ping, "discovered": objects, "unit": unit,
-              "endpoint": values.get("host") or values.get("baseUrl") or values.get("tenant") or values.get("location", "")}
+    detail = _test_detail(pid, cid, kind, values)
     conns[cid] = {**conns.get(cid, {}), "id": cid, "source": target["source"], "layer": target["layer"],
                   "kind": kind, "values": values, "status": "connected",
                   "testedAt": int(time.time()), "detail": detail}

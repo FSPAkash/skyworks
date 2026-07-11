@@ -1,132 +1,139 @@
 {
   "mode": "generic",
-  "product": {
-    "name": "Data - BPC",
-    "short": "Data - BPC",
-    "bpcFull": "Business Process Co-Pilot"
-  },
+  "product": { "name": "BPC for Data", "short": "BPC", "bpcFull": "Business Process Co-Pilot" },
   "client": {
     "name": "Start Fresh Project",
-    "engagement": "New I-CUP Project",
-    "framework": "I-CUP",
-    "durationWeeks": 12,
-    "activeWeeks": 10,
-    "acceptanceWeeks": 2
+    "engagement": "New Data Assessment",
+    "framework": "Assessment",
+    "durationWeeks": 0,
+    "activeWeeks": 0,
+    "acceptanceWeeks": 0
+  },
+  "overview": {
+    "headline": "Connect the data estate, catalog and enrich it, map lineage end to end, and hand over the findings.",
+    "background": "BPC connects the source systems, cloud platform, and models the assessment runs on, ingests metadata, enriches it with usage context, maps end-to-end lineage, and packages findings and recommendations for handover.",
+    "outcome": "Findings, lineage, and recommendations are delivered as final outputs the client owns.",
+    "highlights": [],
+    "alignment": { "current": 0, "target": 100, "label": "Assessment progress" },
+    "milestones": [
+      { "name": "Setup & Discovery", "when": "Phase 1", "trigger": "Connectivity and metadata inventory", "status": "planned" },
+      { "name": "Mapping & Classification", "when": "Phase 2", "trigger": "Lineage and classification", "status": "planned" },
+      { "name": "Handover", "when": "Phase 3", "trigger": "Recommendations and enablement", "status": "planned" }
+    ]
   },
   "profile": null,
   "layers": [
     {
-      "id": "I",
-      "key": "infrastructure",
-      "name": "Infrastructure",
-      "tag": "I · Infrastructure",
-      "summary": "The foundation the work runs on: target platform, environment, access model. Owner-provided, or advised/built per posture.",
+      "id": "I", "key": "infrastructure", "name": "Infrastructure",
+      "summary": "Every connection the assessment runs on, categorized into Sources, Cloud, and LLM, with live connectivity and usage.",
       "ownedBy": "Client",
-      "topics": ["Infra Connectivity", "Collection", "Data Discovery", "Security"],
       "sourceGroups": [
-        { "label": "ERP", "items": ["SAP", "ECC", "S/4 HANA", "PeopleSoft"] },
-        { "label": "CRM", "items": ["Salesforce", "Dynamics 365", "HubSpot"] },
-        { "label": "Databases", "items": ["SQL", "Oracle", "Db2"] },
-        { "label": "Email", "items": ["Exchange", "Microsoft 365", "Google Workspace"] },
-        { "label": "External Sources", "items": ["Domain Specific Information", "Third-party APIs", "Flat files / EDI"] }
+        { "label": "ERP", "category": "sources", "items": ["SAP", "ECC", "S/4 HANA", "PeopleSoft"] },
+        { "label": "CRM", "category": "sources", "items": ["Salesforce", "Dynamics 365", "HubSpot"] },
+        { "label": "Databases", "category": "sources", "items": ["SQL", "Oracle", "Db2"] },
+        { "label": "Email", "category": "sources", "items": ["Exchange", "Microsoft 365", "Google Workspace"] },
+        { "label": "Cloud Platform", "category": "cloud", "items": ["Cloud Platform", "Data Lake"] },
+        { "label": "BPC Models", "category": "llm", "items": ["BPC Models"] }
       ],
-      "deliverables": []
+      "subparts": [
+        { "id": "sources", "name": "Sources", "desc": "Source systems the assessment reads from.", "state": "planned",
+          "demoMetrics": [
+            { "label": "Sources in scope", "value": "14" },
+            { "label": "Total volume", "value": "3.6", "unit": "TB" },
+            { "label": "Connections", "value": "All established" }
+          ] },
+        { "id": "cloud", "name": "Cloud", "desc": "Target platform and compute.", "state": "planned",
+          "demoMetrics": [
+            { "label": "Platform", "value": "Data Lake" },
+            { "label": "Storage used", "value": "2.4", "unit": "TB" }
+          ] },
+        { "id": "llm", "name": "LLM", "desc": "Models driving ingestion, scoring, and classification.", "state": "planned",
+          "demoMetrics": [
+            { "label": "Models active", "value": "4 / 4" },
+            { "label": "Tokens used", "value": "5.1", "unit": "M" }
+          ] }
+      ],
+      "presentation": { "deliverables": [1], "statuses": [
+        { "label": "Connectivity validated", "value": "pending", "state": "planned" },
+        { "label": "Access model", "value": "read-only accounts", "state": "planned" }
+      ] }
     },
     {
-      "id": "C",
-      "key": "collection",
-      "name": "Collection",
-      "tag": "C · Collection",
-      "summary": "Pull in the raw material later layers depend on: discovery, inventories, metadata and log capture, extraction, ingestion.",
+      "id": "C", "key": "collection", "name": "Collection",
+      "summary": "Discovery and metadata ingestion: domain intelligence, an automated catalog, enrichment, and transformation analysis.",
       "ownedBy": "FS",
       "sourceGroups": [
-        { "label": "Metadata", "items": ["Schemas", "Tables & columns", "Job / package inventory"] },
-        { "label": "Logs", "items": ["Query logs", "Event logs", "Audit trails"] },
-        { "label": "Documents", "items": ["Data dictionaries", "SME interviews", "Existing docs"] }
+        { "label": "Metadata", "category": "sources", "items": ["Schemas", "Tables & columns", "Job / package inventory"] },
+        { "label": "Logs", "category": "sources", "items": ["Query logs", "Event logs"] }
       ],
-      "deliverables": [1]
+      "subparts": [
+        { "id": "domain-intelligence", "name": "Domain Intelligence", "desc": "Business domain context and data ownership captured with subject-matter experts.", "state": "planned",
+          "demoMetrics": [ { "label": "Domains", "value": "7" }, { "label": "Owners mapped", "value": "82%" } ] },
+        { "id": "automated-data-catalog", "name": "Automated Data Catalog", "desc": "Automated ingestion of tables, schemas, columns, and sizes.", "state": "planned",
+          "demoMetrics": [ { "label": "Tables", "value": "1,860" }, { "label": "Columns profiled", "value": "39,400" }, { "label": "Schemas", "value": "36" } ] },
+        { "id": "data-enrichment", "name": "Data Enrichment", "desc": "Usage patterns, access tools, and frequency from log analysis.", "state": "planned",
+          "demoMetrics": [ { "label": "Usage scored", "value": "88%" }, { "label": "Hot tables", "value": "240" } ] },
+        { "id": "transformation", "name": "Transformation", "desc": "Pipeline parsing and ETL / database assessment of transformation logic.", "state": "planned",
+          "demoMetrics": [ { "label": "Pipelines parsed", "value": "94" }, { "label": "Transform steps", "value": "1,120" } ] }
+      ],
+      "presentation": { "deliverables": [2], "statuses": [
+        { "label": "Metadata ingested", "value": "pending", "state": "planned" },
+        { "label": "Packages parsed", "value": "pending", "state": "planned" }
+      ] }
     },
     {
-      "id": "U",
-      "key": "unification",
-      "name": "Unification",
-      "tag": "U · Unification",
-      "summary": "Make the collected material coherent: lineage and dependency mapping, entity resolution, normalization, single-view assembly.",
+      "id": "U", "key": "unification", "name": "Unification",
+      "summary": "End-to-end lineage across datasets and reference systems, with ownership mapping and manual additions where automation is limited.",
       "ownedBy": "FS",
       "sourceGroups": [
-        { "label": "Lineage", "items": ["Upstream feeds", "Downstream consumers", "Transformations"] },
-        { "label": "Identity", "items": ["Entity resolution", "Ownership mapping", "Reference data"] }
+        { "label": "Lineage", "category": "sources", "items": ["Upstream feeds", "Downstream consumers"] },
+        { "label": "Identity", "category": "sources", "items": ["Dataset ownership", "Reference data"] }
       ],
-      "deliverables": [2]
+      "subparts": [
+        { "id": "e2e-viz", "name": "End-to-End Visualization", "desc": "Lineage from upstream sources through transformations to downstream consumption.", "state": "planned",
+          "demoMetrics": [ { "label": "Lineage nodes", "value": "1,540" }, { "label": "Edges mapped", "value": "5,200" }, { "label": "Coverage", "value": "70%" } ] },
+        { "id": "manual-additions", "name": "Manual Additions", "desc": "Analyst-added lineage where API or metadata access is limited.", "state": "planned",
+          "demoMetrics": [ { "label": "Manual edges", "value": "72" }, { "label": "Gaps flagged", "value": "18" } ] },
+        { "id": "ownership", "name": "Ownership Mapping", "desc": "Dataset ownership and reference-data resolution.", "state": "planned",
+          "demoMetrics": [ { "label": "Core datasets", "value": "210" }, { "label": "Owned", "value": "76%" } ] }
+      ],
+      "presentation": { "deliverables": [3], "statuses": [
+        { "label": "Lineage coverage", "value": "pending", "state": "planned" },
+        { "label": "Ownership mapped", "value": "pending", "state": "planned" }
+      ] }
     },
     {
-      "id": "P",
-      "key": "presentation",
-      "name": "Presentation",
-      "tag": "P · Presentation",
-      "summary": "Turn the work into something people can act on and own: reports, dashboards, playbooks, executive summaries, enablement. This is where deliverables are handed over.",
+      "id": "P", "key": "presentation", "name": "Presentation",
+      "summary": "The face of the assessment: classification, alignment, simulation, backlog, and enablement, packaged for the client to act and own.",
       "ownedBy": "FS",
-      "sourceGroups": [
-        { "label": "Reports", "items": ["Executive summary", "Assessment report"] },
-        { "label": "Enablement", "items": ["Playbook", "Walkthroughs", "Knowledge transfer"] }
+      "sourceGroups": [],
+      "subparts": [
+        { "id": "classification", "name": "Classification & Alignment", "desc": "Dataset classification and current-state alignment baseline.", "state": "planned",
+          "demoMetrics": [ { "label": "Bronze", "value": "820" }, { "label": "Silver", "value": "610" }, { "label": "Gold", "value": "330" }, { "label": "Alignment", "value": "62%" } ] },
+        { "id": "simulation", "name": "Impact & Backlog", "desc": "Cost/performance simulation and prioritized transition backlog.", "state": "planned",
+          "demoMetrics": [ { "label": "Backlog items", "value": "48" }, { "label": "Simulated", "value": "yes" } ] },
+        { "id": "enablement", "name": "Enablement", "desc": "Playbook, walkthroughs, and executive summary.", "state": "planned",
+          "demoMetrics": [ { "label": "Playbook", "value": "ready" }, { "label": "Exec summary", "value": "ready" } ] }
       ],
-      "deliverables": [3, 4]
+      "presentation": { "deliverables": [3, 4], "statuses": [
+        { "label": "Findings packaged", "value": "pending", "state": "planned" }
+      ] }
     }
   ],
   "phases": [
-    { "id": 1, "name": "Discovery & Collection", "weeks": "W1-3", "weekStart": 1, "weekEnd": 3, "layer": "collection", "deliverables": [1] },
-    { "id": 2, "name": "Unification", "weeks": "W4-6", "weekStart": 4, "weekEnd": 6, "layer": "unification", "deliverables": [2] },
-    { "id": 3, "name": "Presentation & Handover", "weeks": "W7-10", "weekStart": 7, "weekEnd": 10, "layer": "presentation", "deliverables": [3, 4] }
+    { "id": 1, "name": "Setup & Discovery", "weeks": "W1-3", "weekStart": 1, "weekEnd": 3, "layer": "collection", "deliverables": [1] },
+    { "id": 2, "name": "Mapping & Classification", "weeks": "W4-6", "weekStart": 4, "weekEnd": 6, "layer": "unification", "deliverables": [2, 3] },
+    { "id": 3, "name": "Handover", "weeks": "W7-10", "weekStart": 7, "weekEnd": 10, "layer": "presentation", "deliverables": [4] }
   ],
   "deliverables": [
-    { "id": 1, "code": "D1", "name": "Source Inventory & Metadata Catalog", "purpose": "Centralized inventory of sources and metadata", "phase": 1, "layer": "collection", "weeks": "W1-3", "status": "planned", "artifact": null },
-    { "id": 2, "code": "D2", "name": "Lineage & Dependency Map", "purpose": "Connected view across sources", "phase": 2, "layer": "unification", "weeks": "W4-6", "status": "planned", "artifact": null },
-    { "id": 3, "code": "D3", "name": "Assessment Report", "purpose": "Current-state findings and recommendations", "phase": 3, "layer": "presentation", "weeks": "W7-10", "status": "planned", "artifact": null },
-    { "id": 4, "code": "D4", "name": "Executive Summary & Playbook", "purpose": "Leadership decision package and execution guidance", "phase": 3, "layer": "presentation", "weeks": "W7-10", "status": "planned", "artifact": null }
+    { "id": 1, "code": "D1", "name": "Connectivity Status Report", "purpose": "Validation of source access and any connectivity limitations", "phase": 1, "layer": "infrastructure", "weeks": "W1-3", "status": "planned", "artifact": null },
+    { "id": 2, "code": "D2", "name": "Metadata Inventory", "purpose": "Centralized catalog of sources and metadata", "phase": 1, "layer": "collection", "weeks": "W1-3", "status": "planned", "artifact": null },
+    { "id": 3, "code": "D3", "name": "Lineage & Dependency Map", "purpose": "Connected view across sources", "phase": 2, "layer": "unification", "weeks": "W4-6", "status": "planned", "artifact": null },
+    { "id": 4, "code": "D4", "name": "Assessment Summary", "purpose": "Findings, recommendations, and handover package", "phase": 3, "layer": "presentation", "weeks": "W7-10", "status": "planned", "artifact": null }
   ],
   "chatbot": {
-    "intro": "Hi, I'm the Data BPC Co-Pilot. I run intake per I-CUP section. Open the section you're working on and I'll ask only the questions that section needs.",
-    "outro": "Section intake captured. Move to the next I-CUP layer and I'll ask its questions.",
-    "sections": {
-      "infrastructure": {
-        "intro": "Infrastructure: let's confirm the foundation and which source systems we connect to. I'll gather the connection and access details so Data - BPC can auto-pull from the right sources.",
-        "questions": [
-          { "id": "infraPosture", "prompt": "What is the Infrastructure posture?", "field": "Posture", "options": ["Provided (client owns it)", "Advise (we design it)", "Build (we stand it up)"] },
-          { "id": "infraPlatform", "prompt": "What target platform does the work run on?", "field": "Target platform", "options": ["Microsoft Fabric", "Databricks", "Snowflake", "On-prem SQL Server", "Other"] },
-          { "id": "infraSources", "prompt": "Which source systems are in scope? (from ERP, CRM, Databases, Email, External Sources)", "field": "Source systems", "options": ["ERP + CRM + Databases", "ERP + Databases only", "All: ERP + CRM + Databases + Email + External", "Databases only"] },
-          { "id": "infraErp", "prompt": "Which ERP system do we connect to?", "field": "ERP system", "options": ["SAP", "ECC", "S/4 HANA", "PeopleSoft", "None"] },
-          { "id": "infraDb", "prompt": "Which database platform holds the data?", "field": "Database", "options": ["SQL", "Oracle", "Db2", "Mixed"] },
-          { "id": "infraExternal", "prompt": "Any external sources to include?", "field": "External sources", "options": ["Domain Specific Information", "Third-party APIs", "Flat files / EDI", "None"] },
-          { "id": "infraConnType", "prompt": "How should Data - BPC connect to pull data?", "field": "Connection method", "options": ["Direct connection string", "Service account + API", "Read replica", "Metadata export only"] },
-          { "id": "infraCreds", "prompt": "How are login / access credentials provided for auto-pull?", "field": "Credentials", "options": ["Service account (read-only)", "Named user credentials", "Key vault / secrets manager", "Provided per-source later"] },
-          { "id": "infraAccessOwner", "prompt": "Who grants and owns access to these systems?", "field": "Access owner", "options": ["Client DBA team", "Client platform team", "System owners per source", "External vendor"] },
-          { "id": "infraSecurity", "prompt": "What security controls apply to the connection?", "field": "Security", "options": ["MFA + IP allowlist", "VPN / private link", "Read-only role", "Standard credentials"] }
-        ]
-      },
-      "collection": {
-        "intro": "Collection: confirm how we pull raw inputs, and the access to each source so the pull is automated.",
-        "questions": [
-          { "id": "colMode", "prompt": "Is Collection manual, agentic, or hybrid?", "field": "Execution mode", "options": ["Agentic (automated ingestion)", "Manual (interviews / hand gathering)", "Hybrid"] },
-          { "id": "colAccess", "prompt": "What access level do the collection credentials have?", "field": "Access model", "options": ["Read-only", "Read-only replica", "Metadata export only"] },
-          { "id": "colScope", "prompt": "What do we collect from the connected sources?", "field": "Collection scope", "options": ["Schemas + tables + columns", "Metadata + logs", "Full extract"] }
-        ]
-      },
-      "unification": {
-        "intro": "Unification: confirm how we relate the collected material, and access to any lineage / reference systems.",
-        "questions": [
-          { "id": "uniMode", "prompt": "Is Unification manual, agentic, or hybrid?", "field": "Execution mode", "options": ["Agentic (agents build lineage)", "Manual (analysts model by hand)", "Hybrid"] },
-          { "id": "uniConnect", "prompt": "What needs to be connected?", "field": "Connect", "options": ["Lineage & dependencies", "Entity / identity resolution", "Common model / taxonomy"] },
-          { "id": "uniAccess", "prompt": "Is a lineage / catalog system available to pull from?", "field": "Lineage access", "options": ["Yes, API + credentials", "Partial / manual export", "No lineage tooling"] }
-        ]
-      },
-      "presentation": {
-        "intro": "Presentation: how do we hand this over so the client can act and own it?",
-        "questions": [
-          { "id": "presArtifacts", "prompt": "What are the handover artifacts?", "field": "Artifacts", "options": ["Reports + executive summary", "Dashboards", "Playbooks / runbooks", "Training / enablement"] },
-          { "id": "presMode", "prompt": "Is Presentation produced agentically, manually, or hybrid?", "field": "Execution mode", "options": ["Agentic", "Manual", "Hybrid"] },
-          { "id": "presAudience", "prompt": "Who is the executive audience?", "field": "Executive audience", "options": ["CIO / CTO", "Data leadership", "Steering committee"] }
-        ]
-      }
-    }
+    "intro": "Let's set up the data sources to connect.",
+    "outro": "Source information captured.",
+    "sections": {}
   }
 }

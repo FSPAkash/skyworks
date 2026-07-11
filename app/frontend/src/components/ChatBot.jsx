@@ -56,7 +56,7 @@ export default function ChatBot() {
       // already provisioned -> confirm, don't ask (even if a stale "ask" was shown)
       if (phase !== "done" || !started) {
         setPhase("done");
-        setMsgs([{ from: "bot", text: `Source information already gathered. ${r.total} connection${r.total === 1 ? "" : "s"} live across the layers. Open Connections to review endpoints.` }]);
+        setMsgs([{ from: "bot", text: `Source information already gathered. ${r.total} connection${r.total === 1 ? "" : "s"} live across the layers. Open Infrastructure to review endpoints.` }]);
       }
     } else if (!started) {
       reset();
@@ -100,27 +100,39 @@ export default function ChatBot() {
     await saveSelection(payload);
     setBusy(false);
     setPhase("done");
-    setMsgs((m) => [...m, { from: "bot", text: total ? `Done. ${total} connection${total === 1 ? "" : "s"} set up across the layers. Open Connections to review endpoints and test each one.` : "No sources selected. Reopen anytime to add some." }]);
+    setMsgs((m) => [...m, { from: "bot", text: total ? `Done. ${total} connection${total === 1 ? "" : "s"} set up across the layers. Open Infrastructure to review endpoints and test each one.` : "No sources selected. Reopen anytime to add some." }]);
   };
 
-  const goConnections = () => { setBotOpen(false); nav("/intake"); };
+  const goConnections = () => { setBotOpen(false); nav("/layer/infrastructure"); };
 
   if (!config) return null;
+
+  // draw attention on the Start-Fresh project until sources are set up
+  const needsSetup = pid === "generic" && !gathered;
+  // the user has "started" once they pick any source, finish, or it's gathered
+  const beganSetup = gathered || phase === "done" || r.hasSelection
+    || Object.values(picks).some((s) => s && s.size);
+  // "Start here" pill only until they begin
+  const showPill = pid === "generic" && !beganSetup;
 
   return (
     <>
       {!botOpen && (
-        <button className="cb-fab" onClick={() => setBotOpen(true)}>
-          <span className="cb-fab-ic"><img src={GENIE_LOGO} alt="FS" /></span>
-          <span>
-            <b>FS Data Genie</b>
-            <i>{gathered ? "Info gathered" : r.hasSelection ? `Sources ${r.connected}/${r.total}` : "Set up sources to connect"}</i>
-          </span>
-        </button>
+        <div className="cb-fab-wrap">
+          {showPill && <span className="cb-pill">Start here</span>}
+          <button className={"cb-fab" + (needsSetup ? " glow" : "")} onClick={() => setBotOpen(true)}>
+            <span className="cb-fab-ic"><img src={GENIE_LOGO} alt="FS" /></span>
+            <span>
+              <b>FS Data Genie</b>
+              <i>{gathered ? "Info gathered" : r.hasSelection ? `Sources ${r.connected}/${r.total}` : "Set up sources to connect"}</i>
+            </span>
+          </button>
+        </div>
       )}
 
       {botOpen && (
-        <div className="cb-panel">
+        <div className={"cb-panel" + (needsSetup ? " glow" : "")}>
+          {showPill && <span className="cb-pill">Start here</span>}
           <div className="cb-head">
             <span className="cb-head-tag"><img src={GENIE_LOGO} alt="FS" /></span>
             <div>
@@ -171,7 +183,7 @@ export default function ChatBot() {
             ) : phase === "done" ? (
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn" onClick={reset}>Redo</button>
-                <button className="btn primary" style={{ flex: 1 }} onClick={goConnections}>Open Connections</button>
+                <button className="btn primary" style={{ flex: 1 }} onClick={goConnections}>Open Infrastructure</button>
               </div>
             ) : (
               <button className="btn primary" style={{ width: "100%" }} onClick={reset}>Start</button>
@@ -229,6 +241,36 @@ export default function ChatBot() {
         .cb-pick.on .cb-box{border-color:var(--fs-green)}
         .cb-pick.on .cb-box::after{content:"";position:absolute;left:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--fs-green)}
         .cb-input{border-top:1px solid rgba(90,140,230,.28);padding:13px;background:rgba(255,255,255,.3)}
+
+        /* attention glow while the Start-Fresh project still needs source setup */
+        @keyframes cbGlow{
+          0%,100%{box-shadow:0 10px 30px -12px rgba(50,100,220,.4),0 0 0 0 rgba(90,150,255,.55)}
+          50%{box-shadow:0 14px 34px -10px rgba(50,100,220,.55),0 0 0 8px rgba(90,150,255,0)}
+        }
+        .cb-fab.glow{animation:cbGlow 1.9s ease-in-out infinite;border-color:rgba(90,150,255,.6)}
+        .cb-panel.glow{animation:cbGlow 1.9s ease-in-out infinite;border-color:rgba(90,150,255,.6)}
+        @media(prefers-reduced-motion:reduce){.cb-fab.glow,.cb-panel.glow{animation:none;
+          box-shadow:0 10px 30px -12px rgba(50,100,220,.5),0 0 0 3px rgba(90,150,255,.4)}}
+
+        /* "Start here" pill: independent tag centered above the Genie, pulses,
+           gone once started. No chevron. */
+        .cb-fab-wrap{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);z-index:60;
+          display:inline-flex;flex-direction:column;align-items:center}
+        .cb-fab-wrap .cb-fab{position:static}
+        @keyframes cbPill{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+        @keyframes cbPillGlow{0%,100%{box-shadow:0 8px 24px -12px rgba(50,100,220,.4),0 0 0 0 rgba(90,150,255,.45)}
+          50%{box-shadow:0 10px 28px -10px rgba(50,100,220,.5),0 0 0 6px rgba(90,150,255,0)}}
+        .cb-pill{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);z-index:61;
+          background:rgba(120,170,255,.20);backdrop-filter:blur(16px) saturate(1.5);
+          -webkit-backdrop-filter:blur(16px) saturate(1.5);
+          color:var(--ink);font:800 10px var(--font);
+          text-transform:uppercase;letter-spacing:.12em;padding:6px 14px;white-space:nowrap;border-radius:0;
+          border:1px solid rgba(90,140,230,.35);
+          animation:cbPill 1.6s ease-in-out infinite,cbPillGlow 1.9s ease-in-out infinite}
+        /* inside the FAB wrap the pill sits above the button; inside the panel it
+           centers above the panel top edge */
+        .cb-fab-wrap .cb-pill{bottom:calc(100% + 10px)}
+        @media(prefers-reduced-motion:reduce){.cb-pill{animation:none}}
       `}</style>
     </>
   );
