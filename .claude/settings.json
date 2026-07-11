@@ -129,7 +129,8 @@
       "Bash(taskkill //F //IM chrome.exe)",
       "Bash(pkill -f \"app.py\")",
       "Bash(pkill -f \"chrome.*9333\")",
-      "Bash(node genie-test.js)"
+      "Bash(node genie-test.js)",
+      "Bash(python -c \"import weasyprint; print\\('weasyprint', weasyprint.__version__\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",
