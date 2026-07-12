@@ -11,7 +11,7 @@ import Login from "./pages/Login.jsx";
 import ChatBot from "./components/ChatBot.jsx";
 
 function Topbar() {
-  const { config, user, logout, roleLabel, hasUnsavedFresh, saveNewProject } = useConfig();
+  const { config, user, logout, roleLabel, hasUnsavedFresh, saveNewProject, profile, runDemo, can } = useConfig();
   // The Skyworks wordmark is a specific client asset - only show it for the real
   // Skyworks engagement, not for user-saved projects that cloned the template.
   const skyBrand = config?.brand === "skyworks";
@@ -19,6 +19,12 @@ function Topbar() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+  const [demoBusy, setDemoBusy] = useState(false);
+
+  // Run full project skips the Genie entirely: it connects everything server-side,
+  // which flips readiness to complete and lets the setup blur clear on its own.
+  const runFull = async () => { setDemoBusy(true); await runDemo(); setDemoBusy(false); };
+  const showRunFull = profile?.mode === "generic" && can && can("layers");
 
   const onSignOut = () => {
     if (hasUnsavedFresh()) { setPrompt(true); setName(""); setErr(null); }
@@ -50,6 +56,12 @@ function Topbar() {
         <span className="tb-sub">{config ? config.client.engagement : ""}</span>
       </div>
       <div className="tb-right">
+        {showRunFull && (
+          <button className="tb-runfull" onClick={runFull} disabled={demoBusy}
+            title="Skip the Genie and populate the whole project">
+            {demoBusy ? "Running…" : "Run full project"}
+          </button>
+        )}
         {user && <div className="tb-user"><span className="tb-urole">{roleLabel[user.role]}</span></div>}
         {user && <button className="tb-logout" onClick={onSignOut}>Sign out</button>}
       </div>
@@ -137,12 +149,11 @@ function Sidebar() {
 // Save-as-project bar: shown while working in the Start Fresh Project, lets any
 // user name and store the current session as its own profile.
 function SaveProjectBar() {
-  const { profile, saveNewProject, runDemo, can } = useConfig();
+  const { profile, saveNewProject } = useConfig();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [engagement, setEngagement] = useState("");
   const [busy, setBusy] = useState(false);
-  const [demoBusy, setDemoBusy] = useState(false);
   const [err, setErr] = useState(null);
   if (profile?.mode !== "generic") return null;
 
@@ -153,7 +164,6 @@ function SaveProjectBar() {
     setBusy(false);
     if (!out.ok) setErr(out.error || "Could not save.");
   };
-  const demo = async () => { setDemoBusy(true); await runDemo(); setDemoBusy(false); };
 
   return (
     <div className="savebar">
@@ -161,8 +171,7 @@ function SaveProjectBar() {
       {!open ? (
         <>
           <span className="sb-txt">Working in an unsaved project.</span>
-          {can("layers") && <button className="btn" style={{ height: 32, marginLeft: "auto" }} onClick={demo} disabled={demoBusy}>{demoBusy ? "Running…" : "Run full project"}</button>}
-          <button className="btn primary" style={{ height: 32, marginLeft: can("layers") ? 0 : "auto" }} onClick={() => setOpen(true)}>Save as project</button>
+          <button className="btn primary" style={{ height: 32, marginLeft: "auto" }} onClick={() => setOpen(true)}>Save as project</button>
         </>
       ) : (
         <div className="sb-form">

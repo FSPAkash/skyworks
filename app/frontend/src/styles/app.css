@@ -100,6 +100,10 @@ button{font-family:var(--font)}
 .tb-logout{background:var(--tile);border:1px solid var(--hair);font:700 11px var(--font);
   text-transform:uppercase;letter-spacing:.09em;color:var(--ink-2);padding:6px 11px;cursor:pointer;border-radius:0}
 .tb-logout:hover{background:var(--tile-2);color:var(--ink)}
+.tb-runfull{background:var(--fs-green);border:1px solid var(--fs-green);font:800 11px var(--font);
+  text-transform:uppercase;letter-spacing:.09em;color:#fff;padding:6px 12px;cursor:pointer;border-radius:0}
+.tb-runfull:hover{filter:brightness(1.06)}
+.tb-runfull:disabled{opacity:.6;cursor:default}
 
 /* fixed footer - flat white, charcoal seam */
 .footer{position:fixed;bottom:0;left:0;right:0;z-index:40;height:var(--footer-h);
