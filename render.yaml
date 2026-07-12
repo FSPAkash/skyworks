@@ -11,7 +11,10 @@ services:
       - key: ARTIFACT_ROOT
         value: /opt/render/project/src
       # Keep-alive: pings /api/health every 14 min so the free tier doesn't sleep.
-      # RENDER=true is auto-set by the platform. Set the public service URL below
-      # after the first deploy (Render also exposes it as RENDER_EXTERNAL_URL).
+      # RENDER is NOT reliably auto-set on the free tier, so we set it explicitly
+      # here - the keep-alive service gates on it (keep_alive.py) and silently
+      # disables itself when it is missing.
+      - key: RENDER
+        value: "true"
       - key: RENDER_EXTERNAL_URL
         value: https://fs-data-bpc.onrender.com
