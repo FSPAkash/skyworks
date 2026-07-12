@@ -173,17 +173,11 @@ export default function Login() {
 
   return (
     <div className="login">
-      <DataScene />
-
       <div className="login-card">
         <div className="login-strip" />
         <div className="login-inner">
           <div className="login-head">
             <img src={FS_LOGO} alt="Findability Sciences" className="login-logo" />
-            <a className="login-usage" href="/artifacts/BPC_for_Data_UserGuide.pdf" target="_blank" rel="noreferrer" title="Open the user guide">
-              <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h6l3 3v9H4z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M10 2v3h3M6 8h4M6 10.5h4" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-              Usage
-            </a>
           </div>
           <div className="login-title"><span className="login-dash">BPC</span> for Data</div>
 
@@ -256,7 +250,7 @@ export default function Login() {
 
       <style>{`
         .login{position:fixed;inset:0;display:grid;place-items:center;
-          overflow:auto;padding:24px;background:var(--page)}
+          overflow:auto;padding:24px;background:rgba(132,180,72,.08)}
         /* ---- geometric data-pipeline background scene (10s loop) ---- */
         /* kept subtle so the login card stays the prominent element */
         .ds-scene{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
@@ -307,11 +301,6 @@ export default function Login() {
         .login-inner{padding:26px 28px 20px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
         .login-head{display:flex;align-items:center;gap:13px;margin-bottom:10px}
         .login-logo{height:22px}
-        .login-usage{margin-left:auto;display:inline-flex;align-items:center;gap:6px;text-decoration:none;
-          font:800 9px var(--font);text-transform:uppercase;letter-spacing:.1em;color:#fff;
-          background:var(--fs-green);border:1.5px solid var(--grid-line);padding:6px 11px;cursor:pointer;transition:background .14s}
-        .login-usage:hover{background:var(--accent-ink)}
-        .login-usage svg{flex:0 0 auto}
         .login-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--ink-2)}
         .login-badge .bpc{background:var(--accent-tint);color:var(--accent-ink);padding:2px 7px;font-size:9.5px;font-weight:800;letter-spacing:.08em;border-radius:0}
         .login-badge .dash{color:var(--ink-4)}

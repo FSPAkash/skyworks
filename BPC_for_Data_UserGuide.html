@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BPC for Data — User Guide</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 14mm; }
+  :root{
+    --green:#84B448; --green-ink:#4E6E28; --green-tint:#EDF4E1; --green-soft:#C7E0A6;
+    --ink:#20241C; --ink-2:#53564D; --ink-3:#8A8D82; --ink-4:#B4B6AC;
+    --hair:#E6E4DC; --paper:#fff; --blue:#2C5AA8; --blue-tint:#EAF0F9;
+    --font:"Manrope","Segoe UI",-apple-system,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--font);color:var(--ink);font-size:11px;line-height:1.5;margin:0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .topbar{height:8px;background:linear-gradient(90deg,var(--green) 0,var(--green) 80%,var(--green-soft) 80%);margin-bottom:22px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:26px;height:26px;border:2px solid var(--ink);display:flex;align-items:center;
+    justify-content:center;font-weight:900;font-style:italic;font-size:15px}
+  .brand .name{font-weight:800;font-size:12px;letter-spacing:.02em;line-height:1.15;text-transform:uppercase}
+  .kicker-r{font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;padding-top:4px}
+  .chip-kick{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--green-ink);background:var(--green-tint);padding:4px 9px;margin:6px 0 12px}
+  h1{font-size:27px;font-weight:800;letter-spacing:-.02em;margin:0 0 9px}
+  h1 .g{color:var(--green-ink)}
+  .lede{font-size:11.5px;color:var(--ink-2);max-width:64ch;margin:0 0 4px}
+  .sec{margin-top:22px;break-inside:avoid}
+  .sec-h{display:flex;align-items:center;gap:9px;border-bottom:1.5px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+  .sec-n{width:16px;height:16px;background:var(--green);color:#fff;font-size:10px;font-weight:900;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .sec-t{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .sec-side{margin-left:auto;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-4);text-transform:uppercase}
+  table{width:100%;border-collapse:collapse;margin:2px 0}
+  td{padding:8px 0;vertical-align:top;border-bottom:1px solid var(--hair)}
+  tr:last-child td{border-bottom:none}
+  td.k{width:150px;font-weight:800;color:var(--ink);padding-right:14px}
+  td.k2{width:110px;font-weight:800;color:var(--ink);padding-right:12px}
+  .two{display:flex;gap:26px}
+  .two table{width:50%}
+  .note{background:var(--green-tint);border-left:3px solid var(--green);padding:9px 12px;margin:10px 0;font-size:10.5px}
+  .note.blue{background:var(--blue-tint);border-left-color:var(--blue)}
+  .note b{color:var(--ink)}
+  .box{border:1px solid var(--hair);padding:12px 14px;margin:8px 0}
+  .box-h{font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--green-ink);
+    background:var(--green-tint);display:inline-block;padding:3px 8px;margin-bottom:9px}
+  .box ul{margin:0;padding:0;list-style:none}
+  .box li{padding-left:16px;position:relative;margin:5px 0;font-size:10.5px;color:var(--ink-2)}
+  .box li::before{content:"";position:absolute;left:0;top:5px;width:6px;height:6px;background:var(--green)}
+  .box li b{color:var(--ink)}
+  .pin{font-family:"SFMono-Regular",Consolas,monospace;background:var(--ink);color:#fff;padding:1px 6px;font-size:9.5px;font-weight:700}
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:26px;padding-top:10px;
+    border-top:1px solid var(--hair);font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)}
+  .foot .fb{display:flex;align-items:center;gap:7px}
+  .foot .fmark{width:16px;height:16px;border:1.5px solid var(--ink-4);display:flex;align-items:center;
+    justify-content:center;font-weight:900;font-style:italic;font-size:9px;color:var(--ink-4)}
+  .pagebreak{break-before:page}
+</style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <div class="head">
+    <div class="brand">
+      <div class="mark">f</div>
+      <div class="name">Findability<br/>Sciences</div>
+    </div>
+    <div class="kicker-r">User Guide</div>
+  </div>
+
+  <div class="chip-kick">BPC for Data · Business Process Co-Pilot</div>
+  <h1><span class="g">BPC</span> for Data — how to use it</h1>
+  <p class="lede">BPC for Data is the console that runs a data-estate assessment end to end: it connects the
+    sources, catalogs and enriches them, maps lineage, and hands over the findings. This guide walks the
+    flow and calls out <b>what each page shows you</b>, section by section.</p>
+
+  <!-- 1 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">1</span><span class="sec-t">Sign in</span></div>
+    <table>
+      <tr><td class="k">Pick a profile</td><td>On the first screen choose <b>Start Fresh Project</b> to begin a new, blank
+        assessment, a saved <b>Client</b> project, or the <b>Mock Client</b> (a fully populated example you can explore).</td></tr>
+      <tr><td class="k">PIN to open</td><td>Saved client and mock projects are gated — enter <span class="pin">2345</span>
+        to open. Start Fresh opens with no PIN.</td></tr>
+      <tr><td class="k">Pick a role</td><td>Each role card shows a one-line description of the person. What you can open
+        depends on the role (next section).</td></tr>
+    </table>
+  </div>
+
+  <!-- 2 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">2</span><span class="sec-t">Roles — who sees what</span></div>
+    <div class="two">
+      <table>
+        <tr><td class="k2">C-Level</td><td>Overview only. The executive read on progress and outcomes.</td></tr>
+        <tr><td class="k2">Data Engineer</td><td>Overview, Infrastructure, Collection, Unification.</td></tr>
+        <tr><td class="k2">Delivery / PM</td><td>Overview and every assessment layer. No Admin Settings.</td></tr>
+      </table>
+      <table>
+        <tr><td class="k2">Solution Architect</td><td>Overview, Infrastructure, Unification, Presentation.</td></tr>
+        <tr><td class="k2">Data Analyst</td><td>Overview, Collection, Unification, Presentation.</td></tr>
+        <tr><td class="k2">Admin</td><td>Everything, plus Admin Settings and project setup.</td></tr>
+      </table>
+    </div>
+    <div class="note"><b>Pages are trimmed per role.</b> A locked or hidden layer means that role does not work on it —
+      the sidebar only lists what is relevant to you.</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">3</span><span class="sec-t">Overview — the delivery timeline</span></div>
+    <p class="lede">The landing page for every profile. It answers one question at a glance: <b>are we on track?</b></p>
+    <div class="box">
+      <div class="box-h">What you'll see here</div>
+      <ul>
+        <li><b>A single Gantt timeline</b> — week columns across the top, phase bands, and one bar per deliverable
+          spanning the weeks it runs.</li>
+        <li><b>Status colors</b> — green delivered, accent in-progress, red delayed, grey planned.</li>
+        <li><b>The "Now" marker</b> — a green line at the current project week, so progress reads against today.</li>
+        <li><b>Delivered bars are clickable</b> — an <b>Open ↗</b> link opens the deliverable artifact.</li>
+        <li><b>Delayed bars are clickable too</b> — click one to pop up <b>why it is delayed</b>, right on the bar.</li>
+      </ul>
+    </div>
+    <div class="note">Before an engagement is scheduled the timeline is empty — it appears once weeks and phases are set
+      (a saved project, the Mock Client, or after <b>Run full project</b>).</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">4</span><span class="sec-t">Set up sources with the FS Data Genie</span></div>
+    <p class="lede">On a Start Fresh project the Genie opens automatically and the rest of the app stays blurred until
+      setup is done — this is where every new project begins.</p>
+    <table>
+      <tr><td class="k">Walk the groups</td><td>The Genie asks one source group at a time in <b>I → C → U</b> order.
+        Tick the sources in scope (ERP, CRM, databases, cloud, models) and continue.</td></tr>
+      <tr><td class="k">Finish</td><td>On finish, your picks are provisioned as connections and the blur lifts. Only the
+        sources you chose appear under Infrastructure.</td></tr>
+    </table>
+    <div class="note"><b>Skipping the Genie.</b> Use <b>Run full project</b> in the top bar to populate everything at
+      once — that counts as finishing setup and lifts the blur. <b>Sign out</b> is always available if you need to leave.</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">5</span><span class="sec-t">Assessment layers — I C U</span></div>
+    <p class="lede">The work is organized into layers. Each layer has sub-parts with live mocked metrics. Non-Infrastructure
+      layers stay <b>Locked</b> until every selected source is connected.</p>
+
+    <div class="box">
+      <div class="box-h">Infrastructure · connectivity</div>
+      <ul>
+        <li><b>All connections split into Sources / Cloud / LLM</b>, each with an <b>X / Y connected</b> callout.</li>
+        <li><b>Usage meters</b> — records ingested, freshness, compute, storage, LLM tokens, inference calls. Meters only
+          appear once a category has a connected source.</li>
+        <li><b>Per-source cards</b> — open one to see the prefilled endpoint, auth mode, and a <b>secret reference</b>
+          (vault path / key name), never a raw password. Hit <b>Test connection</b> for a green result with ping time.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <div class="box-h">Collection · discovery</div>
+      <ul>
+        <li><b>Domain Intelligence</b> — business domains and data ownership captured with SMEs.</li>
+        <li><b>Automated Data Catalog</b> — tables, schemas, columns and sizes ingested automatically.</li>
+        <li><b>Data Enrichment</b> — usage patterns, access tools and frequency from query-log analysis.</li>
+        <li><b>Transformation</b> — pipeline parsing and ETL / database assessment (role-gated for engineers and analysts).</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <div class="box-h">Unification · lineage</div>
+      <ul>
+        <li><b>End-to-End Visualization</b> — lineage from upstream sources through transformations to downstream consumption.</li>
+        <li><b>Manual Additions</b> — analyst-added lineage where API or metadata access is limited.</li>
+        <li><b>Ownership Mapping</b> — dataset ownership and reference-data resolution.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pagebreak"></div>
+
+  <!-- 6 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">6</span><span class="sec-t">Presentation — the face of the study</span><span class="sec-side">Handover</span></div>
+    <p class="lede">The P layer is the packaged, decision-maker view — written for a C-suite audience. It is where the
+      engagement narrative and every deliverable live.</p>
+    <div class="box">
+      <div class="box-h">What you'll see here</div>
+      <ul>
+        <li><b>Highlight metrics</b> — the top numbers for the estate (volume, pipelines, sources, weeks).</li>
+        <li><b>The engagement</b> — the background, the outcome, and who owns the deliverables.</li>
+        <li><b>Current alignment</b> — a % toward target with milestones (delivered / in-progress / planned).</li>
+        <li><b>Usage meters</b> — live usage &amp; utilization gauges, shown here when an admin turns them on (see §8).</li>
+        <li><b>Deliverables grid</b> — every output with its status and an Open button when delivered.</li>
+        <li><b>Classification, Impact &amp; Backlog, Enablement</b> — the sub-parts that package findings for the client to act and own.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">7</span><span class="sec-t">Run full project — see it end to end</span></div>
+    <div class="note blue"><b>The fastest way to understand BPC for Data.</b> On a Start Fresh project the
+      <b>Run full project</b> button (top bar) populates the entire engagement at once — so you can see how a finished
+      project looks without doing every step by hand.</div>
+    <table>
+      <tr><td class="k">What it does</td><td>Connects every source, then presents the whole engagement as complete:
+        <b>all connections live</b>, usage meters active, <b>every deliverable delivered and openable</b>, alignment at
+        target, all milestones done, and the schedule (active weeks + phases) filled in — so the Overview timeline reads fully green.</td></tr>
+      <tr><td class="k">Why use it</td><td>It's the demo path — a start-to-finish picture of a real engagement. Use it to
+        walk stakeholders through the flow before any real sources exist.</td></tr>
+      <tr><td class="k">Reset</td><td>Signing out of a Start Fresh session discards the run and the next Start Fresh opens blank again.</td></tr>
+    </table>
+    <div class="note"><b>Prefer a ready-made example?</b> Open the <b>Mock Client</b> profile from the login screen —
+      it's permanently populated end to end, no run needed.</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">8</span><span class="sec-t">Save, manage &amp; admin</span></div>
+    <table>
+      <tr><td class="k">Save as project</td><td>While in Start Fresh, use the <b>Save as project</b> bar to name and store
+        the current session. It becomes a saved client project, carrying over the sources you set up.</td></tr>
+      <tr><td class="k">Delete a project</td><td>On the login screen use the trash icon on a client project and enter PIN
+        <span class="pin">2345</span>. Start Fresh cannot be deleted.</td></tr>
+    </table>
+    <div class="box">
+      <div class="box-h">Admin Settings · admin only</div>
+      <ul>
+        <li><b>Upload SOW</b> — drop a Statement of Work PDF; engagement, deliverables and systems are extracted to build
+          the project. <b>No financial figures are ever read or shown.</b></li>
+        <li><b>Enter project details</b> — a manual form (no SOW or JSON needed): client name, engagement, weeks, narrative,
+          highlight metrics and alignment.</li>
+        <li><b>Add profile from JSON</b> — the advanced path: upload a prepared client config.</li>
+        <li><b>Presentation access</b> — a toggle that shows the live usage &amp; utilization meters as tiles on the
+          <b>Presentation</b> page for executive viewers.</li>
+        <li><b>Stored profiles</b> — every project with its type chip (Start Fresh / Client / Mock Client) and a delete action.</li>
+      </ul>
+    </div>
+    <div class="note"><b>Sign-out safety.</b> Leaving a Start Fresh project with unsaved sources prompts you to save or
+      discard first, so nothing is lost by accident — and the next fresh project always starts clean.</div>
+  </div>
+
+  <div class="foot">
+    <div class="fb"><span class="fmark">f</span> BPC for Data · User Guide</div>
+    <div>Confidential</div>
+  </div>
+</body>
+</html>

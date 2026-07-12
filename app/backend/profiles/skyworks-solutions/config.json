@@ -12,7 +12,8 @@
     "framework": "Assessment",
     "durationWeeks": 16,
     "activeWeeks": 12,
-    "acceptanceWeeks": 4
+    "acceptanceWeeks": 4,
+    "currentWeek": 5
   },
   "overview": {
     "headline": "A focused, fixed-scope assessment of the Skyworks ODS environment.",

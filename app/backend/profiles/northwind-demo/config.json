@@ -11,7 +11,8 @@
     "framework": "Assessment",
     "durationWeeks": 12,
     "activeWeeks": 10,
-    "acceptanceWeeks": 2
+    "acceptanceWeeks": 2,
+    "currentWeek": 6
   },
   "overview": {
     "headline": "Connect the data estate, catalog and enrich it, map lineage end to end, and hand over the findings.",
@@ -200,7 +201,7 @@
         "statuses": [
           {
             "label": "Connectivity validated",
-            "value": "18 sources \u00b7 4.2 TB",
+            "value": "18 sources · 4.2 TB",
             "state": "delivered"
           },
           {
@@ -330,7 +331,7 @@
         "statuses": [
           {
             "label": "Metadata ingested",
-            "value": "2,140 tables \u00b7 48,300 columns",
+            "value": "2,140 tables · 48,300 columns",
             "state": "delivered"
           },
           {
@@ -593,7 +594,8 @@
       "layer": "unification",
       "weeks": "W4-6",
       "status": "in-progress",
-      "artifact": null
+      "artifact": null,
+      "delayReason": "Source SME sessions slipped two weeks; lineage inputs for the mapping deliverable arrived late, pushing sign-off past the Week 6 gate."
     },
     {
       "id": 4,

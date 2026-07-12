@@ -82,12 +82,11 @@ export default function Admin() {
 
   return (
     <div>
-      <div className="eyebrow"><span className="bar" /> Admin Settings</div>
       <h1 className="page">Admin Settings</h1>
 
       {/* Access controls for the active profile */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-head"><span className="dot-r" /> Overview access</div>
+        <div className="card-head"><span className="dot-r" /> Presentation access</div>
         <div className="card-body">
           <div className="tgl-row">
             <div className="tgl-txt">
@@ -95,7 +94,7 @@ export default function Admin() {
               <div className="tgl-sub">
                 {isGeneric
                   ? "Save this project first to change its settings."
-                  : <>When on, the live usage &amp; utilization meters appear as tiles on the Overview for executive viewers. Active profile: <b>{profile?.name}</b>.</>}
+                  : <>When on, the live usage &amp; utilization meters appear as tiles on the Presentation page for executive viewers. Active profile: <b>{profile?.name}</b>.</>}
               </div>
             </div>
             <button

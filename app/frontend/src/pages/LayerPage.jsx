@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useConfig } from "../config.jsx";
+import Presentation from "./Presentation.jsx";
 
 const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", cloud: "Cloud", llm: "LLM", external: "External" };
 const STATE_CLASS = { delivered: "delivered", "in-progress": "in-progress", planned: "planned" };
@@ -279,13 +280,16 @@ export default function LayerPage() {
   const layer = config.layers.find((l) => l.key === key);
   if (!layer) return <p className="lede">Unknown layer.</p>;
 
+  // The Presentation layer is the packaged, decision-maker view - it replaces
+  // the generic layer layout with the full assessment presentation.
+  if (key === "presentation") return <Presentation />;
+
   const layers = config.layers;
   const idx = layers.findIndex((l) => l.key === key);
   const next = layers.slice(idx + 1).find((l) => canLayer(l.key));
 
   return (
     <div>
-      <div className="eyebrow"><span className="bar" /> {layer.name}</div>
       <h1 className="page">{layer.name}</h1>
       <p className="lede">{layer.summary}</p>
 
