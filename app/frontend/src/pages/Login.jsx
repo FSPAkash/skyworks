@@ -57,11 +57,11 @@ function DataScene() {
   const S = 132;                                     // square node size
   // colour-coded by stage: Infrastructure / Collection / Processing / Unification / Presentation
   const stage = {
-    I: { c: "var(--ds-blue)",   label: "Infrastructure" },
-    C: { c: "var(--ds-teal)",   label: "Collection" },
-    G: { c: "var(--fs-green)",  label: "Processing" },
-    U: { c: "var(--ds-yellow)", label: "Unification" },
-    P: { c: "var(--ds-lilac)",  label: "Presentation" },
+    I: { c: "var(--ds-blue)" },
+    C: { c: "var(--ds-teal)" },
+    G: { c: "var(--fs-green)" },
+    U: { c: "var(--ds-yellow)" },
+    P: { c: "var(--ds-lilac)" },
   };
   const lx = card.x - 78 - S;                        // left column x
   const rx = card.x + card.w + 78;                   // right column x
@@ -100,11 +100,6 @@ function DataScene() {
     </g>
   );
 
-  // legend: the pipeline stages, centered under the card
-  const legend = ["I", "C", "U", "G", "P"];
-  const legW = 138, legGap = 6, legTotal = legend.length * legW + (legend.length - 1) * legGap;
-  const legX0 = card.x + card.w / 2 - legTotal / 2, legY = card.y + card.h + 66;
-
   return (
     <div className="ds-scene" aria-hidden="true">
       <svg viewBox={`0 0 ${VB.w} ${VB.h}`} preserveAspectRatio="xMidYMid meet" className="ds-svg">
@@ -122,19 +117,6 @@ function DataScene() {
 
         {/* generated report - draws in last */}
         <Node n={report} className="ds-report" />
-
-        {/* stage legend */}
-        <g className="ds-legend">
-          {legend.map((k, i) => {
-            const x = legX0 + i * (legW + legGap);
-            return (
-              <g key={k}>
-                <rect x={x} y={legY} width="16" height="16" fill={stage[k].c} stroke="var(--grid-line)" strokeWidth="1.5" />
-                <text x={x + 24} y={legY + 13} className="ds-leg-t">{stage[k].label}</text>
-              </g>
-            );
-          })}
-        </g>
       </svg>
     </div>
   );
@@ -282,9 +264,6 @@ export default function Login() {
            screens just crop the top/bottom channel runs, never the side nodes */
         .ds-svg{width:min(100vw,1360px);height:auto;display:block}
         .ds-node-n{font:800 15px var(--font);fill:var(--ink);letter-spacing:-.01em}
-        .ds-leg-t{font:800 12px var(--font);fill:var(--ink-2);letter-spacing:.02em}
-        .ds-legend{opacity:0;animation:dsLegend 10s ease-in-out infinite}
-        @keyframes dsLegend{0%,10%{opacity:0}18%{opacity:1}88%{opacity:1}95%,100%{opacity:0}}
 
         /* connectors: geometric draw-on, hold, fade before loop restart */
         .ds-wire{stroke-dasharray:3000;stroke-dashoffset:3000;
