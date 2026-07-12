@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 
@@ -135,6 +136,7 @@ const ROLE_SHOWS = {
 
 export default function Login() {
   const { profiles, users, profile, pickProfile, login, roleLabel, deleteProfile } = useConfig();
+  const nav = useNavigate();
   const shownFor = (role) => ROLE_SHOWS[role] || "Overview.";
   const [step, setStep] = useState(profile ? 1 : 0);
   const OPEN_PIN = "2345";
@@ -148,12 +150,12 @@ export default function Login() {
 
   // Start Fresh opens freely; a saved client project needs the PIN.
   const selectProfile = (p) => {
-    if (p.mode === "generic") { pickProfile(p); setStep(1); return; }
+    if (p.mode === "generic") { nav("/", { replace: true }); pickProfile(p); setStep(1); return; }
     setOpenId(p.id); setOpenPin(""); setOpenErr(null); setDelId(null);
   };
   const confirmOpen = (e, p) => {
     e.stopPropagation();
-    if (openPin === OPEN_PIN) { pickProfile(p); setStep(1); }
+    if (openPin === OPEN_PIN) { nav("/", { replace: true }); pickProfile(p); setStep(1); }
     else setOpenErr("Wrong PIN.");
   };
   const cancelOpen = (e) => { e.stopPropagation(); setOpenId(null); setOpenPin(""); setOpenErr(null); };
@@ -237,7 +239,7 @@ export default function Login() {
               </div>
               <div className="login-list">
                 {users.map((u) => (
-                  <button key={u.id} className="lrow role" onClick={() => login(u)}>
+                  <button key={u.id} className="lrow role" onClick={() => { nav("/", { replace: true }); login(u); }}>
                     <div className="lrow-rmain">
                       <span className="lrow-name">{roleLabel[u.role]}</span>
                       <span className="lrow-shows"><span className="lrow-shows-lbl">Role</span>{shownFor(u.role)}</span>
