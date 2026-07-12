@@ -237,6 +237,27 @@ def read_config(pid):
         return json.load(f)
 
 
+def normalize_alignment_progress(cfg):
+    """Derive overview alignment from accepted deliverables for all profiles."""
+    deliverables = cfg.get("deliverables") or []
+    total = len(deliverables)
+    delivered = sum(1 for d in deliverables if str(d.get("status", "")).lower() == "delivered")
+
+    ov = cfg.setdefault("overview", {})
+    al = ov.setdefault("alignment", {"current": 0, "target": 100, "label": "Assessment progress"})
+
+    try:
+        target = float(al.get("target", 100))
+    except (TypeError, ValueError):
+        target = 100
+    if target <= 0:
+        target = 100
+
+    al["target"] = int(target) if target.is_integer() else target
+    al["current"] = int((delivered * target / total) + 0.5) if total else 0
+    return cfg
+
+
 def list_profiles():
     out = [{"id": GENERIC_ID, "name": "Start Fresh Project", "mode": "generic", "engagement": "New Data Assessment"}]
     for pid in sorted(os.listdir(PROFILES_DIR)):
@@ -374,6 +395,7 @@ def config():
         abort(404)
     if _demo_key(pid) in _FULL_DEMO:
         cfg = apply_full_demo(cfg)
+    normalize_alignment_progress(cfg)
     return jsonify(cfg)
 
 

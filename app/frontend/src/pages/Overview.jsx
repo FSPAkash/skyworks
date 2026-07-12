@@ -48,6 +48,7 @@ export default function Overview() {
   const ov = config.overview || {};
   const delivered = deliverables.filter((d) => d.status === "delivered").length;
   const align = ov.alignment;
+  const alignCurrent = Math.max(0, Math.min(100, Number(align?.current) || 0));
   const showMeters = !!config.settings?.metersToCLevel && (sources.meters || []).length > 0;
 
   return (
@@ -101,10 +102,10 @@ export default function Overview() {
             {align && (
               <>
                 <div className="ov-align-top">
-                  <span className="ov-align-pct">{align.current}<span className="ov-align-sym">%</span></span>
+                  <span className="ov-align-pct">{alignCurrent}<span className="ov-align-sym">%</span></span>
                   <span className="ov-align-goal">toward {align.target}% target</span>
                 </div>
-                <div className="align-track"><div className="align-fill" style={{ width: `${align.current}%` }} /></div>
+                <div className="align-track"><div className="align-fill" style={{ width: `${alignCurrent}%` }} /></div>
               </>
             )}
             {ov.milestones && (
