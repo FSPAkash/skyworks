@@ -130,7 +130,15 @@
       "Bash(pkill -f \"app.py\")",
       "Bash(pkill -f \"chrome.*9333\")",
       "Bash(node genie-test.js)",
-      "Bash(python -c \"import weasyprint; print\\('weasyprint', weasyprint.__version__\\)\")"
+      "Bash(python -c \"import weasyprint; print\\('weasyprint', weasyprint.__version__\\)\")",
+      "Bash(node shot.js \"$\\(pwd\\)/ov2.png\")",
+      "Bash(curl -s http://localhost:9334/json/version)",
+      "Bash(curl -s -X PUT http://localhost:9334/json/close)",
+      "Bash(node ds-shot.js \"$\\(pwd\\)/login.png\" \"$\\(pwd\\)/ov.png\")",
+      "Bash(node ds-shot.js \"$\\(pwd\\)/login2.png\" \"$\\(pwd\\)/ov2.png\")",
+      "Bash(node ds2.js \"$\\(pwd\\)/l.png\" \"$\\(pwd\\)/o.png\")",
+      "Bash(node ds4.js \"$\\(pwd\\)/wide.png\" \"$\\(pwd\\)/short.png\")",
+      "Bash(node ds6.js \"$\\(pwd\\)/wide.png\" \"$\\(pwd\\)/lap.png\" \"$\\(pwd\\)/sq.png\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",

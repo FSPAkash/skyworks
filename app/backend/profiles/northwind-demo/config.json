@@ -131,10 +131,23 @@
           "desc": "Source systems the assessment reads from.",
           "state": "delivered",
           "metrics": [
-            { "label": "Sources in scope", "value": "18" },
-            { "label": "Total volume", "value": "4.2", "unit": "TB" },
-            { "label": "Connections", "value": "All established" },
-            { "label": "Environment", "value": "Prod replica" }
+            {
+              "label": "Sources in scope",
+              "value": "18"
+            },
+            {
+              "label": "Total volume",
+              "value": "4.2",
+              "unit": "TB"
+            },
+            {
+              "label": "Connections",
+              "value": "All established"
+            },
+            {
+              "label": "Environment",
+              "value": "Prod replica"
+            }
           ]
         },
         {
@@ -143,9 +156,19 @@
           "desc": "Target platform and compute.",
           "state": "delivered",
           "metrics": [
-            { "label": "Platform", "value": "Data Lake" },
-            { "label": "Compute", "value": "auto-scale" },
-            { "label": "Storage used", "value": "3.1", "unit": "TB" }
+            {
+              "label": "Platform",
+              "value": "Data Lake"
+            },
+            {
+              "label": "Compute",
+              "value": "auto-scale"
+            },
+            {
+              "label": "Storage used",
+              "value": "3.1",
+              "unit": "TB"
+            }
           ]
         },
         {
@@ -154,9 +177,19 @@
           "desc": "Models driving ingestion, scoring, and classification.",
           "state": "delivered",
           "metrics": [
-            { "label": "Models active", "value": "4 / 4" },
-            { "label": "Tokens used", "value": "8.4", "unit": "M" },
-            { "label": "Inference calls", "value": "12,900" }
+            {
+              "label": "Models active",
+              "value": "4 / 4"
+            },
+            {
+              "label": "Tokens used",
+              "value": "8.4",
+              "unit": "M"
+            },
+            {
+              "label": "Inference calls",
+              "value": "12,900"
+            }
           ]
         }
       ],
@@ -167,7 +200,7 @@
         "statuses": [
           {
             "label": "Connectivity validated",
-            "value": "18 sources · 4.2 TB",
+            "value": "18 sources \u00b7 4.2 TB",
             "state": "delivered"
           },
           {
@@ -210,9 +243,18 @@
           "desc": "Business domain context and data ownership captured with subject-matter experts.",
           "state": "delivered",
           "metrics": [
-            { "label": "Domains", "value": "8" },
-            { "label": "Owners mapped", "value": "84%" },
-            { "label": "SME sessions", "value": "6" }
+            {
+              "label": "Domains",
+              "value": "8"
+            },
+            {
+              "label": "Owners mapped",
+              "value": "84%"
+            },
+            {
+              "label": "SME sessions",
+              "value": "6"
+            }
           ]
         },
         {
@@ -221,10 +263,23 @@
           "desc": "Automated ingestion of tables, schemas, columns, and sizes.",
           "state": "delivered",
           "metrics": [
-            { "label": "Tables", "value": "2,140" },
-            { "label": "Columns profiled", "value": "48,300" },
-            { "label": "Rows cataloged", "value": "6.7", "unit": "B" },
-            { "label": "Schemas", "value": "41" }
+            {
+              "label": "Tables",
+              "value": "2,140"
+            },
+            {
+              "label": "Columns profiled",
+              "value": "48,300"
+            },
+            {
+              "label": "Rows cataloged",
+              "value": "6.7",
+              "unit": "B"
+            },
+            {
+              "label": "Schemas",
+              "value": "41"
+            }
           ]
         },
         {
@@ -233,9 +288,18 @@
           "desc": "Usage patterns, access tools, and frequency from log analysis.",
           "state": "delivered",
           "metrics": [
-            { "label": "Pipelines", "value": "112" },
-            { "label": "Usage scored", "value": "91%" },
-            { "label": "Hot tables", "value": "310" }
+            {
+              "label": "Pipelines",
+              "value": "112"
+            },
+            {
+              "label": "Usage scored",
+              "value": "91%"
+            },
+            {
+              "label": "Hot tables",
+              "value": "310"
+            }
           ]
         },
         {
@@ -244,9 +308,18 @@
           "desc": "Pipeline parsing and ETL / database assessment of transformation logic.",
           "state": "in-progress",
           "metrics": [
-            { "label": "Pipelines parsed", "value": "112" },
-            { "label": "Transform steps", "value": "1,480" },
-            { "label": "Parsed", "value": "78%" }
+            {
+              "label": "Pipelines parsed",
+              "value": "112"
+            },
+            {
+              "label": "Transform steps",
+              "value": "1,480"
+            },
+            {
+              "label": "Parsed",
+              "value": "78%"
+            }
           ]
         }
       ],
@@ -257,7 +330,7 @@
         "statuses": [
           {
             "label": "Metadata ingested",
-            "value": "2,140 tables · 48,300 columns",
+            "value": "2,140 tables \u00b7 48,300 columns",
             "state": "delivered"
           },
           {
@@ -299,9 +372,18 @@
           "desc": "Lineage from upstream sources through transformations to downstream consumption.",
           "state": "in-progress",
           "metrics": [
-            { "label": "Lineage nodes", "value": "1,820" },
-            { "label": "Edges mapped", "value": "6,400" },
-            { "label": "Coverage", "value": "74%" }
+            {
+              "label": "Lineage nodes",
+              "value": "1,820"
+            },
+            {
+              "label": "Edges mapped",
+              "value": "6,400"
+            },
+            {
+              "label": "Coverage",
+              "value": "74%"
+            }
           ]
         },
         {
@@ -310,9 +392,18 @@
           "desc": "Analyst-added lineage where API or metadata access is limited.",
           "state": "in-progress",
           "metrics": [
-            { "label": "Manual edges", "value": "96" },
-            { "label": "Gaps flagged", "value": "21" },
-            { "label": "Resolved", "value": "15" }
+            {
+              "label": "Manual edges",
+              "value": "96"
+            },
+            {
+              "label": "Gaps flagged",
+              "value": "21"
+            },
+            {
+              "label": "Resolved",
+              "value": "15"
+            }
           ]
         },
         {
@@ -321,9 +412,18 @@
           "desc": "Dataset ownership and reference-data resolution.",
           "state": "in-progress",
           "metrics": [
-            { "label": "Core datasets", "value": "260" },
-            { "label": "Owned", "value": "80%" },
-            { "label": "Reference sets", "value": "19" }
+            {
+              "label": "Core datasets",
+              "value": "260"
+            },
+            {
+              "label": "Owned",
+              "value": "80%"
+            },
+            {
+              "label": "Reference sets",
+              "value": "19"
+            }
           ]
         }
       ],
@@ -359,10 +459,22 @@
           "desc": "Dataset classification and current-state alignment baseline.",
           "state": "in-progress",
           "metrics": [
-            { "label": "Bronze", "value": "980" },
-            { "label": "Silver", "value": "740" },
-            { "label": "Gold", "value": "420" },
-            { "label": "Alignment", "value": "58%" }
+            {
+              "label": "Bronze",
+              "value": "980"
+            },
+            {
+              "label": "Silver",
+              "value": "740"
+            },
+            {
+              "label": "Gold",
+              "value": "420"
+            },
+            {
+              "label": "Alignment",
+              "value": "58%"
+            }
           ]
         },
         {
@@ -371,8 +483,14 @@
           "desc": "Cost/performance simulation and prioritized transition backlog.",
           "state": "planned",
           "metrics": [
-            { "label": "Backlog items", "value": "queued" },
-            { "label": "Simulation", "value": "phase 3" }
+            {
+              "label": "Backlog items",
+              "value": "queued"
+            },
+            {
+              "label": "Simulation",
+              "value": "phase 3"
+            }
           ]
         },
         {
@@ -381,8 +499,14 @@
           "desc": "Playbook, walkthroughs, and executive summary.",
           "state": "planned",
           "metrics": [
-            { "label": "Playbook", "value": "phase 3" },
-            { "label": "Exec summary", "value": "phase 3" }
+            {
+              "label": "Playbook",
+              "value": "phase 3"
+            },
+            {
+              "label": "Exec summary",
+              "value": "phase 3"
+            }
           ]
         }
       ],
@@ -488,5 +612,8 @@
     "outro": "Source information captured.",
     "sections": {}
   },
-  "isDemo": true
+  "isDemo": true,
+  "settings": {
+    "metersToCLevel": false
+  }
 }

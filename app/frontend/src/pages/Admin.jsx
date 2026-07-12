@@ -15,9 +15,17 @@ const BLANK_FORM = {
 };
 
 export default function Admin() {
-  const { profiles, profile, createProfile, createFromForm, deleteProfile, uploadSow } = useConfig();
+  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersCLevel } = useConfig();
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [metersBusy, setMetersBusy] = useState(false);
+  const metersOn = !!config?.settings?.metersToCLevel;
+  const isGeneric = profile?.mode === "generic";
+  const toggleMeters = async () => {
+    setMetersBusy(true);
+    await setMetersCLevel(!metersOn);
+    setMetersBusy(false);
+  };
   const [preview, setPreview] = useState(null);
   const [sowFile, setSowFile] = useState(null);
   const [sowName, setSowName] = useState("");
@@ -76,6 +84,30 @@ export default function Admin() {
     <div>
       <div className="eyebrow"><span className="bar" /> Admin Settings</div>
       <h1 className="page">Admin Settings</h1>
+
+      {/* Access controls for the active profile */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-head"><span className="dot-r" /> Overview access</div>
+        <div className="card-body">
+          <div className="tgl-row">
+            <div className="tgl-txt">
+              <div className="tgl-title">Show usage meters to C-Level</div>
+              <div className="tgl-sub">
+                {isGeneric
+                  ? "Save this project first to change its settings."
+                  : <>When on, the live usage &amp; utilization meters appear as tiles on the Overview for executive viewers. Active profile: <b>{profile?.name}</b>.</>}
+              </div>
+            </div>
+            <button
+              className={"switch" + (metersOn ? " on" : "")}
+              role="switch" aria-checked={metersOn}
+              disabled={isGeneric || metersBusy}
+              onClick={toggleMeters}>
+              <span className="knob" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Upload SOW - primary path */}
       <div className="card hi" style={{ marginBottom: 16 }}>
@@ -212,8 +244,8 @@ export default function Admin() {
         .admin-fields{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
         .file-in{font:600 12.5px var(--font);border:1px solid var(--line-strong);padding:9px;background:rgba(255,255,255,.7)}
         .file-in::file-selector-button{font:700 12px var(--font);border:1px solid var(--line-strong);background:#fff;padding:6px 12px;margin-right:12px;cursor:pointer}
-        .admin-in{height:38px;border:1px solid var(--hair);padding:0 12px;font:600 12.5px var(--font);background:var(--paper);color:var(--ink);min-width:200px}
-        .admin-in:focus{outline:none;border-color:var(--fs-green);box-shadow:0 0 0 3px var(--accent-tint)}
+        .admin-in{height:38px;border:var(--grid-w) solid var(--grid-line);padding:0 12px;font:600 12.5px var(--font);background:var(--paper);color:var(--ink);min-width:200px}
+        .admin-in:focus{outline:none;border-color:var(--fs-green);box-shadow:0 0 0 2px var(--accent-tint)}
         .admin-msg{padding:10px 12px;font-size:12.5px;font-weight:600;border:1px solid;margin-top:12px}
         .admin-msg.ok{color:var(--green-ink);border-color:var(--green-soft);background:var(--ok-soft)}
         .admin-msg.err{color:var(--err);border-color:var(--err);background:var(--err-soft)}
@@ -227,9 +259,21 @@ export default function Admin() {
         .ff.full{margin-bottom:12px}
         .ff>span{font:800 10px var(--font);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
         .ff .admin-in{min-width:0;width:100%}
-        .admin-ta{border:1px solid var(--hair);padding:9px 12px;font:600 12.5px var(--font);background:var(--paper);
+        .admin-ta{border:var(--grid-w) solid var(--grid-line);padding:9px 12px;font:600 12.5px var(--font);background:var(--paper);
           color:var(--ink);min-height:60px;resize:vertical;line-height:1.5}
         .admin-ta:focus{outline:none;border-color:var(--fs-green);box-shadow:0 0 0 3px var(--accent-tint)}
+        .tgl-row{display:flex;align-items:center;gap:18px}
+        .tgl-txt{flex:1;min-width:0}
+        .tgl-title{font-size:13px;font-weight:800;color:var(--ink)}
+        .tgl-sub{font-size:12px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+        .tgl-sub b{color:var(--ink-2)}
+        .switch{flex:0 0 auto;width:46px;height:26px;border-radius:999px;border:1px solid var(--line-strong);
+          background:var(--tile);cursor:pointer;position:relative;transition:all .18s;padding:0}
+        .switch .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;
+          box-shadow:0 1px 3px rgba(0,0,0,.25);transition:all .18s}
+        .switch.on{background:var(--fs-green);border-color:var(--fs-green)}
+        .switch.on .knob{left:22px}
+        .switch:disabled{opacity:.5;cursor:not-allowed}
       `}</style>
     </div>
   );

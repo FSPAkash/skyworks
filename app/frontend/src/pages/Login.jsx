@@ -2,6 +2,144 @@ import { useState } from "react";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 
+// Background scene: a geometric data pipeline that FRAMES the login card. The
+// viewBox mirrors the card's proportions with tight gutters; nodes flank the
+// card and right-angle connectors hug its edges, so it scales cleanly to any
+// screen (preserveAspectRatio "meet" => never clips off-screen). Loops.
+// simple geometric line icons drawn inside a node, centered on (cx, cy)
+function NodeIcon({ kind, cx, cy, color }) {
+  const p = { fill: "none", stroke: color, strokeWidth: 2.4, strokeLinecap: "round", strokeLinejoin: "round" };
+  const g = (children) => <g transform={`translate(${cx - 16} ${cy - 16})`}>{children}</g>; // 32x32 box
+  switch (kind) {
+    case "connect": // two plugs linking
+      return g(<>
+        <rect x="2" y="11" width="11" height="10" {...p} />
+        <rect x="19" y="11" width="11" height="10" {...p} />
+        <path d="M13 16 H19" {...p} />
+      </>);
+    case "catalog": // stacked rows / catalog
+      return g(<>
+        <rect x="3" y="4" width="26" height="24" {...p} />
+        <path d="M3 12 H29 M3 20 H29 M11 4 V28" {...p} />
+      </>);
+    case "map": // connected nodes graph
+      return g(<>
+        <circle cx="6" cy="7" r="3.2" {...p} />
+        <circle cx="26" cy="9" r="3.2" {...p} />
+        <circle cx="15" cy="25" r="3.2" {...p} />
+        <path d="M8.6 9 L12.6 22 M23.4 11 L17 22 M9 7.6 L23 9" {...p} />
+      </>);
+    case "enrich": // spark / plus burst
+      return g(<>
+        <path d="M16 4 V13 M16 19 V28 M4 16 H13 M19 16 H28" {...p} />
+        <path d="M9 9 L12 12 M23 9 L20 12 M9 23 L12 20 M23 23 L20 20" {...p} />
+      </>);
+    case "report": // document with lines
+      return g(<>
+        <path d="M7 3 H21 L26 8 V29 H7 Z" {...p} />
+        <path d="M21 3 V8 H26 M11 15 H22 M11 20 H22 M11 25 H18" {...p} />
+      </>);
+    case "package": // box / cube
+      return g(<>
+        <path d="M16 3 L28 9 V23 L16 29 L4 23 V9 Z" {...p} />
+        <path d="M4 9 L16 15 L28 9 M16 15 V29" {...p} />
+      </>);
+    default: return null;
+  }
+}
+
+function DataScene() {
+  // Frame: card sits centered in the viewBox. The centre "safe zone" is kept
+  // comfortably WIDER than the real login card (~430px) so the flanking nodes are
+  // never covered by it. The SVG is size-capped in CSS so scaling stays sane.
+  const VB = { w: 1360, h: 740 };
+  const card = { x: 430, y: 90, w: 500, h: 520 };   // safe zone (real card sits inside)
+  const S = 132;                                     // square node size
+  // colour-coded by stage: Infrastructure / Collection / Processing / Unification / Presentation
+  const stage = {
+    I: { c: "var(--ds-blue)",   label: "Infrastructure" },
+    C: { c: "var(--ds-teal)",   label: "Collection" },
+    G: { c: "var(--fs-green)",  label: "Processing" },
+    U: { c: "var(--ds-yellow)", label: "Unification" },
+    P: { c: "var(--ds-lilac)",  label: "Presentation" },
+  };
+  const lx = card.x - 78 - S;                        // left column x
+  const rx = card.x + card.w + 78;                   // right column x
+  // both columns share the same three rows so the two sides mirror each other
+  const rowY = [96, 300, 504];
+  const [y1, y2, y3] = rowY;
+  // journey: Connect(I) -> Catalog(C) -> Map(U) -> Enrich(Processing) -> Package(P) -> Report(P)
+  const nodes = [
+    { x: lx, y: y1, icon: "connect", name: "Connect", s: "I" },
+    { x: lx, y: y2, icon: "catalog", name: "Catalog", s: "C" },
+    { x: lx, y: y3, icon: "map",     name: "Map",     s: "U" },
+    { x: rx, y: y3, icon: "enrich",  name: "Enrich",  s: "G" },   // bottom-right (Processing)
+    { x: rx, y: y2, icon: "package", name: "Package", s: "P" },   // mid-right
+  ];
+  const report = { x: rx, y: y1, icon: "report", name: "Report", s: "P" }; // top-right, last
+  const cyOf = (y) => y + S / 2;
+  const lcx = lx + S / 2, rcx = rx + S / 2;
+  const chL = card.x - 30;                            // vertical channel left of card
+  const chR = card.x + card.w + 30;                  // vertical channel right of card
+  const chB = card.y + card.h + 26;                  // horizontal channel below card
+  // each connector is coloured by the stage of the node it FEEDS INTO
+  const connectors = [
+    { d: `M ${lcx} ${y1 + S} L ${lcx} ${y2}`, s: "C" },        // -> Catalog
+    { d: `M ${lcx} ${y2 + S} L ${lcx} ${y3}`, s: "U" },        // -> Map
+    { d: `M ${lx + S} ${cyOf(y3)} L ${chL} ${cyOf(y3)} L ${chL} ${chB} L ${chR} ${chB} L ${chR} ${cyOf(y3)} L ${rx} ${cyOf(y3)}`, s: "G" }, // -> Enrich (Processing)
+    { d: `M ${rcx} ${y3} L ${rcx} ${y2 + S}`, s: "P" },        // -> Package
+    { d: `M ${rcx} ${y2} L ${rcx} ${y1 + S}`, s: "P" },        // -> Report
+  ];
+
+  const Node = ({ n, className, style }) => (
+    <g className={className} style={style}>
+      <rect x={n.x} y={n.y} width={S} height={S} fill="var(--paper)" stroke="var(--grid-line)" strokeWidth="2" />
+      <rect x={n.x} y={n.y} width={S} height="6" fill={stage[n.s].c} />
+      <NodeIcon kind={n.icon} cx={n.x + S / 2} cy={n.y + S / 2 - 8} color="var(--ink)" />
+      <text x={n.x + S / 2} y={n.y + S - 20} textAnchor="middle" className="ds-node-n">{n.name}</text>
+    </g>
+  );
+
+  // legend: the pipeline stages, centered under the card
+  const legend = ["I", "C", "U", "G", "P"];
+  const legW = 138, legGap = 6, legTotal = legend.length * legW + (legend.length - 1) * legGap;
+  const legX0 = card.x + card.w / 2 - legTotal / 2, legY = card.y + card.h + 66;
+
+  return (
+    <div className="ds-scene" aria-hidden="true">
+      <svg viewBox={`0 0 ${VB.w} ${VB.h}`} preserveAspectRatio="xMidYMid meet" className="ds-svg">
+        {/* connectors - right angles only, drawn on in sequence, stage-coloured */}
+        <g fill="none" strokeWidth="2.5" strokeLinejoin="miter" strokeLinecap="butt">
+          {connectors.map((w, i) => (
+            <path key={i} d={w.d} stroke={stage[w.s].c} className="ds-wire" style={{ animationDelay: `${0.5 + i * 1.3}s` }} />
+          ))}
+        </g>
+
+        {/* step nodes */}
+        {nodes.map((n, i) => (
+          <Node key={i} n={n} className="ds-node" style={{ animationDelay: `${i * 1.3}s` }} />
+        ))}
+
+        {/* generated report - draws in last */}
+        <Node n={report} className="ds-report" />
+
+        {/* stage legend */}
+        <g className="ds-legend">
+          {legend.map((k, i) => {
+            const x = legX0 + i * (legW + legGap);
+            return (
+              <g key={k}>
+                <rect x={x} y={legY} width="16" height="16" fill={stage[k].c} stroke="var(--grid-line)" strokeWidth="1.5" />
+                <text x={x + 24} y={legY + 13} className="ds-leg-t">{stage[k].label}</text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 // Concise description of the role itself - what this person does on the
 // engagement, not the pages they can open.
 const ROLE_SHOWS = {
@@ -51,17 +189,14 @@ export default function Login() {
 
   return (
     <div className="login">
-      <div className="login-anim" aria-hidden="true">
-        <span className="blob b1" /><span className="blob b2" /><span className="blob b3" />
-        <div className="login-grid" />
-      </div>
+      <DataScene />
 
       <div className="login-card">
         <div className="login-strip" />
         <div className="login-inner">
           <div className="login-head">
             <img src={FS_LOGO} alt="Findability Sciences" className="login-logo" />
-            <a className="login-usage" href="/artifacts/DataBPC_UserGuide.pdf" target="_blank" rel="noreferrer" title="Open the user guide">
+            <a className="login-usage" href="/artifacts/BPC_for_Data_UserGuide.pdf" target="_blank" rel="noreferrer" title="Open the user guide">
               <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h6l3 3v9H4z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M10 2v3h3M6 8h4M6 10.5h4" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
               Usage
             </a>
@@ -136,32 +271,65 @@ export default function Login() {
       </div>
 
       <style>{`
-        .login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
-          background:var(--page)}
-        .login-anim{position:absolute;inset:0;z-index:0}
-        .login-grid{position:absolute;inset:0;
-          background-image:linear-gradient(rgba(110,156,58,.06) 1px,transparent 1px),
-            linear-gradient(90deg,rgba(110,156,58,.06) 1px,transparent 1px);
-          background-size:48px 48px;
-          mask-image:radial-gradient(1000px 640px at 50% 42%,#000,transparent 78%);
-          -webkit-mask-image:radial-gradient(1000px 640px at 50% 42%,#000,transparent 78%)}
-        .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;animation:drift 24s ease-in-out infinite}
-        .b1{width:480px;height:480px;background:#B6D98A;left:-6%;top:-14%}
-        .b2{width:420px;height:420px;background:#8FC06A;right:-4%;top:2%;animation-delay:-8s}
-        .b3{width:560px;height:560px;background:#CFE6AE;left:22%;bottom:-26%;animation-delay:-15s}
-        @keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(50px,-40px) scale(1.12)}100%{transform:translate(0,0) scale(1)}}
-        @media(prefers-reduced-motion:reduce){.blob{animation:none}}
+        .login{position:fixed;inset:0;display:grid;place-items:center;
+          overflow:auto;padding:24px;background:var(--page)}
+        /* ---- geometric data-pipeline background scene (10s loop) ---- */
+        /* kept subtle so the login card stays the prominent element */
+        .ds-scene{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+          display:grid;place-items:center;overflow:hidden}
+        /* scale by WIDTH only (height:auto) so the centre safe-zone width tracks the
+           viewport width and always stays wider than the real card (~430px); short
+           screens just crop the top/bottom channel runs, never the side nodes */
+        .ds-svg{width:min(100vw,1360px);height:auto;display:block}
+        .ds-node-n{font:800 15px var(--font);fill:var(--ink);letter-spacing:-.01em}
+        .ds-leg-t{font:800 12px var(--font);fill:var(--ink-2);letter-spacing:.02em}
+        .ds-legend{opacity:0;animation:dsLegend 10s ease-in-out infinite}
+        @keyframes dsLegend{0%,10%{opacity:0}18%{opacity:1}88%{opacity:1}95%,100%{opacity:0}}
 
-        .login-card{position:relative;z-index:1;width:430px;max-width:92vw;background:var(--paper);
-          border:1px solid var(--hair);border-radius:0;box-shadow:var(--soft);overflow:hidden}
-        .login-strip{height:3px;background:var(--strip)}
-        .login-inner{padding:26px 28px 20px}
+        /* connectors: geometric draw-on, hold, fade before loop restart */
+        .ds-wire{stroke-dasharray:3000;stroke-dashoffset:3000;
+          animation:dsDraw 10s linear infinite}
+        @keyframes dsDraw{
+          0%,5%{stroke-dashoffset:3000;opacity:1}
+          14%{stroke-dashoffset:0;opacity:1}
+          86%{stroke-dashoffset:0;opacity:1}
+          94%,100%{stroke-dashoffset:0;opacity:0}
+        }
+        /* step nodes pop in just before their outgoing connector */
+        .ds-node{opacity:0;transform-box:fill-box;transform-origin:center;
+          animation:dsPop 10s ease-in-out infinite}
+        @keyframes dsPop{
+          0%{opacity:0;transform:translateY(6px) scale(.97)}
+          8%{opacity:1;transform:none}
+          86%{opacity:1}
+          94%,100%{opacity:0}
+        }
+        /* report generates after the pipeline completes */
+        .ds-report{opacity:0;transform-box:fill-box;transform-origin:center;
+          animation:dsReport 10s ease-in-out infinite}
+        @keyframes dsReport{
+          0%,66%{opacity:0;transform:translateY(10px) scale(.96)}
+          74%{opacity:1;transform:none}
+          88%{opacity:1}
+          95%,100%{opacity:0}
+        }
+
+        @media(prefers-reduced-motion:reduce){
+          .ds-wire,.ds-node,.ds-report{animation:none;opacity:.6;stroke-dashoffset:0}
+        }
+        @media(max-width:1200px){.ds-scene{display:none}}
+
+        .login-card{position:relative;z-index:1;width:430px;max-width:100%;background:var(--paper);
+          border:var(--grid-w) solid var(--grid-line);border-radius:0;box-shadow:var(--halo);overflow:hidden;
+          display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+        .login-strip{height:5px;background:var(--fs-green);border-bottom:var(--grid-w) solid var(--grid-line);flex:0 0 auto}
+        .login-inner{padding:26px 28px 20px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
         .login-head{display:flex;align-items:center;gap:13px;margin-bottom:10px}
         .login-logo{height:22px}
         .login-usage{margin-left:auto;display:inline-flex;align-items:center;gap:6px;text-decoration:none;
-          font:800 9px var(--font);text-transform:uppercase;letter-spacing:.1em;color:var(--accent-ink);
-          background:var(--accent-tint);border:1px solid transparent;padding:6px 11px;cursor:pointer;transition:all .14s}
-        .login-usage:hover{background:var(--paper);border-color:var(--accent-soft);color:var(--accent)}
+          font:800 9px var(--font);text-transform:uppercase;letter-spacing:.1em;color:#fff;
+          background:var(--fs-green);border:1.5px solid var(--grid-line);padding:6px 11px;cursor:pointer;transition:background .14s}
+        .login-usage:hover{background:var(--accent-ink)}
         .login-usage svg{flex:0 0 auto}
         .login-badge{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:var(--ink-2)}
         .login-badge .bpc{background:var(--accent-tint);color:var(--accent-ink);padding:2px 7px;font-size:9.5px;font-weight:800;letter-spacing:.08em;border-radius:0}
@@ -169,34 +337,35 @@ export default function Login() {
         .login-title{font-size:25px;font-weight:800;letter-spacing:-.025em;color:var(--ink)}
         .login-title .login-dash{color:var(--accent);margin:0 2px}
         .login-step{font-size:12px;color:var(--ink-2);margin:8px 0 18px;font-weight:600;display:flex;align-items:center;gap:9px}
-        .login-step .s-num{font-size:9px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--accent);
-          background:var(--accent-tint);padding:3px 8px;border-radius:0}
+        .login-step .s-num{font-size:9px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:#fff;
+          background:var(--fs-green);border:1.5px solid var(--grid-line);padding:3px 8px;border-radius:0}
         .login-step b{color:var(--ink);font-weight:800}
-        .login-back{margin-left:auto;background:var(--tile);border:1px solid var(--hair);color:var(--ink-2);
+        .login-back{margin-left:auto;background:var(--paper);border:1.5px solid var(--grid-line);color:var(--ink-2);
           font:800 9px var(--font);text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:0;cursor:pointer}
-        .login-back:hover{background:var(--tile-2)}
-        .login-list{display:grid;gap:9px}
-        .lrow{display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;background:var(--tile);
-          border:1px solid transparent;border-radius:0;padding:13px 15px;color:var(--ink);transition:all .14s}
-        .lrow:hover{background:var(--paper);border-color:var(--accent-soft);box-shadow:var(--soft);transform:translateY(-1px)}
+        .login-back:hover{background:var(--tile)}
+        .login-list{display:grid;gap:10px;overflow-y:auto;min-height:0;padding:2px 2px 2px 0;margin-right:-2px}
+        .lrow{display:flex;align-items:center;gap:11px;text-align:left;cursor:pointer;background:var(--paper);
+          border:var(--grid-w) solid var(--grid-line);border-radius:0;padding:13px 15px;color:var(--ink);
+          box-shadow:var(--soft);transition:box-shadow .14s,transform .1s}
+        .lrow:hover{box-shadow:var(--lift);transform:translateY(-2px)}
         .lrow-tag{font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;padding:3px 8px;border-radius:0;
-          background:var(--hair-2);color:var(--ink-3)}
-        .lrow-tag.on{background:var(--accent-tint);color:var(--accent-ink)}
+          background:var(--paper);border:1.5px solid var(--grid-line);color:var(--ink)}
+        .lrow-tag.on{background:var(--fs-green);color:#fff}
         .lrow-name{font-size:14px;font-weight:800}
         .lrow-desc{font-size:11px;color:var(--ink-3);font-weight:600}
         .lrow.role{align-items:flex-start}
         .lrow-rmain{display:flex;flex-direction:column;gap:5px;min-width:0}
         .lrow-shows{font-size:11px;color:var(--ink-2);font-weight:600;line-height:1.5;display:flex;flex-wrap:wrap;
           align-items:center;gap:6px}
-        .lrow-shows-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--accent-ink);
-          background:var(--accent-tint);padding:2px 6px;border-radius:0}
-        .lrow-arrow{margin-left:auto;color:var(--ink-4);flex:0 0 auto;align-self:center}
+        .lrow-shows-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:#fff;
+          background:var(--fs-green);border:1.5px solid var(--grid-line);padding:2px 6px;border-radius:0}
+        .lrow-arrow{margin-left:auto;color:var(--ink-3);flex:0 0 auto;align-self:center}
         .lrow:hover .lrow-arrow{color:var(--accent)}
-        .lrow-trash{margin-left:auto;background:transparent;border:1px solid transparent;color:var(--ink-4);
+        .lrow-trash{margin-left:auto;background:transparent;border:1.5px solid transparent;color:var(--ink-4);
           width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:0;padding:0}
-        .lrow-trash:hover{color:var(--err);border-color:var(--hair);background:var(--paper)}
+        .lrow-trash:hover{color:var(--ds-red);border-color:var(--grid-line);background:var(--paper)}
         .lrow-trash + .lrow-arrow{margin-left:8px}
-        .lrow.deleting{cursor:default;background:var(--paper);border-color:var(--hair)}
+        .lrow.deleting{cursor:default;background:var(--paper);border-color:var(--grid-line)}
         .lrow-del{display:flex;align-items:center;gap:9px;width:100%;flex-wrap:wrap}
         .lrow-del-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-3)}
         .lrow-pin{width:74px;height:30px;border:1px solid var(--hair);padding:0 10px;font:700 14px var(--font);

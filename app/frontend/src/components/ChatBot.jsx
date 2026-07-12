@@ -112,12 +112,22 @@ export default function ChatBot() {
   // the user has "started" once they pick any source, finish, or it's gathered
   const beganSetup = gathered || phase === "done" || r.hasSelection
     || Object.values(picks).some((s) => s && s.size);
+  // the Genie flow is COMPLETE once setup is finished or sources are gathered
+  const setupComplete = gathered || phase === "done";
   // "Start here" pill only until they begin
   const showPill = pid === "generic" && !beganSetup;
+  // On a fresh Start-Fresh project the Genie is MANDATORY: it can't be dismissed
+  // and the blur stays until the whole flow is complete. This holds even if the
+  // panel is toggled - the backdrop is driven by completion, not by botOpen.
+  const mustComplete = pid === "generic" && !setupComplete;
+  // keep the panel forced open while setup is mandatory
+  const panelOpen = botOpen || mustComplete;
+  const modalBackdrop = mustComplete;
 
   return (
     <>
-      {!botOpen && (
+      {modalBackdrop && <div className="cb-backdrop" />}
+      {!panelOpen && (
         <div className="cb-fab-wrap">
           {showPill && <span className="cb-pill">Start here</span>}
           <button className={"cb-fab" + (needsSetup ? " glow" : "")} onClick={() => setBotOpen(true)}>
@@ -130,7 +140,7 @@ export default function ChatBot() {
         </div>
       )}
 
-      {botOpen && (
+      {panelOpen && (
         <div className={"cb-panel" + (needsSetup ? " glow" : "")}>
           {showPill && <span className="cb-pill">Start here</span>}
           <div className="cb-head">
@@ -143,7 +153,7 @@ export default function ChatBot() {
                   : phase === "done" ? "Setup complete" : "Source intake"}
               </div>
             </div>
-            <button className="cb-x" onClick={() => setBotOpen(false)}>×</button>
+            {!mustComplete && <button className="cb-x" onClick={() => setBotOpen(false)}>×</button>}
           </div>
 
           <div className="cb-body" ref={bodyRef}>
@@ -193,15 +203,21 @@ export default function ChatBot() {
       )}
 
       <style>{`
-        /* Genie: only the panel/FAB background is blue see-through glass;
-           bubbles, chips and buttons keep the app's green/white treatment */
+        /* blur/dim backdrop so a fresh Start-Fresh project must start with the Genie.
+           z-index sits BELOW the topbar/footer (z 40) so Sign Out stays reachable as
+           an escape hatch, but the whole workspace + sidebar are blocked. */
+        .cb-backdrop{position:fixed;inset:0;z-index:39;background:rgba(27,29,24,.28);
+          backdrop-filter:blur(4px) saturate(.9);-webkit-backdrop-filter:blur(4px) saturate(.9);
+          animation:cbFade .25s ease both}
+        @keyframes cbFade{from{opacity:0}to{opacity:1}}
+
+        /* Genie: flat De Stijl block - charcoal frame, white fill, FS-green mark */
         .cb-fab{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);display:flex;align-items:center;gap:12px;
-          padding:11px 17px 11px 13px;border:1px solid rgba(90,140,230,.35);cursor:pointer;border-radius:0;
-          background:rgba(120,170,255,.20);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);
-          box-shadow:0 10px 30px -12px rgba(50,100,220,.4);z-index:60;text-align:left}
-        .cb-fab:hover{background:rgba(120,170,255,.30);transform:translateY(-1px);transition:all .14s}
-        .cb-fab-ic{width:38px;height:38px;border-radius:0;overflow:hidden;
-          display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+          padding:10px 16px 10px 12px;border:var(--grid-w) solid var(--grid-line);cursor:pointer;border-radius:0;
+          background:var(--paper);z-index:60;text-align:left;box-shadow:var(--halo);transition:background .12s,box-shadow .14s,transform .1s}
+        .cb-fab:hover{background:var(--tile);box-shadow:var(--lift);transform:translateY(-2px)}
+        .cb-fab-ic{width:36px;height:36px;border:1.5px solid var(--grid-line);border-radius:0;overflow:hidden;
+          display:flex;align-items:center;justify-content:center;flex:0 0 auto;background:var(--paper)}
         .cb-fab-ic img{width:100%;height:100%;object-fit:contain;display:block}
         .cb-fab span span,.cb-fab>span:last-child{display:flex;flex-direction:column}
         .cb-fab b{font-size:13px;color:var(--ink);font-weight:800}
@@ -209,66 +225,61 @@ export default function ChatBot() {
 
         .cb-panel{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);width:400px;
           max-height:min(660px,calc(100vh - var(--header-h) - var(--footer-h) - 32px));
-          border:1px solid rgba(90,140,230,.35);border-radius:0;
-          background:rgba(120,170,255,.16);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);
-          box-shadow:0 22px 55px -20px rgba(40,90,210,.5);display:flex;flex-direction:column;overflow:hidden;z-index:60}
-        .cb-head{background:rgba(255,255,255,.3);color:var(--ink);padding:13px 15px;display:flex;align-items:center;gap:10px;
-          border-bottom:1px solid rgba(90,140,230,.28)}
+          border:var(--grid-w) solid var(--grid-line);border-radius:0;background:var(--paper);
+          box-shadow:var(--halo);display:flex;flex-direction:column;overflow:hidden;z-index:60}
+        .cb-head{background:var(--fs-green);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;
+          border-bottom:var(--grid-w) solid var(--grid-line)}
         .cb-head-tag{width:26px;height:26px;padding:0;overflow:hidden;border-radius:0;flex:0 0 auto;
+          background:var(--paper);border:1.5px solid var(--grid-line);
           display:flex;align-items:center;justify-content:center}
         .cb-head-tag img{width:100%;height:100%;object-fit:contain;display:block}
-        .cb-title{font-weight:800;font-size:13px;color:var(--ink)}
-        .cb-progress{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3);font-weight:700;margin-top:1px}
-        .cb-x{background:rgba(255,255,255,.55);border:1px solid var(--hair);color:var(--ink-3);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:700;margin-left:auto;border-radius:0}
-        .cb-x:hover{background:#fff;color:var(--ink)}
-        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:transparent}
+        .cb-title{font-weight:800;font-size:13px;color:#fff}
+        .cb-progress{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.85);font-weight:700;margin-top:1px}
+        .cb-x{background:var(--paper);border:1.5px solid var(--grid-line);color:var(--ink);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:800;margin-left:auto;border-radius:0}
+        .cb-x:hover{background:var(--tile)}
+        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
         .cb-msg{display:flex;flex-direction:column;max-width:88%}
         .cb-msg.bot{align-self:flex-start}
         .cb-msg.user{align-self:flex-end}
         .cb-bubble{padding:10px 13px;font-size:12.5px;line-height:1.45;border-radius:0}
-        .cb-msg.bot .cb-bubble{background:var(--paper);border:1px solid var(--hair);color:var(--ink);border-top-left-radius:4px}
-        .cb-msg.user .cb-bubble{background:var(--fs-green);color:#fff;border-top-right-radius:4px;font-weight:600}
-        .cb-ask{background:var(--paper);border:1px solid var(--hair);border-radius:0;border-top-left-radius:4px;padding:13px}
+        .cb-msg.bot .cb-bubble{background:var(--paper);border:1.5px solid var(--grid-line);color:var(--ink)}
+        .cb-msg.user .cb-bubble{background:var(--fs-green);color:#fff;border:1.5px solid var(--grid-line);font-weight:600}
+        .cb-ask{background:var(--paper);border:1.5px solid var(--grid-line);border-radius:0;padding:13px}
         .cb-ask-head{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:11px;line-height:1.4}
-        .cb-lchip{width:22px;height:22px;background:var(--accent-tint);color:var(--accent-ink);border-radius:0;
+        .cb-lchip{width:22px;height:22px;background:var(--fs-green);color:#fff;border:1.5px solid var(--grid-line);border-radius:0;
           display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:0 0 auto}
         .cb-opts{display:flex;flex-wrap:wrap;gap:7px}
-        .cb-pick{display:inline-flex;align-items:center;gap:8px;font:700 12px var(--font);color:var(--ink-2);cursor:pointer;
-          background:var(--tile);border:1px solid var(--hair);border-radius:0;padding:6px 12px 6px 9px;transition:all .12s}
-        .cb-pick:hover{border-color:var(--accent-soft)}
-        .cb-pick.on{background:var(--accent-tint);border-color:transparent;color:var(--accent-ink)}
-        .cb-box{width:15px;height:15px;border:1.5px solid var(--ink-4);border-radius:50%;flex:0 0 auto;position:relative}
-        .cb-pick.on .cb-box{border-color:var(--fs-green)}
-        .cb-pick.on .cb-box::after{content:"";position:absolute;left:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--fs-green)}
-        .cb-input{border-top:1px solid rgba(90,140,230,.28);padding:13px;background:rgba(255,255,255,.3)}
+        .cb-pick{display:inline-flex;align-items:center;gap:8px;font:800 12px var(--font);color:var(--ink-2);cursor:pointer;
+          background:var(--paper);border:1.5px solid var(--grid-line);border-radius:0;padding:6px 12px 6px 9px;transition:background .12s}
+        .cb-pick:hover{background:var(--tile)}
+        .cb-pick.on{background:var(--fs-green);border-color:var(--grid-line);color:#fff}
+        .cb-box{width:14px;height:14px;border:1.5px solid var(--grid-line);border-radius:0;flex:0 0 auto;position:relative;background:var(--paper)}
+        .cb-pick.on .cb-box{background:var(--paper)}
+        .cb-pick.on .cb-box::after{content:"";position:absolute;left:2px;top:2px;width:6px;height:6px;background:var(--fs-green)}
+        .cb-input{border-top:var(--grid-w) solid var(--grid-line);padding:13px;background:var(--paper)}
 
         /* attention glow while the Start-Fresh project still needs source setup */
         @keyframes cbGlow{
-          0%,100%{box-shadow:0 10px 30px -12px rgba(50,100,220,.4),0 0 0 0 rgba(90,150,255,.55)}
-          50%{box-shadow:0 14px 34px -10px rgba(50,100,220,.55),0 0 0 8px rgba(90,150,255,0)}
+          0%,100%{box-shadow:0 0 0 0 rgba(132,180,72,.6)}
+          50%{box-shadow:0 0 0 7px rgba(132,180,72,0)}
         }
         .cb-fab.glow{animation:cbGlow 1.9s ease-in-out infinite;border-color:rgba(90,150,255,.6)}
         .cb-panel.glow{animation:cbGlow 1.9s ease-in-out infinite;border-color:rgba(90,150,255,.6)}
+        .cb-fab.glow,.cb-panel.glow{animation:cbGlow 1.9s ease-in-out infinite}
         @media(prefers-reduced-motion:reduce){.cb-fab.glow,.cb-panel.glow{animation:none;
-          box-shadow:0 10px 30px -12px rgba(50,100,220,.5),0 0 0 3px rgba(90,150,255,.4)}}
+          box-shadow:0 0 0 3px rgba(132,180,72,.4)}}
 
-        /* "Start here" pill: independent tag centered above the Genie, pulses,
+        /* "Start here" tag: flat green De Stijl block above the Genie, pulses,
            gone once started. No chevron. */
         .cb-fab-wrap{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);z-index:60;
           display:inline-flex;flex-direction:column;align-items:center}
         .cb-fab-wrap .cb-fab{position:static}
         @keyframes cbPill{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-        @keyframes cbPillGlow{0%,100%{box-shadow:0 8px 24px -12px rgba(50,100,220,.4),0 0 0 0 rgba(90,150,255,.45)}
-          50%{box-shadow:0 10px 28px -10px rgba(50,100,220,.5),0 0 0 6px rgba(90,150,255,0)}}
         .cb-pill{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);z-index:61;
-          background:rgba(120,170,255,.20);backdrop-filter:blur(16px) saturate(1.5);
-          -webkit-backdrop-filter:blur(16px) saturate(1.5);
-          color:var(--ink);font:800 10px var(--font);
+          background:var(--fs-green);color:#fff;font:800 10px var(--font);
           text-transform:uppercase;letter-spacing:.12em;padding:6px 14px;white-space:nowrap;border-radius:0;
-          border:1px solid rgba(90,140,230,.35);
-          animation:cbPill 1.6s ease-in-out infinite,cbPillGlow 1.9s ease-in-out infinite}
-        /* inside the FAB wrap the pill sits above the button; inside the panel it
-           centers above the panel top edge */
+          border:var(--grid-w) solid var(--grid-line);
+          animation:cbPill 1.6s ease-in-out infinite}
         .cb-fab-wrap .cb-pill{bottom:calc(100% + 10px)}
         @media(prefers-reduced-motion:reduce){.cb-pill{animation:none}}
       `}</style>

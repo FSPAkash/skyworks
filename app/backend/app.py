@@ -704,6 +704,27 @@ def profile_from_form():
     return jsonify({"ok": True, "id": pid, "name": name})
 
 
+@app.post("/api/settings/meters-clevel")
+def set_meters_clevel():
+    """Admin toggle: whether C-Level users see the usage meters as tiles on the
+    Overview. Persisted in the profile config under settings.metersToCLevel."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    pid = active_pid()
+    if pid == GENERIC_ID:
+        return jsonify({"ok": False, "error": "Save the project first to change its settings."}), 400
+    on = bool((request.get_json(silent=True) or {}).get("on"))
+    path = _pf(pid, "config.json")
+    if not os.path.exists(path):
+        abort(404)
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    cfg.setdefault("settings", {})["metersToCLevel"] = on
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({"ok": True, "on": on})
+
+
 DELETE_PIN = "2345"  # mock demo gate for deleting a profile from the login screen
 
 
