@@ -176,7 +176,11 @@
       "Bash(python -c \"import json;[print\\(p,json.load\\(open\\(f'app/backend/profiles/{p}/config.json',encoding='utf-8'\\)\\)['settings']\\) for p in ['skyworks-solutions','northwind-demo']]\")",
       "Bash(FLASK_DEBUG=0 python app.py)",
       "Skill(artifact-design)",
-      "Skill(artifact-design:*)"
+      "Skill(artifact-design:*)",
+      "WebFetch(domain:www.pencilandpaper.io)",
+      "Bash(where chrome *)",
+      "Bash(where msedge *)",
+      "Bash(sort -t: -k3)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",

@@ -186,10 +186,6 @@
               "label": "Tokens used",
               "value": "8.4",
               "unit": "M"
-            },
-            {
-              "label": "Inference calls",
-              "value": "12,900"
             }
           ]
         }
@@ -201,7 +197,7 @@
         "statuses": [
           {
             "label": "Connectivity validated",
-            "value": "18 sources · 4.2 TB",
+            "value": "18 sources \u00b7 4.2 TB",
             "state": "delivered"
           },
           {
@@ -256,7 +252,30 @@
               "label": "SME sessions",
               "value": "6"
             }
-          ]
+          ],
+          "intel": {
+            "kind": "inference",
+            "title": "BPC inference",
+            "note": "Inferred by BPC from schema, table names, and value distributions - no SME input.",
+            "items": [
+              {
+                "text": "Operating model is semiconductor distribution: order-to-cash spans Quotes, Orders, Allocations, and Shipments with a design-win / registration tier ahead of revenue.",
+                "confidence": 92
+              },
+              {
+                "text": "Inventory is lot- and wafer-traceable - part, lot, and date-code columns run through the stock and shipment tables, implying strict traceability and RMA handling.",
+                "confidence": 89
+              },
+              {
+                "text": "Demand is highly cyclical - order and backlog volumes swing with a ~6-9 month lead-time signal, so allocation and backlog tables are the ones that drive planning.",
+                "confidence": 84
+              },
+              {
+                "text": "Customer, contact, and rep-commission tables carry PII and pricing sensitivity - governs Silver-layer masking and access control.",
+                "confidence": 95
+              }
+            ]
+          }
         },
         {
           "id": "automated-data-catalog",
@@ -301,7 +320,38 @@
               "label": "Hot tables",
               "value": "310"
             }
-          ]
+          ],
+          "intel": {
+            "kind": "annotation",
+            "title": "BPC data annotation",
+            "note": "Business meaning BPC attached to each asset, with the evidence it used to decide.",
+            "items": [
+              {
+                "target": "FactShipmentLine",
+                "tag": "Gold candidate",
+                "note": "Core revenue-grain fact - one row per shipped part/lot line.",
+                "why": "Queried by 16 BI reports/day, joins cleanly to DimPart, DimCustomer and DimDateCode, freshness under 1h."
+              },
+              {
+                "target": "FactBacklogAllocation",
+                "tag": "Gold candidate · high value",
+                "note": "Open backlog and allocation by part and customer - the planning core.",
+                "why": "Drives demand and lead-time planning; downstream of Orders and Inventory, feeds 5 allocation marts."
+              },
+              {
+                "target": "DimCustomerContact",
+                "tag": "PII · mask in Silver",
+                "note": "Customer contacts and sales-rep assignments.",
+                "why": "Contains contact name, phone, email and commission rate; referenced by 9 marts - governance flag set."
+              },
+              {
+                "target": "stg_orders_legacy_ax",
+                "tag": "Deprecate",
+                "note": "Superseded staging copy from the legacy AX feed.",
+                "why": "Zero reads in 90 days, no downstream lineage, duplicates Orders at coarser grain."
+              }
+            ]
+          }
         },
         {
           "id": "transformation",
@@ -324,6 +374,25 @@
           ]
         }
       ],
+      "meaning": {
+        "title": "What does the data mean?",
+        "subtitle": "BPC reads the catalog and answers in business terms - not just what the tables are, but what they say about the business.",
+        "author": "BPC · Business Process Co-Pilot",
+        "questions": [
+          {
+            "q": "What business is this data describing?",
+            "a": "A semiconductor components distributor. The data captures the full quote-to-cash cycle - design registrations, quotes, orders, lot-traceable inventory, allocation, and shipment - across the part catalog and the active customer / rep book."
+          },
+          {
+            "q": "Where does the value concentrate?",
+            "a": "In the shipment-line and backlog-allocation grain. A small set of high-volume parts and key accounts drives most revenue, and the part / lot / date-code keys are what tie inventory to shipments - so those joins are the ones worth conforming to Gold first."
+          },
+          {
+            "q": "What does the data warn us about?",
+            "a": "Lead-time cyclicality and sensitive data. Backlog swings on a 6-9 month lead-time signal, so allocation freshness matters, and customer-contact, pricing and rep-commission fields carry PII and margin sensitivity that must be masked before the Silver layer."
+          }
+        ]
+      },
       "presentation": {
         "deliverables": [
           2
@@ -331,7 +400,7 @@
         "statuses": [
           {
             "label": "Metadata ingested",
-            "value": "2,140 tables · 48,300 columns",
+            "value": "2,140 tables \u00b7 48,300 columns",
             "state": "delivered"
           },
           {
@@ -428,6 +497,37 @@
           ]
         }
       ],
+      "topSignal": {
+        "title": "Signal that matters most",
+        "subtitle": "Across the lineage, ownership, and manual-addition work, BPC ranks which signal to act on first for the classification decision.",
+        "author": "BPC · Business Process Co-Pilot",
+        "primary": {
+          "signal": "Downstream consumption depth",
+          "topic": "End-to-End Visualization",
+          "weight": 100,
+          "why": "The number of certified consumers hanging off a dataset predicts its Gold candidacy better than row count or size. High-fan-out nodes (FactShipmentLine, FactBacklogAllocation) are where conforming pays back first."
+        },
+        "ranked": [
+          {
+            "signal": "Ownership resolution",
+            "topic": "Ownership Mapping",
+            "weight": 78,
+            "why": "An unowned dataset can't be promoted or governed - 20% still unowned is the gating risk for sign-off."
+          },
+          {
+            "signal": "Lineage gaps flagged",
+            "topic": "Manual Additions",
+            "weight": 54,
+            "why": "21 gaps where automated lineage stops; each hides possible orphan or broken-dependency risk until an analyst confirms."
+          },
+          {
+            "signal": "Reference-data drift",
+            "topic": "Ownership Mapping",
+            "weight": 41,
+            "why": "19 reference sets feed many marts - stale part / customer master ripples widely but changes slowly."
+          }
+        ]
+      },
       "presentation": {
         "deliverables": [
           3
@@ -471,10 +571,6 @@
             {
               "label": "Gold",
               "value": "420"
-            },
-            {
-              "label": "Alignment",
-              "value": "58%"
             }
           ]
         },
@@ -614,9 +710,57 @@
     "outro": "Source information captured.",
     "sections": {}
   },
+  "bpcProcessing": {
+    "title": "How BPC processed this estate",
+    "subtitle": "The Business Process Co-Pilot runs every asset through the same pipeline. This is what it did with the semiconductor-distribution catalog.",
+    "author": "BPC · Business Process Co-Pilot",
+    "stages": [
+      {
+        "name": "Ingest",
+        "state": "delivered",
+        "throughput": "complete",
+        "detail": "Read schemas, columns, and row counts from every connected source."
+      },
+      {
+        "name": "Infer",
+        "state": "delivered",
+        "throughput": "8 domains found",
+        "detail": "Derived the business model and domain map from names and value distributions."
+      },
+      {
+        "name": "Annotate",
+        "state": "delivered",
+        "throughput": "PII + facts tagged",
+        "detail": "Tagged PII, revenue-grain facts, and deprecation candidates with reasoning."
+      },
+      {
+        "name": "Classify",
+        "state": "in-progress",
+        "throughput": "58% aligned",
+        "detail": "Scoring each dataset to Bronze / Silver / Gold against usage and lineage."
+      },
+      {
+        "name": "Recommend",
+        "state": "planned",
+        "throughput": "phase 3",
+        "detail": "Prioritized transition backlog and executive recommendations."
+      }
+    ],
+    "confidence": {
+      "label": "Model confidence on this estate",
+      "value": 88,
+      "detail": "Weighted across inference, annotation, and classification passes."
+    },
+    "workload": [
+      { "label": "Inference calls", "value": "12,900" },
+      { "label": "PII columns flagged", "value": "1,340" },
+      { "label": "Gold candidates", "value": "24" },
+      { "label": "Deprecation candidates", "value": "180" }
+    ]
+  },
   "isDemo": true,
   "settings": {
-    "metersOnOverview": false,
-    "metersInPresentation": false
+    "metersOnOverview": true,
+    "metersInPresentation": true
   }
 }

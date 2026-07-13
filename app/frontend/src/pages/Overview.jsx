@@ -256,8 +256,12 @@ export default function Overview() {
         .ov-h1{margin:0 0 3px;font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
         .ov-lede{margin:0;font-size:12.5px;color:var(--ink-3);font-weight:600}
 
-        .ov-card{background:var(--paper);border:1px solid var(--hair);box-shadow:var(--soft);
-          padding:22px 26px 18px;margin-bottom:16px}
+        /* frosted-glass timeline container */
+        .ov-card{background:rgba(255,255,255,.55);backdrop-filter:blur(20px) saturate(1.4);
+          -webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.65);
+          box-shadow:var(--halo);padding:22px 26px 18px;margin-bottom:16px;
+          background-image:radial-gradient(120% 140% at 0% 0%,rgba(132,180,72,.10),transparent 55%),
+            radial-gradient(120% 140% at 100% 100%,rgba(91,127,184,.10),transparent 55%)}
         .ov-empty{font-size:13px;color:var(--ink-3);padding:6px 0}
 
         /* phase strip across the top of the container - bold week-boundary edges */
@@ -286,6 +290,7 @@ export default function Overview() {
         .tb-pill{position:absolute;transform:translateY(-50%);display:flex;align-items:center;gap:7px;
           min-width:56px;height:30px;padding:0 12px;border:1px solid transparent;border-radius:999px;
           cursor:default;font:800 11.5px var(--font);letter-spacing:.01em;z-index:4;white-space:nowrap;
+          backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3);
           box-shadow:0 1px 2px rgba(27,29,24,.08),0 3px 8px -4px rgba(27,29,24,.18);transition:transform .14s ease,box-shadow .14s ease}
         .tb-pill.act{cursor:pointer}
         .tb-pill.act:hover{transform:translateY(-50%) translateY(-1px);box-shadow:0 2px 4px rgba(27,29,24,.1),0 8px 16px -6px rgba(27,29,24,.26)}
@@ -293,11 +298,11 @@ export default function Overview() {
         .tb-code{font-weight:800}
         .tb-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.8;
           padding-left:3px;border-left:1px solid currentColor;margin-left:1px}
-        /* soft tinted fills with a saturated edge + text (not solid blocks) */
-        .tb-item.delivered .tb-pill{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
-        .tb-item.active .tb-pill{background:#E9F0FA;border-color:var(--ds-blue);color:var(--ds-blue)}
-        .tb-item.delayed .tb-pill{background:var(--err-soft);border-color:var(--err);color:var(--err)}
-        .tb-item.upcoming .tb-pill{background:var(--paper);border-color:var(--line-strong);color:var(--ink-3)}
+        /* translucent glass fills with a saturated edge + text (blur reads through) */
+        .tb-item.delivered .tb-pill{background:rgba(231,241,218,.62);border-color:var(--ok);color:var(--ok)}
+        .tb-item.active .tb-pill{background:rgba(233,240,250,.62);border-color:var(--ds-blue);color:var(--ds-blue)}
+        .tb-item.delayed .tb-pill{background:rgba(246,231,228,.62);border-color:var(--err);color:var(--err)}
+        .tb-item.upcoming .tb-pill{background:rgba(255,255,255,.5);border-color:var(--line-strong);color:var(--ink-3)}
         .tb-pill.sel{box-shadow:0 0 0 3px var(--paper),0 0 0 4px currentColor}
 
         /* hover tooltip: code + name + span + status (pointer-events off so it

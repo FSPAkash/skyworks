@@ -15,13 +15,15 @@ const BLANK_FORM = {
 };
 
 export default function Admin() {
-  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersInPresentation, setMetersOverview } = useConfig();
+  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersInPresentation, setMetersOverview, setProjectDescription } = useConfig();
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
   const [metersBusy, setMetersBusy] = useState(false);
   const [ovMetersBusy, setOvMetersBusy] = useState(false);
+  const [descBusy, setDescBusy] = useState(false);
   const metersOn = !!config?.settings?.metersInPresentation;
   const ovMetersOn = !!config?.settings?.metersOnOverview;
+  const descOn = !!config?.settings?.showProjectDescription;
   const isGeneric = profile?.mode === "generic";
   const toggleMeters = async () => {
     setMetersBusy(true);
@@ -32,6 +34,11 @@ export default function Admin() {
     setOvMetersBusy(true);
     await setMetersOverview(!ovMetersOn);
     setOvMetersBusy(false);
+  };
+  const toggleDesc = async () => {
+    setDescBusy(true);
+    await setProjectDescription(!descOn);
+    setDescBusy(false);
   };
   const [preview, setPreview] = useState(null);
   const [sowFile, setSowFile] = useState(null);
@@ -90,6 +97,30 @@ export default function Admin() {
   return (
     <div>
       <h1 className="page">Admin Settings</h1>
+
+      {/* Presentation page content */}
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-head"><span className="dot-r" /> Presentation page</div>
+        <div className="card-body">
+          <div className="tgl-row">
+            <div className="tgl-txt">
+              <div className="tgl-title">Show Project Description</div>
+              <div className="tgl-sub">
+                {isGeneric
+                  ? "Save this project first to change its settings."
+                  : <>Adds the engagement background, outcome, and highlight tiles to the top of the Presentation page. Off by default to keep the page focused on BPC output.</>}
+              </div>
+            </div>
+            <button
+              className={"switch" + (descOn ? " on" : "")}
+              role="switch" aria-checked={descOn}
+              disabled={isGeneric || descBusy}
+              onClick={toggleDesc}>
+              <span className="knob" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Usage-meter visibility for the active profile */}
       <div className="card" style={{ marginBottom: 16 }}>

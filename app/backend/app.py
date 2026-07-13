@@ -531,7 +531,19 @@ def apply_full_demo(cfg):
         for sp in layer.get("subparts", []):
             if sp.get("demoMetrics") and not sp.get("metrics"):
                 sp["metrics"] = sp["demoMetrics"]
+            # BPC intelligence (inference / annotation) only appears once the
+            # full project has been run
+            if sp.get("demoIntel") and not sp.get("intel"):
+                sp["intel"] = sp["demoIntel"]
             sp["state"] = "delivered"
+        # layer-level BPC blocks: "what the data means" and the top-signal ranking
+        if layer.get("demoMeaning") and not layer.get("meaning"):
+            layer["meaning"] = layer["demoMeaning"]
+        if layer.get("demoSignal") and not layer.get("topSignal"):
+            layer["topSignal"] = layer["demoSignal"]
+    # config-level BPC processing view (Presentation page)
+    if cfg.get("demoProcessing") and not cfg.get("bpcProcessing"):
+        cfg["bpcProcessing"] = cfg["demoProcessing"]
     return cfg
 
 
@@ -763,6 +775,29 @@ def set_meters_overview():
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
     cfg.setdefault("settings", {})["metersOnOverview"] = on
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({"ok": True, "on": on})
+
+
+@app.post("/api/settings/project-description")
+def set_project_description():
+    """Admin toggle: whether the Presentation page shows the project-description
+    intro (background, outcome, highlight tiles). Off by default to keep the
+    reporting page focused on BPC output. Persisted under
+    settings.showProjectDescription."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    pid = active_pid()
+    if pid == GENERIC_ID:
+        return jsonify({"ok": False, "error": "Save the project first to change its settings."}), 400
+    on = bool((request.get_json(silent=True) or {}).get("on"))
+    path = _pf(pid, "config.json")
+    if not os.path.exists(path):
+        abort(404)
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    cfg.setdefault("settings", {})["showProjectDescription"] = on
     with open(path, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
     return jsonify({"ok": True, "on": on})

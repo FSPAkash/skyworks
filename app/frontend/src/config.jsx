@@ -183,6 +183,16 @@ export function ConfigProvider({ children }) {
     if (out.ok) await loadConfig();
     return out;
   };
+  // Admin: whether the Presentation page shows the project-description intro
+  const setProjectDescription = async (on) => {
+    const res = await fetch("/api/settings/project-description", {
+      method: "POST", headers: hdr({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ on }),
+    });
+    const out = await res.json();
+    if (out.ok) await loadConfig();
+    return out;
+  };
 
   const createProfile = async (json) => {
     const res = await fetch("/api/profiles", { method: "POST", headers: hdr({ "Content-Type": "application/json" }), body: JSON.stringify(json) });
@@ -221,7 +231,7 @@ export function ConfigProvider({ children }) {
       config, error, botOpen, setBotOpen, users, access, user, profile, profiles,
       login, pickProfile, logout, can, canLayer, canSubpart, rolesLoaded, roleLabel: ROLE_LABEL,
       sources, loadSources, saveConnection, testConnection, runDemo,
-      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersInPresentation, setMetersOverview,
+      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersInPresentation, setMetersOverview, setProjectDescription,
       hasUnsavedFresh, genericDirty, pid,
     }}>
       {children}

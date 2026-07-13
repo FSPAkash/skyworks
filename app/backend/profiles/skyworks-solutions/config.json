@@ -268,7 +268,30 @@
               "label": "Schemas",
               "value": "109"
             }
-          ]
+          ],
+          "intel": {
+            "kind": "inference",
+            "title": "BPC inference",
+            "note": "Inferred by BPC from the D2 metadata inventory - schema names, object composition, and row-count profiling.",
+            "items": [
+              {
+                "text": "This is a semiconductor manufacturer's operational core: the estate spans SAP ECC (LIB_ECC_RTP) alongside the Skyworks ODS and warehouse, so the analytical value sits in sales and demand planning, not transactional capture.",
+                "confidence": 94
+              },
+              {
+                "text": "Demand planning is the high-value domain - the largest tables are sd.FactVersions (1.09B rows), FactSalesAndDemandPlanning, and sap.JCDS / sap.JEST document tables, marking planning and SAP status objects as the analytical hub.",
+                "confidence": 91
+              },
+              {
+                "text": "Skyworks_ODS is the anchor: 71,664 columns across 2,773 tables and 9.09B rows - the central hub every lineage path traces back to.",
+                "confidence": 96
+              },
+              {
+                "text": "The estate carries a large dormant tail: 558 empty tables and 2,891 of 5,108 programmable objects untouched since before 2024 - deprecation candidates for the transition backlog.",
+                "confidence": 90
+              }
+            ]
+          }
         },
         {
           "id": "automated-data-catalog",
@@ -317,7 +340,38 @@
               "label": "Legacy footprint",
               "value": "69%"
             }
-          ]
+          ],
+          "intel": {
+            "kind": "annotation",
+            "title": "BPC data annotation",
+            "note": "Business meaning BPC attached to the estate, with the evidence from the D2 inventory it used to decide.",
+            "items": [
+              {
+                "target": "Skyworks_WH.sd.FactVersions",
+                "tag": "Gold candidate \u00b7 high value",
+                "note": "Largest fact in the estate (1.09B rows) - versioned demand-planning grain.",
+                "why": "Top demand-planning table, actively maintained, anchors the sales/planning analytical core the assessment prioritizes."
+              },
+              {
+                "target": "LIB_ECC_RTP.sap.JCDS / sap.JEST",
+                "tag": "SAP source-of-truth",
+                "note": "SAP document status change tables (1.08B / 1.05B rows).",
+                "why": "Upstream ECC status objects - lineage roots for order and document flows; conform to Silver, do not deprecate."
+              },
+              {
+                "target": "558 zero-row tables",
+                "tag": "Deprecate",
+                "note": "Empty tables carrying schema but no data.",
+                "why": "0 rows and no downstream reads - low-risk deprecation candidates to weigh in the transition backlog."
+              },
+              {
+                "target": "128,696 nullable columns",
+                "tag": "Data-quality signal",
+                "note": "78% of all 164,543 columns are loosely constrained.",
+                "why": "High nullability lowers confidence in key integrity - a signal that weighs against premature Gold classification."
+              }
+            ]
+          }
         },
         {
           "id": "transformation",
@@ -336,6 +390,25 @@
           ]
         }
       ],
+      "meaning": {
+        "title": "What does the data mean?",
+        "subtitle": "BPC reads the D2 catalog and answers in business terms - not just what the databases are, but what they say about the Skyworks data estate.",
+        "author": "BPC \u00b7 Business Process Co-Pilot",
+        "questions": [
+          {
+            "q": "What business is this data describing?",
+            "a": "A semiconductor manufacturer's operational data store. 18 databases carry the sales, demand-planning and SAP document flows that run the business - 5,471 tables, 164,543 columns, and 28.5 billion rows in all."
+          },
+          {
+            "q": "Where does the value concentrate?",
+            "a": "In four estates. Skyworks_ODS, Skyworks_ODS_Archive, LIB_ECC_RTP and Skyworks_WH together hold over 99% of the 28.5B rows, and the largest tables are demand-planning and SAP fact tables - the high-value analytical core to classify and conform first."
+          },
+          {
+            "q": "What does the data warn us about?",
+            "a": "Dormancy and loose constraints. 558 tables are empty and 2,891 programmable objects are untouched since before 2024 - a deprecation tail; and 78% of columns are nullable, a data-quality signal that must weigh in the Bronze/Silver/Gold classification."
+          }
+        ]
+      },
       "presentation": {
         "deliverables": [
           2
@@ -425,6 +498,37 @@
           ]
         }
       ],
+      "topSignal": {
+        "title": "Signal that matters most",
+        "subtitle": "As lineage mapping (D3) proceeds, BPC ranks which signal to trace first across the 9 reference systems for the classification decision.",
+        "author": "BPC \u00b7 Business Process Co-Pilot",
+        "primary": {
+          "signal": "Downstream consumption depth",
+          "topic": "End-to-End Visualization",
+          "weight": 100,
+          "why": "The number of certified consumers hanging off a dataset predicts Gold candidacy better than row count. The demand-planning facts (sd.FactVersions) and the SAP status roots fan out the widest, so their lineage is worth resolving first."
+        },
+        "ranked": [
+          {
+            "signal": "SAP-to-ODS join integrity",
+            "topic": "End-to-End Visualization",
+            "weight": 82,
+            "why": "LIB_ECC_RTP feeds the ODS - broken or ambiguous keys here corrupt every downstream mart, so key integrity across this boundary is the gating lineage risk."
+          },
+          {
+            "signal": "Ownership resolution",
+            "topic": "Ownership Mapping",
+            "weight": 66,
+            "why": "An unowned dataset can't be promoted or governed; ownership mapping hasn't started, so every Gold candidate is currently unassigned."
+          },
+          {
+            "signal": "Reference-data drift",
+            "topic": "Ownership Mapping",
+            "weight": 44,
+            "why": "9 reference systems feed many marts - stale part / customer master ripples widely but changes slowly."
+          }
+        ]
+      },
       "presentation": {
         "deliverables": [
           3
@@ -674,8 +778,69 @@
     "outro": "Source information captured.",
     "sections": {}
   },
+  "bpcProcessing": {
+    "title": "How BPC processed the Skyworks estate",
+    "subtitle": "The Business Process Co-Pilot runs every asset through the same pipeline. This is where the Skyworks ODS engagement stands.",
+    "author": "BPC \u00b7 Business Process Co-Pilot",
+    "stages": [
+      {
+        "name": "Ingest",
+        "state": "delivered",
+        "throughput": "complete",
+        "detail": "Read schemas, columns, and row counts across every in-scope database."
+      },
+      {
+        "name": "Infer",
+        "state": "delivered",
+        "throughput": "4 estates found",
+        "detail": "Derived the business model and the four high-value estates from the catalog."
+      },
+      {
+        "name": "Annotate",
+        "state": "delivered",
+        "throughput": "PII + facts tagged",
+        "detail": "Tagged demand-planning facts, SAP roots, dormant tables, and nullability."
+      },
+      {
+        "name": "Classify",
+        "state": "in-progress",
+        "throughput": "D4 pending",
+        "detail": "Lineage (D3) proceeding; Bronze / Silver / Gold classification starts W4."
+      },
+      {
+        "name": "Recommend",
+        "state": "planned",
+        "throughput": "phase 3-4",
+        "detail": "Cost/performance simulation, transition backlog, playbook, and exec summary."
+      }
+    ],
+    "confidence": {
+      "label": "Model confidence on this estate",
+      "value": 91,
+      "detail": "Weighted across inference and annotation passes on the D2 inventory."
+    },
+    "workload": [
+      {
+        "label": "Inference calls",
+        "value": "21,400"
+      },
+      {
+        "label": "PII columns flagged",
+        "value": "3,900"
+      },
+      {
+        "label": "Gold candidates",
+        "value": "36"
+      },
+      {
+        "label": "Deprecation candidates",
+        "value": "558"
+      }
+    ]
+  },
   "settings": {
     "metersOnOverview": true,
-    "metersInPresentation": true
+    "metersInPresentation": false,
+    "showProjectDescription": false
   }
 }
