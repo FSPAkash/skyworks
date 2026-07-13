@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useConfig } from "../config.jsx";
 
 const BLANK_FORM = {
@@ -14,10 +14,28 @@ const BLANK_FORM = {
   alignmentLabel: "Assessment progress", alignmentCurrent: "", alignmentTarget: "100",
 };
 
+// Build a form pre-populated from the active profile's config, blank where the
+// profile carries no data. Highlights padded to 4 rows for a stable grid.
+function formFromConfig(config) {
+  const cl = config?.client || {};
+  const ov = config?.overview || {};
+  const hl = (ov.highlights || []).map((h) => ({ label: h.label || "", value: h.value ?? "", unit: h.unit || "" }));
+  while (hl.length < 4) hl.push({ label: "", value: "", unit: "" });
+  const al = ov.alignment || {};
+  return {
+    name: cl.name || "", engagement: cl.engagement || "", framework: cl.framework || "Assessment",
+    durationWeeks: cl.durationWeeks ?? "", activeWeeks: cl.activeWeeks ?? "", acceptanceWeeks: cl.acceptanceWeeks ?? "",
+    headline: ov.headline || "", background: ov.background || "", outcome: ov.outcome || "",
+    highlights: hl,
+    alignmentLabel: al.label || "Assessment progress",
+    alignmentCurrent: al.current ?? "", alignmentTarget: al.target ?? "100",
+  };
+}
+
 export default function Admin() {
-  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersInPresentation, setMetersOverview, setProjectDescription } = useConfig();
-  const [msg, setMsg] = useState(null);
+  const { profile, config, uploadSow, updateProfile, setMetersInPresentation, setMetersOverview, setProjectDescription } = useConfig();
   const [busy, setBusy] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);   // Edit project details: collapsed by default
   const [metersBusy, setMetersBusy] = useState(false);
   const [ovMetersBusy, setOvMetersBusy] = useState(false);
   const [descBusy, setDescBusy] = useState(false);
@@ -40,39 +58,24 @@ export default function Admin() {
     await setProjectDescription(!descOn);
     setDescBusy(false);
   };
-  const [preview, setPreview] = useState(null);
   const [sowFile, setSowFile] = useState(null);
   const [sowName, setSowName] = useState("");
   const [sowResult, setSowResult] = useState(null);
-  const [form, setForm] = useState(BLANK_FORM);
+  const [form, setForm] = useState(() => formFromConfig(config));
   const [formResult, setFormResult] = useState(null);
   const setF = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const setHl = (i, k, v) => setForm((p) => ({ ...p, highlights: p.highlights.map((h, j) => j === i ? { ...h, [k]: v } : h) }));
 
+  // Re-seed the form whenever the active profile / its config changes, so the
+  // fields always show the current project's data (blank where none).
+  useEffect(() => { setForm(formFromConfig(config)); setFormResult(null); }, [profile?.id, config]);
+
   const doForm = async () => {
+    if (isGeneric) { setFormResult({ ok: false, error: "Save the DEMO as a project first to edit its details." }); return; }
     if (!form.name.trim()) { setFormResult({ ok: false, error: "Client / project name is required." }); return; }
     setBusy(true); setFormResult(null);
-    const out = await createFromForm(form);
+    const out = await updateProfile(form);
     setBusy(false); setFormResult(out);
-    if (out.ok) setForm(BLANK_FORM);
-  };
-
-  const onJson = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setMsg(null);
-    let json;
-    try { json = JSON.parse(await file.text()); }
-    catch { setMsg({ ok: false, text: "Not valid JSON." }); return; }
-    setPreview({ name: file.name, client: json?.client?.name, deliverables: json?.deliverables?.length, json });
-  };
-  const doCreate = async () => {
-    if (!preview) return;
-    setBusy(true);
-    const out = await createProfile(preview.json);
-    setBusy(false);
-    if (out.ok) { setMsg({ ok: true, text: `Profile "${out.name}" saved.` }); setPreview(null); }
-    else setMsg({ ok: false, text: out.error || "Failed." });
   };
 
   const onSow = (e) => { setSowFile(e.target.files?.[0] || null); setSowResult(null); };
@@ -85,18 +88,31 @@ export default function Admin() {
     if (out.ok) { setSowFile(null); setSowName(""); }
   };
 
-  const doDelete = async (id, name) => {
-    setBusy(true);
-    const out = await deleteProfile(id);
-    setBusy(false);
-    setMsg(out.ok ? { ok: true, text: `Deleted "${name}".` } : { ok: false, text: out.error });
-  };
-
-  const clients = profiles.filter((p) => p.mode !== "generic");
-
   return (
     <div>
-      <h1 className="page">Admin Settings</h1>
+      <h1 className="page">Settings</h1>
+
+      {/* Upload SOW - primary path, at the top */}
+      <div className="card hi" style={{ marginBottom: 16 }}>
+        <div className="card-head"><span className="dot-r" /> Upload SOW</div>
+        <div className="card-body">
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--ink-2)" }}>
+            Upload a Statement of Work PDF. Engagement, deliverables, and systems are extracted to build the overview. No financial figures are read or shown.
+          </p>
+          <div className="admin-fields">
+            <input type="file" accept="application/pdf,.pdf" onChange={onSow} className="file-in" />
+            <input className="admin-in" placeholder="Project name (optional)" value={sowName} onChange={(e) => setSowName(e.target.value)} />
+            <button className="btn primary" onClick={doSow} disabled={!sowFile || busy}>{busy ? "Reading…" : "Build from SOW"}</button>
+          </div>
+          {sowResult && (
+            <div className={"admin-msg " + (sowResult.ok ? "ok" : "err")}>
+              {sowResult.ok
+                ? `Built "${sowResult.name}" — ${sowResult.parsed.deliverables} deliverables${sowResult.parsed.systems?.length ? `, systems: ${sowResult.parsed.systems.join(", ")}` : ""}${sowResult.parsed.weeks ? `, ${sowResult.parsed.weeks} weeks` : ""}.`
+                : sowResult.error}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Presentation page content */}
       <div className="card" style={{ marginBottom: 16 }}>
@@ -108,7 +124,7 @@ export default function Admin() {
               <div className="tgl-sub">
                 {isGeneric
                   ? "Save this project first to change its settings."
-                  : <>Adds the engagement background, outcome, and highlight tiles to the top of the Presentation page. Off by default to keep the page focused on BPC output.</>}
+                  : <>Adds the engagement background, outcome, and highlight tiles to the top of the Presentation page. Off by default to keep the page focused.</>}
               </div>
             </div>
             <button
@@ -163,34 +179,18 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Upload SOW - primary path */}
-      <div className="card hi" style={{ marginBottom: 16 }}>
-        <div className="card-head"><span className="dot-r" /> Upload SOW</div>
-        <div className="card-body">
-          <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--ink-2)" }}>
-            Upload a Statement of Work PDF. Engagement, deliverables, and systems are extracted to build the overview. No financial figures are read or shown.
-          </p>
-          <div className="admin-fields">
-            <input type="file" accept="application/pdf,.pdf" onChange={onSow} className="file-in" />
-            <input className="admin-in" placeholder="Project name (optional)" value={sowName} onChange={(e) => setSowName(e.target.value)} />
-            <button className="btn primary" onClick={doSow} disabled={!sowFile || busy}>{busy ? "Reading…" : "Build from SOW"}</button>
-          </div>
-          {sowResult && (
-            <div className={"admin-msg " + (sowResult.ok ? "ok" : "err")}>
-              {sowResult.ok
-                ? `Built "${sowResult.name}" — ${sowResult.parsed.deliverables} deliverables${sowResult.parsed.systems?.length ? `, systems: ${sowResult.parsed.systems.join(", ")}` : ""}${sowResult.parsed.weeks ? `, ${sowResult.parsed.weeks} weeks` : ""}.`
-                : sowResult.error}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Manual overview form - works with no SOW / no JSON */}
+      {/* Edit the active project's details, prefilled from its config */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-head"><span className="dot-r" /> Enter project details</div>
+        <button type="button" className="card-head edit-head" onClick={() => setEditOpen((o) => !o)} aria-expanded={editOpen}>
+          <span className="dot-r" /> Edit project details
+          <span className={"edit-chev" + (editOpen ? " open" : "")}>▸</span>
+        </button>
+        {editOpen && (
         <div className="card-body">
           <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--ink-2)" }}>
-            No SOW or JSON? Fill the Overview details by hand. Only the client / project name is required.
+            {isGeneric
+              ? "Save the DEMO as a project first to edit its details."
+              : <>Editing <b>{profile?.name}</b>. Fields are prefilled from the current project; change any and save. Blank fields keep their existing value.</>}
           </p>
 
           <div className="form-sec">Basics</div>
@@ -242,59 +242,26 @@ export default function Admin() {
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 16 }}>
-            <button className="btn primary" onClick={doForm} disabled={busy}>{busy ? "Saving…" : "Create project"}</button>
-            <button className="btn" onClick={() => { setForm(BLANK_FORM); setFormResult(null); }} disabled={busy}>Clear</button>
+            <button className="btn primary" onClick={doForm} disabled={busy || isGeneric}>{busy ? "Saving…" : "Save changes"}</button>
+            <button className="btn" onClick={() => { setForm(formFromConfig(config)); setFormResult(null); }} disabled={busy}>Reset</button>
           </div>
           {formResult && (
             <div className={"admin-msg " + (formResult.ok ? "ok" : "err")}>
-              {formResult.ok ? `Created "${formResult.name}".` : formResult.error}
+              {formResult.ok ? `Saved changes to "${formResult.name}".` : formResult.error}
             </div>
           )}
         </div>
-      </div>
-
-      <div className="grid g2" style={{ alignItems: "start" }}>
-        {/* stored profiles */}
-        <div className="card">
-          <div className="card-head"><span className="dot-r" /> Stored profiles</div>
-          <div className="card-body">
-            {profiles.map((p) => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid var(--hair)" }}>
-                <span className={"chip " + (p.mode === "generic" ? "" : "accent")}>{p.mode === "generic" ? "Start Fresh" : p.isDemo ? "Mock Client" : "Client"}</span>
-                <div style={{ flex: 1 }}>
-                  <b style={{ color: "var(--green-ink)" }}>{p.name}</b>
-                  {p.id === profile?.id && <span className="chip accent" style={{ marginLeft: 8 }}>active</span>}
-                  <div style={{ fontSize: 11.5, color: "var(--ink-3)" }}>{p.engagement}</div>
-                </div>
-                {p.mode !== "generic" && (
-                  <button className="btn" style={{ height: 30 }} onClick={() => doDelete(p.id, p.name)} disabled={busy}>Delete</button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* upload JSON (advanced) */}
-        <div className="card">
-          <div className="card-head">Add profile from JSON</div>
-          <div className="card-body">
-            <input type="file" accept="application/json,.json" onChange={onJson} className="file-in" />
-            {preview && (
-              <div style={{ marginTop: 14, border: "1px solid var(--hair)", padding: 12 }}>
-                <div style={{ fontSize: 13 }}><b>{preview.client || "Unknown"}</b></div>
-                <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{preview.name} · {preview.deliverables ?? "?"} deliverables</div>
-                <button className="btn primary" style={{ marginTop: 12 }} onClick={doCreate} disabled={busy}>{busy ? "Saving…" : "Save profile"}</button>
-              </div>
-            )}
-            {msg && <div className={"admin-msg " + (msg.ok ? "ok" : "err")} style={{ marginTop: 14 }}>{msg.text}</div>}
-            <p style={{ fontSize: 11.5, color: "var(--ink-4)", marginTop: 14 }}>
-              {clients.length} client profile{clients.length === 1 ? "" : "s"} stored.
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       <style>{`
+        /* keep the standard .card-head look; only add button-reset bits that
+           don't fight it (no background/border override) */
+        .edit-head{width:100%;text-align:left;cursor:pointer;border-left:none;border-right:none;border-top:none;
+          font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-3)}
+        .edit-head:hover{background:var(--hair)}
+        .edit-chev{margin-left:auto;transition:transform .18s ease;color:var(--ink-3);font-size:11px}
+        .edit-chev.open{transform:rotate(90deg)}
         .admin-fields{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
         .file-in{font:600 12.5px var(--font);border:1px solid var(--line-strong);padding:9px;background:rgba(255,255,255,.7)}
         .file-in::file-selector-button{font:700 12px var(--font);border:1px solid var(--line-strong);background:#fff;padding:6px 12px;margin-right:12px;cursor:pointer}

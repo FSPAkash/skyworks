@@ -180,7 +180,14 @@
       "WebFetch(domain:www.pencilandpaper.io)",
       "Bash(where chrome *)",
       "Bash(where msedge *)",
-      "Bash(sort -t: -k3)"
+      "Bash(sort -t: -k3)",
+      "Bash(python -c \"import json; json.load\\(open\\('profiles/skyworks-solutions/config.json',encoding='utf-8'\\)\\); json.load\\(open\\('config_generic.json',encoding='utf-8'\\)\\); print\\('json ok'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py',encoding='utf-8'\\).read\\(\\)\\); print\\('py ok'\\)\")",
+      "Bash(python -c \"import flask\")",
+      "Bash(PORT=5057 python app.py)",
+      "Bash(curl -s -H \"X-Profile: skyworks-solutions\" -H \"X-Session: t1\" http://localhost:5057/api/config)",
+      "Bash(python -c \"import sys,json; c=json.load\\(sys.stdin\\); d=[x for x in c['deliverables'] if x['code']=='D2'][0]; print\\('D2:',d['status'],'|',d.get\\('delayReason'\\),'| group=',d.get\\('group'\\)\\); print\\('groups:',[x.get\\('group'\\) for x in c['deliverables']]\\)\")",
+      "Read(//c/Users/AkashPatil/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",

@@ -11,12 +11,17 @@ import { FS_LOGO } from "../fslogo.js";
 
 function stateOf(d, phase, currentWeek) {
   const due = phase?.weekEnd ?? 0;
+  if (d.status === "delayed") return "delayed";
   if (d.status === "delivered") return "delivered";
   if (currentWeek > 0 && due > 0 && currentWeek >= due) return "delayed";
   if (d.status === "in-progress") return "active";
   return "upcoming";
 }
 const STATE_LABEL = { delivered: "Delivered", delayed: "Delayed", active: "In progress", upcoming: "Upcoming" };
+
+// short badge shown on each deliverable pill for its stage/group
+const GROUP_TAG = { Infrastructure: "I", Collection: "C", Unification: "U", BPC: "BPC", "Exec Strategy": "Exec" };
+const groupTag = (d) => GROUP_TAG[d.group] || "";
 
 // radial gauge for the usage meters (shared shape with the Presentation page)
 function MeterGauge({ value = 0, tone = "green" }) {
@@ -44,7 +49,6 @@ export default function Overview() {
 
   const [openReason, setOpenReason] = useState(null);
   const [hoverId, setHoverId] = useState(null);
-  const [ganttOpen, setGanttOpen] = useState(false);
   const [metersOpen, setMetersOpen] = useState(false);
 
   const meters = sources.meters || [];
@@ -78,16 +82,6 @@ export default function Overview() {
   const plotH = railY + RAIL / 2 + GAP + (lanesBelow - 1) * LANE + 6;
   const weekW = weeks ? 100 / weeks : 0;
 
-  // phase segments along the rail (borrowed from the Gantt) - gives week structure
-  const phaseSegs = (phases || []).map((p) => {
-    const s = Math.max(1, Math.min(weeks || 1, p.weekStart || 1));
-    const e = Math.max(s, Math.min(weeks || 1, p.weekEnd || s));
-    return { p, left: ((s - 1) / weeks) * 100, width: ((e - s + 1) / weeks) * 100 };
-  });
-
-  const delivered = items.filter((i) => i.state === "delivered").length;
-  const delayed = items.filter((i) => i.state === "delayed").length;
-
   const onNode = (it) => {
     if (it.state === "delivered" && it.d.artifact) {
       window.open(it.d.artifact, "_blank", "noopener");
@@ -98,29 +92,14 @@ export default function Overview() {
 
   return (
     <div className="ov">
-      {/* compact hero = title for the timeline bar */}
-      <div className="ov-hero">
-        <h1 className="ov-h1">Delivery timeline</h1>
-        <p className="ov-lede">
-          {scheduled
-            ? `Week ${currentWeek} of ${weeks} · ${delivered} of ${deliverables.length} delivered${delayed ? ` · ${delayed} delayed` : ""}.`
-            : "The timeline appears once the engagement is scheduled."}
-        </p>
-      </div>
-
-      {/* the timeline bar */}
+      {/* the timeline bar - title now sits inside the container top */}
       <div className="ov-card">
+        <div className="ov-card-head">
+          <h1 className="ov-h1">Delivery timeline</h1>
+          {scheduled && <span className="ov-card-week">Week {currentWeek} of {weeks}</span>}
+        </div>
         {scheduled ? (
           <>
-            {/* phase strip - spans the top of the container */}
-            <div className="tb-phasebar">
-              {phaseSegs.map((s) => (
-                <div key={s.p.id} className="tb-phase" style={{ left: `${s.left}%`, width: `${s.width}%` }} title={s.p.name}>
-                  <span>Ph {s.p.id} · {s.p.name}</span>
-                </div>
-              ))}
-            </div>
-
             <div className="tb-plot" style={{ height: plotH }}>
               {/* the week-number rail (weeks only; current week is the sole highlight) */}
               <div className="tb-rail-bar" style={{ top: railY - RAIL / 2, height: RAIL }}>
@@ -150,6 +129,7 @@ export default function Overview() {
                       onMouseEnter={() => { setHoverId(it.d.id); if (hasReason) setOpenReason(it.d.id); }}
                       onMouseLeave={() => { setHoverId((c) => (c === it.d.id ? null : c)); if (hasReason) setOpenReason((c) => (c === it.d.id ? null : c)); }}>
                       <span className="tb-dot" />
+                      <span className="tb-grp">{groupTag(it.d)}</span>
                       <span className="tb-code">{it.d.code}</span>
                       {it.state === "delivered" && <span className="tb-tag">Open ↗</span>}
                       {it.state === "delayed" && <span className="tb-tag">delayed</span>}
@@ -187,39 +167,12 @@ export default function Overview() {
         )}
       </div>
 
-      {/* deliverables grid: code · definition · status, clickable to open */}
-      <div className="ov-exp">
-        <button type="button" className="ov-exp-toggle" onClick={() => setGanttOpen((o) => !o)} aria-expanded={ganttOpen}>
-          <span className={"ov-caret" + (ganttOpen ? " open" : "")}>▸</span>
-          All deliverables
-          <span className="ov-exp-count">{deliverables.length}</span>
-        </button>
-        {ganttOpen && (
-          <div className="ov-exp-body ov-dgrid">
-            {items.map((it) => {
-              const clickable = it.state === "delivered" && it.d.artifact;
-              return (
-                <div key={it.d.id} className={"dg-row " + it.state + (clickable ? " open" : "")}
-                  onClick={() => clickable && window.open(it.d.artifact, "_blank", "noopener")}
-                  role={clickable ? "button" : undefined} tabIndex={clickable ? 0 : undefined}
-                  onKeyDown={(e) => clickable && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), window.open(it.d.artifact, "_blank", "noopener"))}>
-                  <span className="dg-code">{it.d.code}</span>
-                  <span className="dg-def">{it.d.name}</span>
-                  <span className={"dg-status " + it.state}><i /> {STATE_LABEL[it.state]}</span>
-                  <span className="dg-open">{clickable ? "Open ↗" : ""}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       {/* admin-gated usage-metrics expander */}
       {showMetersSection && (
         <div className="ov-exp">
           <button type="button" className="ov-exp-toggle" onClick={() => setMetersOpen((o) => !o)} aria-expanded={metersOpen}>
             <span className={"ov-caret" + (metersOpen ? " open" : "")}>▸</span>
-            Show usage metrics
+            Usage metrics
             <span className="ov-exp-count">{meters.length}</span>
           </button>
           {metersOpen && (
@@ -242,7 +195,7 @@ export default function Overview() {
       )}
 
       <div className="footer-note">
-        <span>Confidential</span> · <img src={FS_LOGO} alt="FS" /> BPC for Data
+        <span>Confidential</span> · <img src={FS_LOGO} alt="FS" />
       </div>
 
       <style>{`
@@ -251,10 +204,12 @@ export default function Overview() {
         @media(prefers-reduced-motion:reduce){.ov *{animation:none!important}}
         .ov{animation:ovRise .45s ease both}
 
-        /* compact hero */
-        .ov-hero{margin-bottom:14px}
-        .ov-h1{margin:0 0 3px;font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
-        .ov-lede{margin:0;font-size:12.5px;color:var(--ink-3);font-weight:600}
+        /* timeline title row - sits inside the container top */
+        .ov-card-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;
+          padding-bottom:14px;border-bottom:1px solid var(--hair)}
+        .ov-h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+        .ov-card-week{margin-left:auto;font-size:11px;font-weight:800;text-transform:uppercase;
+          letter-spacing:.08em;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
         /* frosted-glass timeline container */
         .ov-card{background:rgba(255,255,255,.55);backdrop-filter:blur(20px) saturate(1.4);
@@ -263,15 +218,6 @@ export default function Overview() {
           background-image:radial-gradient(120% 140% at 0% 0%,rgba(132,180,72,.10),transparent 55%),
             radial-gradient(120% 140% at 100% 100%,rgba(91,127,184,.10),transparent 55%)}
         .ov-empty{font-size:13px;color:var(--ink-3);padding:6px 0}
-
-        /* phase strip across the top of the container - bold week-boundary edges */
-        .tb-phasebar{position:relative;height:28px;margin-bottom:22px;border-radius:6px;overflow:hidden;
-          background:var(--tile);border:1.5px solid var(--line-strong)}
-        .tb-phase{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;
-          border-right:1.5px solid var(--line-strong);overflow:hidden}
-        .tb-phase:last-child{border-right:none}
-        .tb-phase span{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
-          color:var(--accent-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px}
 
         /* timeline plot */
         .tb-plot{position:relative;width:100%}
@@ -295,6 +241,8 @@ export default function Overview() {
         .tb-pill.act{cursor:pointer}
         .tb-pill.act:hover{transform:translateY(-50%) translateY(-1px);box-shadow:0 2px 4px rgba(27,29,24,.1),0 8px 16px -6px rgba(27,29,24,.26)}
         .tb-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:currentColor;opacity:.9}
+        .tb-grp{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+          padding:1px 5px;border:1px solid currentColor;border-radius:999px;opacity:.85;flex:0 0 auto}
         .tb-code{font-weight:800}
         .tb-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.8;
           padding-left:3px;border-left:1px solid currentColor;margin-left:1px}

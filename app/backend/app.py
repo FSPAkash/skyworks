@@ -98,6 +98,10 @@ LLM_FIELDS = [
 # source may override its category by prefixing the group or via CATEGORY_BY_KIND.
 CONNECTORS = {
     "SAP":        {"kind": "erp",  "fields": API_FIELDS},
+    "Kinaxis":    {"kind": "erp",  "fields": API_FIELDS},
+    "PROMIS":     {"kind": "erp",  "fields": API_FIELDS},
+    "PLM":        {"kind": "erp",  "fields": API_FIELDS},
+    "EDI":        {"kind": "erp",  "fields": API_FIELDS},
     "ECC":        {"kind": "erp",  "fields": API_FIELDS},
     "S/4 HANA":   {"kind": "erp",  "fields": API_FIELDS},
     "PeopleSoft": {"kind": "erp",  "fields": API_FIELDS},
@@ -127,12 +131,21 @@ CONNECTORS = {
     "Usage Scoring Model":   {"kind": "llm", "fields": LLM_FIELDS},
     "Classification Model":  {"kind": "llm", "fields": LLM_FIELDS},
     "Summarization Model":   {"kind": "llm", "fields": LLM_FIELDS},
+    # unstructured document / feed sources
+    "SharePoint":        {"kind": "docs", "fields": FILE_FIELDS},
+    "Confluence Wiki":   {"kind": "docs", "fields": FILE_FIELDS},
+    "Email Archives":    {"kind": "docs", "fields": FILE_FIELDS},
+    "Partner PDFs":      {"kind": "docs", "fields": FILE_FIELDS},
+    "Supplier PDFs":     {"kind": "docs", "fields": FILE_FIELDS},
+    "Web / Market Data": {"kind": "docs", "fields": FILE_FIELDS},
+    "Support Tickets":   {"kind": "docs", "fields": FILE_FIELDS},
 }
 DEFAULT_CONNECTOR = {"kind": "external", "fields": FILE_FIELDS}
 
 # kind -> top-level connection category shown in Infrastructure
 CATEGORY_BY_KIND = {
-    "erp": "sources", "crm": "sources", "db": "sources", "mail": "sources", "external": "sources",
+    "erp": "sources", "crm": "sources", "db": "sources", "mail": "sources",
+    "docs": "sources", "external": "sources",
     "cloud": "cloud", "llm": "llm",
 }
 CATEGORY_LABEL = {"sources": "Sources", "cloud": "Cloud", "llm": "LLM"}
@@ -259,7 +272,7 @@ def normalize_alignment_progress(cfg):
 
 
 def list_profiles():
-    out = [{"id": GENERIC_ID, "name": "Start Fresh Project", "mode": "generic", "engagement": "New Data Assessment"}]
+    out = [{"id": GENERIC_ID, "name": "DEMO", "mode": "generic", "engagement": "New Data Assessment"}]
     for pid in sorted(os.listdir(PROFILES_DIR)):
         cfg = read_config(pid)
         if cfg:
@@ -368,6 +381,7 @@ def all_targets(pid):
                 conn = connector_for(item)
                 targets.append({"id": cid, "layer": layer["key"], "layerName": layer["name"],
                                 "group": group["label"], "source": item,
+                                "subcat": group.get("subcat") if isinstance(group, dict) else None,
                                 "kind": conn["kind"], "category": category_for(group, conn["kind"]),
                                 "fields": conn["fields"]})
     return targets
@@ -738,6 +752,55 @@ def profile_from_form():
     return jsonify({"ok": True, "id": pid, "name": name})
 
 
+@app.post("/api/profiles/update")
+def profile_update():
+    """Admin edits the active profile's details in place. Same field mapping as
+    from-form, but patches the existing config rather than creating a new file.
+    Only fields actually supplied are overwritten (blanks leave values as-is)."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    pid = active_pid()
+    if pid == GENERIC_ID:
+        return jsonify({"ok": False, "error": "Save the project first to edit its details."}), 400
+    path = _pf(pid, "config.json")
+    if not os.path.exists(path):
+        abort(404)
+    d = request.get_json(silent=True) or {}
+
+    def num(v, dflt):
+        try: return int(v)
+        except (TypeError, ValueError): return dflt
+
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    cl = cfg.setdefault("client", {})
+    if (d.get("name") or "").strip(): cl["name"] = d["name"].strip()
+    if (d.get("engagement") or "").strip(): cl["engagement"] = d["engagement"].strip()
+    if (d.get("framework") or "").strip(): cl["framework"] = d["framework"].strip()
+    if str(d.get("durationWeeks") or "").strip() != "": cl["durationWeeks"] = num(d.get("durationWeeks"), cl.get("durationWeeks", 12))
+    if str(d.get("activeWeeks") or "").strip() != "": cl["activeWeeks"] = num(d.get("activeWeeks"), cl.get("activeWeeks", 10))
+    if str(d.get("acceptanceWeeks") or "").strip() != "": cl["acceptanceWeeks"] = num(d.get("acceptanceWeeks"), cl.get("acceptanceWeeks", 2))
+
+    ov = cfg.setdefault("overview", {})
+    if (d.get("headline") or "").strip(): ov["headline"] = d["headline"].strip()
+    if (d.get("background") or "").strip(): ov["background"] = d["background"].strip()
+    if (d.get("outcome") or "").strip(): ov["outcome"] = d["outcome"].strip()
+    hl = [h for h in (d.get("highlights") or [])
+          if (h.get("label") or "").strip() and (str(h.get("value")).strip())]
+    if hl:
+        ov["highlights"] = [{"label": h["label"].strip(), "value": str(h["value"]).strip(),
+                             **({"unit": h["unit"].strip()} if (h.get("unit") or "").strip() else {})}
+                            for h in hl]
+    al = ov.setdefault("alignment", {"current": 0, "target": 100, "label": "Assessment progress"})
+    if str(d.get("alignmentCurrent") or "").strip() != "": al["current"] = num(d.get("alignmentCurrent"), al.get("current", 0))
+    if str(d.get("alignmentTarget") or "").strip() != "": al["target"] = num(d.get("alignmentTarget"), al.get("target", 100))
+    if (d.get("alignmentLabel") or "").strip(): al["label"] = d["alignmentLabel"].strip()
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({"ok": True, "id": pid, "name": cl.get("name", "")})
+
+
 @app.post("/api/settings/meters-presentation")
 def set_meters_presentation():
     """Admin toggle: whether C-Level users see the usage meters as tiles on the
@@ -879,16 +942,9 @@ def usage_meters(pid, targets):
     connected = lambda arr: sum(1 for t in arr if (t.get("connection") or {}).get("status") == "connected")
     meters = []
     # Meters represent live usage, so only show them for categories that actually
-    # have a CONNECTED target - never for merely selected/configured ones.
-    # Sources: freshness / rows pulled
-    src = cats["sources"]
-    if connected(src):
-        meters.append({"category": "sources", "label": "Records ingested",
-                       "value": seeded("src_rows", 40, 96), "unit": "%", "kind": "bar",
-                       "detail": f"{seeded('src_m', 2, 48)}.{seeded('src_d',0,9)}M rows this cycle"})
-        meters.append({"category": "sources", "label": "Source freshness",
-                       "value": seeded("src_fresh", 70, 99), "unit": "%", "kind": "bar",
-                       "detail": f"last sync {seeded('src_sync', 2, 55)}m ago"})
+    # have a CONNECTED target - never for merely selected/configured ones. We keep
+    # only the meters that read clearly to an executive: compute + storage on the
+    # platform, and token usage + model-cache efficiency on the LLM.
     # Cloud: compute / storage
     cld = cats["cloud"]
     if connected(cld):
@@ -898,15 +954,13 @@ def usage_meters(pid, targets):
         meters.append({"category": "cloud", "label": "Storage used",
                        "value": seeded("cld_stor", 20, 75), "unit": "%", "kind": "bar",
                        "detail": f"{seeded('cld_tb', 1, 9)}.{seeded('cld_tf',0,9)} TB / 12 TB"})
-    # LLM: token usage / calls
+    # LLM: token usage / prompt-cache efficiency (cache hit rate = fewer tokens
+    # re-processed, i.e. how much cheaper repeated context makes the run)
     llm = cats["llm"]
     if connected(llm):
         meters.append({"category": "llm", "label": "LLM token usage",
                        "value": seeded("llm_tok", 30, 82), "unit": "%", "kind": "bar",
                        "detail": f"{seeded('llm_m', 1, 9)}.{seeded('llm_k',0,9)}M / 12M tokens"})
-        meters.append({"category": "llm", "label": "Inference calls",
-                       "value": seeded("llm_calls", 45, 95), "unit": "%", "kind": "bar",
-                       "detail": f"{seeded('llm_c', 4, 90)}k calls this cycle"})
     return meters
 
 

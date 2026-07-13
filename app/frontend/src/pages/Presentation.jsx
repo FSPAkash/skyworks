@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
+import AskFindability from "../components/AskFindability.jsx";
 
 // Presentation page: the face of the assessment for decision makers - hero,
 // key stats, the engagement narrative, alignment, exec meters and the packaged
@@ -30,7 +31,6 @@ function MeterTiles({ meters }) {
   if (!meters || !meters.length) return null;
   return (
     <div className="mtr-wrap">
-      <div className="card-head-standalone ul mtr-title">Live usage &amp; utilization</div>
       <div className="mtr-grid">
         {meters.map((m, i) => (
           <div key={m.label} className="mtr-tile" style={{ animationDelay: `${i * 70}ms` }}>
@@ -55,12 +55,6 @@ function BpcProcessing({ proc }) {
   const conf = proc.confidence;
   return (
     <div className="bpcp">
-      <div className="card-head-standalone ul bpcp-title">
-        <span className="bpcp-badge">BPC</span> {proc.title}
-        {proc.author && <span className="bpcp-author">{proc.author}</span>}
-      </div>
-      {proc.subtitle && <p className="bpcp-sub">{proc.subtitle}</p>}
-
       {/* pipeline stages */}
       <div className="bpcp-flow">
         {proc.stages.map((s, i) => (
@@ -205,6 +199,9 @@ export default function Presentation() {
       {/* header */}
       <h1 className="page">{layer?.name || "Presentation"}</h1>
 
+      {/* Gen-AI assistant: ask about the study data beyond the deliverables */}
+      <AskFindability />
+
       {showDesc && (
         <>
           {ov.background && <p className="lede ov-bg">{ov.background}</p>}
@@ -254,20 +251,6 @@ export default function Presentation() {
                 <div className="align-track"><div className="align-fill" style={{ width: `${alignCurrent}%` }} /></div>
               </>
             )}
-            {ov.milestones && (
-              <div style={{ marginTop: 16 }}>
-                {ov.milestones.map((m) => (
-                  <div key={m.name} className="ms-row">
-                    <span className={"ms-dot " + (STATE_CLASS[m.status] || "planned")} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink)" }}>{m.name}</div>
-                      <div style={{ fontSize: 11, color: "var(--ink-3)" }}>{m.when} · {m.trigger}</div>
-                    </div>
-                    <span className={"st " + (STATE_CLASS[m.status] || "planned")}>{m.status}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -276,7 +259,7 @@ export default function Presentation() {
       <DeliverablesSection deliverables={deliverables} delivered={delivered} />
 
       <div className="footer-note">
-        <span>Confidential</span> · <img src={FS_LOGO} alt="FS" /> BPC for Data
+        <span>Confidential</span> · <img src={FS_LOGO} alt="FS" />
       </div>
 
       <style>{`

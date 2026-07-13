@@ -2,7 +2,7 @@
   "mode": "generic",
   "product": { "name": "BPC for Data", "short": "BPC", "bpcFull": "Business Process Co-Pilot" },
   "client": {
-    "name": "Start Fresh Project",
+    "name": "DEMO",
     "engagement": "New Data Assessment",
     "framework": "Assessment",
     "durationWeeks": 0,
@@ -28,10 +28,11 @@
       "summary": "Every connection the assessment runs on, categorized into Sources, Cloud, and LLM, with live connectivity and usage.",
       "ownedBy": "Client",
       "sourceGroups": [
-        { "label": "ERP", "category": "sources", "items": ["SAP", "ECC", "S/4 HANA", "PeopleSoft"] },
-        { "label": "CRM", "category": "sources", "items": ["Salesforce", "Dynamics 365", "HubSpot"] },
-        { "label": "Databases", "category": "sources", "items": ["SQL", "Oracle", "Db2"] },
-        { "label": "Email", "category": "sources", "items": ["Exchange", "Microsoft 365", "Google Workspace"] },
+        { "label": "ERP", "category": "sources", "subcat": "internal-structured", "items": ["SAP", "ECC", "S/4 HANA", "PeopleSoft"] },
+        { "label": "Databases", "category": "sources", "subcat": "internal-structured", "items": ["SQL", "Oracle", "Db2"] },
+        { "label": "Email & Documents", "category": "sources", "subcat": "internal-unstructured", "items": ["Exchange", "Microsoft 365", "Google Workspace"] },
+        { "label": "CRM", "category": "sources", "subcat": "external-structured", "items": ["Salesforce", "Dynamics 365", "HubSpot"] },
+        { "label": "External Feeds", "category": "sources", "subcat": "external-unstructured", "items": ["Partner PDFs", "Web / Market Data", "Support Tickets"] },
         { "label": "Cloud Platform", "category": "cloud", "items": ["Cloud Platform", "Data Lake"] },
         { "label": "BPC Models", "category": "llm", "items": ["BPC Models"] }
       ],

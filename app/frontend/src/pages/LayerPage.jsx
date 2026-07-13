@@ -4,8 +4,12 @@ import { useConfig } from "../config.jsx";
 import Presentation from "./Presentation.jsx";
 import { downloadBpcPdf } from "../pdfReport.js";
 
-const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", cloud: "Cloud", llm: "LLM", external: "External" };
+const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", docs: "Documents", cloud: "Cloud", llm: "LLM", external: "External" };
 const STATE_CLASS = { delivered: "delivered", "in-progress": "in-progress", planned: "planned" };
+// sub-part / status work-state labels. "delivered" would read as a deliverable,
+// so completed collection/unification work is labelled "Ready" instead.
+const WORK_LABEL = { delivered: "Ready", "in-progress": "In progress", planned: "Planned" };
+const workLabel = (s) => WORK_LABEL[s] || s;
 
 // ---- connection form (folded in from the old Connections page) ----
 function ConnForm({ target }) {
@@ -73,12 +77,20 @@ function ConnForm({ target }) {
   );
 }
 
-// ---- Infrastructure: all connections split Sources / Cloud / LLM + meters ----
+// ---- Infrastructure: connections split Sources / Cloud / LLM. Sources are
+// further grouped into Internal/External x Structured/Unstructured sub-buckets.
+// No meters here: usage only becomes known after Collection. ----
+const SUBCAT_ORDER = [
+  { key: "internal-structured", label: "Internal · Structured" },
+  { key: "internal-unstructured", label: "Internal · Unstructured" },
+  { key: "external-structured", label: "External · Structured" },
+  { key: "external-unstructured", label: "External · Unstructured" },
+];
+
 function InfraConnections() {
-  const { sources, setBotOpen } = useConfig();
+  const { sources } = useConfig();
   const cats = ["sources", "cloud", "llm"];
   const catMeta = sources.categories || {};
-  const meters = sources.meters || [];
   const hasAny = (sources.targets || []).length > 0;
 
   return (
@@ -88,9 +100,8 @@ function InfraConnections() {
           <div className="g-ic">?</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 800, color: "var(--green-ink)", fontSize: 15 }}>No connections yet</div>
-            <div style={{ fontSize: 13, color: "var(--ink-2)" }}>Use the Genie to pick the sources to connect, or run the demo.</div>
+            <div style={{ fontSize: 13, color: "var(--ink-2)" }}>Run the full project to populate sources, or add connections below.</div>
           </div>
-          <button className="btn primary" onClick={() => setBotOpen(true)}>Open Genie</button>
         </div>
       )}
 
@@ -98,8 +109,18 @@ function InfraConnections() {
         const cm = catMeta[cat];
         if (!cm || cm.total === 0) return null;
         const targets = (sources.targets || []).filter((t) => t.category === cat);
-        const cMeters = meters.filter((m) => m.category === cat);
         const complete = cm.connected === cm.total;
+        // Sources: render each subcategory bucket with its own sub-header. Any
+        // target without a subcat falls into an "Other" bucket at the end.
+        const buckets = cat === "sources"
+          ? (() => {
+              const known = SUBCAT_ORDER
+                .map((s) => ({ ...s, items: targets.filter((t) => t.subcat === s.key) }))
+                .filter((s) => s.items.length);
+              const other = targets.filter((t) => !SUBCAT_ORDER.some((s) => s.key === t.subcat));
+              return other.length ? [...known, { key: "other", label: "Unstructured / Other", items: other }] : known;
+            })()
+          : null;
         return (
           <div key={cat} className="card" style={{ marginBottom: 14 }}>
             <div className="card-head">
@@ -109,20 +130,14 @@ function InfraConnections() {
               </span>
             </div>
             <div className="card-body" style={{ padding: 12 }}>
-              {/* meters */}
-              {cMeters.length > 0 && (
-                <div className="meters">
-                  {cMeters.map((m) => (
-                    <div key={m.label} className="meter">
-                      <div className="meter-top"><span>{m.label}</span><b>{m.value}{m.unit}</b></div>
-                      <div className="meter-track"><div className="meter-fill" style={{ width: `${m.value}%` }} /></div>
-                      <div className="meter-detail">{m.detail}</div>
+              {buckets
+                ? buckets.map((b) => (
+                    <div key={b.key} className="subcat">
+                      <div className="subcat-label">{b.label}</div>
+                      {b.items.map((t) => <ConnForm key={t.id} target={t} />)}
                     </div>
-                  ))}
-                </div>
-              )}
-              {/* connections */}
-              {targets.map((t) => <ConnForm key={t.id} target={t} />)}
+                  ))
+                : targets.map((t) => <ConnForm key={t.id} target={t} />)}
             </div>
           </div>
         );
@@ -134,15 +149,11 @@ function InfraConnections() {
         .conncount.ok{color:#fff;background:var(--fs-green)}
         .conncount.part{color:var(--ink);background:var(--paper)}
         .conncount.none{color:var(--ink-3);background:var(--paper)}
-        /* meters: geometric framed cells with elevation */
-        .meters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-        @media(max-width:720px){.meters{grid-template-columns:1fr}}
-        .meter{background:var(--paper);border:var(--grid-w) solid var(--grid-line);padding:12px 14px;box-shadow:var(--soft)}
-        .meter-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--ink-2);font-weight:700}
-        .meter-top b{font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
-        .meter-track{height:8px;background:var(--paper);border:var(--grid-w) solid var(--grid-line);margin:8px 0 5px;overflow:hidden}
-        .meter-fill{height:100%;background:var(--fs-green)}
-        .meter-detail{font-size:10.5px;color:var(--ink-3)}
+        /* source subcategory buckets */
+        .subcat{margin-bottom:14px}
+        .subcat:last-child{margin-bottom:0}
+        .subcat-label{font:800 9.5px var(--font);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-3);
+          margin:0 0 9px;padding-bottom:6px;border-bottom:1px solid var(--hair)}
         /* connection rows: geometric framed blocks */
         .conn{border:var(--grid-w) solid var(--grid-line);margin-bottom:10px;background:var(--paper);box-shadow:var(--soft)}
         .conn-head{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer}
@@ -205,12 +216,6 @@ function Modal({ open, onClose, title, eyebrow, onDownload, children }) {
   );
 }
 
-// ---- group label: an eyebrow that separates the operational rows from the
-// BPC-authored intelligence, so the two kinds of content read distinctly ----
-function GroupLabel({ children, accent }) {
-  return <div className={"grp-label" + (accent ? " accent" : "")}>{children}</div>;
-}
-
 // ---- inline metric strip shown in a row's title area (main info first) ----
 function MetricStrip({ metrics, max }) {
   if (!metrics || !metrics.length) return null;
@@ -233,10 +238,6 @@ function BpcIntelBody({ intel }) {
   const isAnno = intel.kind === "annotation";
   return (
     <div className="bpc-intel">
-      <div className="bpc-intel-head">
-        <span className="bpc-badge">BPC</span>
-        <span className="bpc-intel-title">{intel.title}</span>
-      </div>
       {intel.note && <p className="bpc-intel-note">{intel.note}</p>}
       <div className="bpc-intel-list">
         {intel.items.map((it, i) => isAnno ? (
@@ -334,8 +335,7 @@ function SubParts({ layer }) {
           <button key={s.id} className="sprow" onClick={() => hasDetail && setOpenId(s.id)} disabled={!hasDetail}>
             <span className="sprow-name">{s.name}</span>
             <MetricStrip metrics={s.metrics} max={3} />
-            {s.intel && <span className="sprow-bpc">BPC</span>}
-            {s.state && <span className={"st " + (STATE_CLASS[s.state] || "planned")}>{s.state}</span>}
+            {s.state && <span className={"st " + (STATE_CLASS[s.state] || "planned")}>{workLabel(s.state)}</span>}
             {hasDetail && <span className="sprow-chev">›</span>}
           </button>
         );
@@ -344,7 +344,6 @@ function SubParts({ layer }) {
       <Modal
         open={!!active}
         onClose={() => setOpenId(null)}
-        eyebrow={layer.name + " · sub-part"}
         title={active?.name}
         onDownload={active?.intel ? () => downloadBpcPdf({
           kind: "intel", data: active.intel, title: active.name,
@@ -380,11 +379,6 @@ function BpcMeaningCallout({ meaning }) {
   const more = meaning.questions.length - 1;
   return (
     <div className="bpc-callout" style={{ marginBottom: 20 }}>
-      <div className="bpc-callout-head">
-        <span className="bpc-badge">BPC</span>
-        <span className="bpc-callout-title">{meaning.title}</span>
-        {meaning.author && <span className="bpc-callout-author">{meaning.author}</span>}
-      </div>
       <div className="bpc-callout-lead">
         <div className="bpc-callout-q">{lead.q}</div>
         <div className="bpc-callout-a">{lead.a}</div>
@@ -395,7 +389,7 @@ function BpcMeaningCallout({ meaning }) {
         </button>
       )}
       <Modal open={open} onClose={() => setOpen(false)}
-        eyebrow={meaning.author || "BPC · Business Process Co-Pilot"} title={meaning.title}
+        title={meaning.title}
         onDownload={() => downloadBpcPdf({
           kind: "meaning", data: meaning, title: meaning.title,
           eyebrow: meaning.author || "BPC · Business Process Co-Pilot",
@@ -415,12 +409,6 @@ function BpcSignalCallout({ signal }) {
   const ranked = signal.ranked || [];
   return (
     <div className="bpc-callout" style={{ marginBottom: 20 }}>
-      <div className="bpc-callout-head">
-        <span className="bpc-badge">BPC</span>
-        <span className="bpc-callout-title">{signal.title}</span>
-        {signal.author && <span className="bpc-callout-author">{signal.author}</span>}
-      </div>
-      {signal.subtitle && <p className="bpc-callout-sub">{signal.subtitle}</p>}
       <div className="bpc-primary">
         <div className="bpc-primary-tag">Top signal</div>
         <div className="bpc-primary-name">{p.signal}</div>
@@ -433,7 +421,7 @@ function BpcSignalCallout({ signal }) {
         </button>
       )}
       <Modal open={open} onClose={() => setOpen(false)}
-        eyebrow={signal.author || "BPC · Business Process Co-Pilot"} title={signal.title}
+        title={signal.title}
         onDownload={() => downloadBpcPdf({
           kind: "signal", data: signal, title: signal.title,
           eyebrow: signal.author || "BPC · Business Process Co-Pilot",
@@ -493,25 +481,25 @@ function BpcStyles() {
 
       /* centered glass modal over a translucent, blurred scrim */
       .mdl-scrim{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;
-        background:rgba(32,29,26,.30);backdrop-filter:blur(5px) saturate(1.1);-webkit-backdrop-filter:blur(5px) saturate(1.1);
+        background:rgba(32,29,26,.44);backdrop-filter:blur(6px) saturate(1.1);-webkit-backdrop-filter:blur(6px) saturate(1.1);
         animation:kpiRise .16s ease both}
       .mdl{width:min(620px,100%);max-height:min(86vh,860px);
-        background:rgba(255,255,255,.72);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);
-        border:1px solid rgba(255,255,255,.6);box-shadow:var(--halo);
+        background:rgba(252,252,250,.94);backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);
+        border:1px solid var(--hair);box-shadow:var(--halo);
         display:flex;flex-direction:column;animation:mdlIn .22s cubic-bezier(.2,.7,.3,1) both}
       @keyframes mdlIn{from{transform:translateY(10px) scale(.98);opacity:.5}to{transform:none;opacity:1}}
-      .mdl-head{display:flex;align-items:flex-start;gap:14px;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.55);flex:0 0 auto}
+      .mdl-head{display:flex;align-items:flex-start;gap:14px;padding:20px 24px;border-bottom:1px solid var(--hair);flex:0 0 auto}
       .mdl-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-3);margin-bottom:5px}
       .mdl-title{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
-      .mdl-x{margin-left:auto;flex:0 0 auto;width:30px;height:30px;border:1px solid rgba(255,255,255,.7);
-        background:rgba(255,255,255,.55);cursor:pointer;font-size:13px;color:var(--ink-2)}
-      .mdl-x:hover{background:rgba(255,255,255,.85)}
+      .mdl-x{margin-left:auto;flex:0 0 auto;width:30px;height:30px;border:1px solid var(--hair);
+        background:var(--tile);cursor:pointer;font-size:13px;color:var(--ink-2)}
+      .mdl-x:hover{background:var(--hair)}
       .mdl-body{padding:22px 24px;overflow-y:auto}
-      /* inside the glass modal, inner cards use translucent white so blur reads through */
+      /* inner cards stay solid so text reads clearly against the opaque modal */
       .mdl-body .bpc-inf,.mdl-body .bpc-anno,.mdl-body .bpc-qa-row,.mdl-body .drw-metric{
-        background:rgba(255,255,255,.5);border-color:rgba(255,255,255,.6)}
-      .mdl-body .bpc-primary{background:rgba(237,244,225,.6);border-color:rgba(255,255,255,.6)}
-      .mdl-actions{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid rgba(255,255,255,.55);flex:0 0 auto}
+        background:var(--tile);border-color:var(--hair)}
+      .mdl-body .bpc-primary{background:var(--accent-tint);border-color:var(--hair)}
+      .mdl-actions{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid var(--hair);flex:0 0 auto}
       .mdl-dl{display:inline-flex;align-items:center;gap:7px;background:var(--ds-blue);color:#fff;border:none;cursor:pointer;
         font:800 11px var(--font);letter-spacing:.05em;text-transform:uppercase;padding:9px 14px}
       .mdl-dl:hover{background:#4a6b9e}
@@ -607,7 +595,7 @@ function LayerPresentation({ layer }) {
   if (!statuses.length && !dels.length) return null;
 
   return (
-    <Collapsible title="Presentation" count={statuses.length + dels.length}>
+    <Collapsible title={`${layer.id} - Presentation`} count={dels.length}>
       <div>
         {statuses.length > 0 && (
           <div className="statuses">
@@ -672,20 +660,13 @@ export default function LayerPage() {
     <div>
       <BpcStyles />
       <h1 className="page">{layer.name}</h1>
-      <p className="lede">{layer.summary}</p>
 
       {key === "infrastructure"
         ? <InfraConnections />
-        : <>
-            <GroupLabel>Sub-parts · what the team collected</GroupLabel>
-            <SubParts layer={layer} />
-          </>}
+        : <SubParts layer={layer} />}
 
       {(key === "collection" && layer.meaning) || (key === "unification" && layer.topSignal) ? (
         <>
-          <GroupLabel accent>
-            BPC Intelligence · what the co-pilot concluded
-          </GroupLabel>
           {key === "collection" && <BpcMeaningCallout meaning={layer.meaning} />}
           {key === "unification" && <BpcSignalCallout signal={layer.topSignal} />}
         </>

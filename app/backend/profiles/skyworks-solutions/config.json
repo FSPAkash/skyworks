@@ -92,6 +92,7 @@
         {
           "label": "ERP & Supply Chain",
           "category": "sources",
+          "subcat": "internal-structured",
           "items": [
             "SAP",
             "Kinaxis",
@@ -101,6 +102,7 @@
         {
           "label": "Databases",
           "category": "sources",
+          "subcat": "internal-structured",
           "items": [
             "SQL",
             "Oracle",
@@ -108,12 +110,33 @@
           ]
         },
         {
+          "label": "Internal Documents",
+          "category": "sources",
+          "subcat": "internal-unstructured",
+          "items": [
+            "SharePoint",
+            "Confluence Wiki",
+            "Email Archives"
+          ]
+        },
+        {
           "label": "Applications",
           "category": "sources",
+          "subcat": "external-structured",
           "items": [
             "CRM",
             "PLM",
             "EDI"
+          ]
+        },
+        {
+          "label": "External Feeds",
+          "category": "sources",
+          "subcat": "external-unstructured",
+          "items": [
+            "Supplier PDFs",
+            "Web / Market Data",
+            "Support Tickets"
           ]
         },
         {
@@ -682,7 +705,8 @@
       "layer": "infrastructure",
       "weeks": "W1-3",
       "status": "delivered",
-      "artifact": "/artifacts/D1/index.html"
+      "artifact": "/artifacts/D1/index.html",
+      "group": "Infrastructure"
     },
     {
       "id": 2,
@@ -692,8 +716,10 @@
       "phase": 1,
       "layer": "collection",
       "weeks": "W1-3",
-      "status": "delivered",
-      "artifact": "/artifacts/D2/index.html"
+      "status": "delayed",
+      "delayReason": "Delayed to rerun results on Production on client request. Production access pending.",
+      "artifact": "/artifacts/D2/index.html",
+      "group": "Collection"
     },
     {
       "id": 3,
@@ -704,7 +730,8 @@
       "layer": "unification",
       "weeks": "W4-7",
       "status": "in-progress",
-      "artifact": null
+      "artifact": null,
+      "group": "Unification"
     },
     {
       "id": 4,
@@ -715,7 +742,8 @@
       "layer": "presentation",
       "weeks": "W4-7",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "BPC"
     },
     {
       "id": 5,
@@ -726,7 +754,8 @@
       "layer": "presentation",
       "weeks": "W4-7",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "BPC"
     },
     {
       "id": 6,
@@ -737,7 +766,8 @@
       "layer": "presentation",
       "weeks": "W8-10",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "BPC"
     },
     {
       "id": 7,
@@ -748,7 +778,8 @@
       "layer": "presentation",
       "weeks": "W8-10",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "BPC"
     },
     {
       "id": 8,
@@ -759,7 +790,8 @@
       "layer": "presentation",
       "weeks": "W11-12",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "Exec Strategy"
     },
     {
       "id": 9,
@@ -770,7 +802,8 @@
       "layer": "presentation",
       "weeks": "W11-12",
       "status": "planned",
-      "artifact": null
+      "artifact": null,
+      "group": "Exec Strategy"
     }
   ],
   "chatbot": {

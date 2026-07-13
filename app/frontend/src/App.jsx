@@ -8,7 +8,6 @@ import Overview from "./pages/Overview.jsx";
 import LayerPage from "./pages/LayerPage.jsx";
 import Admin from "./pages/Admin.jsx";
 import Login from "./pages/Login.jsx";
-import ChatBot from "./components/ChatBot.jsx";
 
 function Topbar() {
   const { config, user, logout, roleLabel, hasUnsavedFresh, saveNewProject, profile, runDemo, can } = useConfig();
@@ -21,8 +20,7 @@ function Topbar() {
   const [err, setErr] = useState(null);
   const [demoBusy, setDemoBusy] = useState(false);
 
-  // Run full project skips the Genie entirely: it connects everything server-side,
-  // which flips readiness to complete and lets the setup blur clear on its own.
+  // Run full project connects everything server-side and populates the layers.
   const runFull = async () => { setDemoBusy(true); await runDemo(); setDemoBusy(false); };
   const showRunFull = profile?.mode === "generic" && can && can("layers");
 
@@ -58,7 +56,7 @@ function Topbar() {
       <div className="tb-right">
         {showRunFull && (
           <button className="tb-runfull" onClick={runFull} disabled={demoBusy}
-            title="Skip the Genie and populate the whole project">
+            title="Populate the whole project">
             {demoBusy ? "Running…" : "Run full project"}
           </button>
         )}
@@ -70,7 +68,7 @@ function Topbar() {
         <div className="so-overlay" onClick={() => !busy && setPrompt(false)}>
           <div className="so-modal" onClick={(e) => e.stopPropagation()}>
             <div className="so-title">Save this project before signing out?</div>
-            <div className="so-sub">This Start Fresh Project has unsaved sources. Name it to keep it, or sign out and discard.</div>
+            <div className="so-sub">This DEMO has unsaved sources. Name it to keep it, or sign out and discard.</div>
             <input className="so-in" placeholder="Project name" value={name} autoFocus
               onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveThenOut()} />
             {err && <div className="so-err">{err}</div>}
@@ -118,28 +116,22 @@ function Sidebar() {
   const { config, sources, can, canLayer } = useConfig();
   const r = connReadiness(sources);
   const link = ({ isActive }) => "navlink" + (isActive ? " active" : "");
-  // layers other than Infrastructure lock until every selected source is connected
-  const gated = !r.complete;
 
   return (
     <nav className="sidebar">
-      <div className="nav-group">Overview &amp; Admin</div>
+      <div className="nav-group">Setup</div>
+      {can("admin") && <NavLink to="/admin" className={link}><span className="dotm" /> Settings</NavLink>}
       {can("overview") && <NavLink to="/" end className={({ isActive }) => "navlink nav-hero" + (isActive ? " active" : "")}><span className="dotm" /> Overview</NavLink>}
-      {can("admin") && <NavLink to="/admin" className={link}><span className="dotm" /> Admin Settings</NavLink>}
 
       {can("layers") && config && (
         <>
           <div className="nav-group">Assessment Layers</div>
-          {config.layers.filter((l) => canLayer(l.key)).map((l) => {
-            const locked = gated && l.key !== "infrastructure";
-            return (
+          {config.layers.filter((l) => canLayer(l.key)).map((l) => (
               <NavLink key={l.key} to={`/layer/${l.key}`} className={link}>
                 <span className="ic">{l.id}</span> {l.name}
-                {l.key === "infrastructure" && <span className="nav-tag">{r.complete ? "Ready" : r.hasSelection ? `${r.connected}/${r.total}` : "Set up"}</span>}
-                {locked && <span className="nav-tag">Locked</span>}
+                {l.key === "infrastructure" && r.hasSelection && <span className="nav-tag">{r.complete ? "Ready" : `${r.connected}/${r.total}`}</span>}
               </NavLink>
-            );
-          })}
+          ))}
         </>
       )}
     </nav>
@@ -167,7 +159,7 @@ function SaveProjectBar() {
 
   return (
     <div className="savebar">
-      <span className="sb-tag">Start Fresh Project</span>
+      <span className="sb-tag">DEMO</span>
       {!open ? (
         <>
           <span className="sb-txt">Working in an unsaved project.</span>
@@ -214,18 +206,15 @@ function Guard({ routeKey, children }) {
 // all connections ready (infrastructure is where you connect, so it's open).
 function LayerGuard() {
   const { key } = useParams();
-  const { canLayer, rolesLoaded, sources, setBotOpen } = useConfig();
+  const { canLayer, rolesLoaded } = useConfig();
   const nav = useNavigate();
-  const r = connReadiness(sources);
   const allowed = canLayer(key);
-  const connOk = key === "infrastructure" || r.complete;
   useEffect(() => {
     if (!rolesLoaded) return;   // wait until role map is loaded before deciding
     if (!allowed) { nav("/", { replace: true }); return; }
-    if (!connOk) { nav("/layer/infrastructure", { replace: true }); setBotOpen(true); }
-  }, [rolesLoaded, allowed, connOk, key, nav, setBotOpen]);
+  }, [rolesLoaded, allowed, key, nav]);
   if (!rolesLoaded) return <div className="lede">Loading…</div>;
-  if (!allowed || !connOk) return null;
+  if (!allowed) return null;
   return <LayerPage />;
 }
 
@@ -269,7 +258,6 @@ function Shell() {
         )}
       </main>
       <Footer />
-      {config && can("layers") && <ChatBot key={profile.id} />}
     </div>
   );
 }

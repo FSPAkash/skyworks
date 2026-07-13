@@ -83,11 +83,8 @@ export function ConfigProvider({ children }) {
       const sid = "s-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
       setSessionId(sid); sessionStorage.setItem("fs_session", sid);
       setGenericDirty(false);
-      // open the Genie so the user knows to start source setup here
-      setBotOpen(true);
-    } else {
-      setBotOpen(false);  // close the Genie so it re-inits fresh for the new profile
     }
+    setBotOpen(false);
   };
   const resetSession = useCallback(async () => {
     // discard the Start-Fresh scratch state on the server
@@ -164,6 +161,17 @@ export function ConfigProvider({ children }) {
     return out;
   };
 
+  // Admin: patch the active profile's details in place (edit, not create)
+  const updateProfile = async (form) => {
+    const res = await fetch("/api/profiles/update", {
+      method: "POST", headers: hdr({ "Content-Type": "application/json" }),
+      body: JSON.stringify(form),
+    });
+    const out = await res.json();
+    if (out.ok) { await loadProfiles(); await loadConfig(); }
+    return out;
+  };
+
   // Admin: toggle whether C-Level sees usage meters on the Overview (active profile)
   const setMetersInPresentation = async (on) => {
     const res = await fetch("/api/settings/meters-presentation", {
@@ -231,7 +239,7 @@ export function ConfigProvider({ children }) {
       config, error, botOpen, setBotOpen, users, access, user, profile, profiles,
       login, pickProfile, logout, can, canLayer, canSubpart, rolesLoaded, roleLabel: ROLE_LABEL,
       sources, loadSources, saveConnection, testConnection, runDemo,
-      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersInPresentation, setMetersOverview, setProjectDescription,
+      selection, saveSelection, createProfile, createFromForm, updateProfile, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersInPresentation, setMetersOverview, setProjectDescription,
       hasUnsavedFresh, genericDirty, pid,
     }}>
       {children}
