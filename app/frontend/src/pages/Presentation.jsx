@@ -54,13 +54,14 @@ export default function Presentation() {
   const delivered = deliverables.filter((d) => d.status === "delivered").length;
   const align = ov.alignment;
   const alignCurrent = Math.max(0, Math.min(100, Number(align?.current) || 0));
-  const showMeters = !!config.settings?.metersToCLevel && (sources.meters || []).length > 0;
+  const showMeters = !!config.settings?.metersInPresentation && (sources.meters || []).length > 0;
 
   return (
     <div className="ov">
-      {/* header - matches the ICU layer pages: bare title + lede, no hero card */}
+      {/* header - matches the ICU layer pages: bare title + the engagement narrative */}
       <h1 className="page">{layer?.name || "Presentation"}</h1>
-      <p className="lede">{layer?.summary || ov.headline}</p>
+      {ov.background && <p className="lede ov-bg">{ov.background}</p>}
+      {ov.outcome && <p className="lede ov-out">{ov.outcome}</p>}
 
       {ov.highlights && ov.highlights.length > 0 && (
         <div className="ov-hl">
@@ -87,16 +88,8 @@ export default function Presentation() {
       {/* meter tiles (admin-enabled exec view) */}
       {showMeters && <MeterTiles meters={sources.meters} />}
 
-      {/* business case + alignment */}
-      <div className="grid g2 ov-two" style={{ alignItems: "start" }}>
-        <div className="card hi">
-          <div className="card-head">The engagement</div>
-          <div className="card-body">
-            {ov.background && <p className="ov-bg">{ov.background}</p>}
-            {ov.outcome && <p className="ov-out">{ov.outcome}</p>}
-          </div>
-        </div>
-
+      {/* alignment - full width now the engagement narrative moved to the intro */}
+      <div className="ov-two">
         <div className="card">
           <div className="card-head">{align?.label || "Alignment"}</div>
           <div className="card-body">
@@ -191,8 +184,8 @@ export default function Presentation() {
           letter-spacing:.1em;color:#fff;background:var(--fs-green);padding:2px 7px}
 
         .ov-two{margin-bottom:22px}
-        .ov-bg{margin:0 0 12px;font-size:13.5px;line-height:1.62;color:var(--ink-2)}
-        .ov-out{margin:0;font-size:13px;line-height:1.55;color:var(--ink-3)}
+        .ov-bg{margin:0 0 10px;font-size:14px;line-height:1.6;color:var(--ink-2);max-width:80ch}
+        .ov-out{margin:0 0 4px;font-size:13px;line-height:1.55;color:var(--ink-3);max-width:80ch}
         .ov-align-top{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
         .ov-align-pct{font-size:36px;font-weight:800;color:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
         .ov-align-sym{font-size:18px;color:var(--accent-ink)}

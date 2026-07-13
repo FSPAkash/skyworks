@@ -15,16 +15,23 @@ const BLANK_FORM = {
 };
 
 export default function Admin() {
-  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersCLevel } = useConfig();
+  const { profiles, profile, config, createProfile, createFromForm, deleteProfile, uploadSow, setMetersInPresentation, setMetersOverview } = useConfig();
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
   const [metersBusy, setMetersBusy] = useState(false);
-  const metersOn = !!config?.settings?.metersToCLevel;
+  const [ovMetersBusy, setOvMetersBusy] = useState(false);
+  const metersOn = !!config?.settings?.metersInPresentation;
+  const ovMetersOn = !!config?.settings?.metersOnOverview;
   const isGeneric = profile?.mode === "generic";
   const toggleMeters = async () => {
     setMetersBusy(true);
-    await setMetersCLevel(!metersOn);
+    await setMetersInPresentation(!metersOn);
     setMetersBusy(false);
+  };
+  const toggleOvMeters = async () => {
+    setOvMetersBusy(true);
+    await setMetersOverview(!ovMetersOn);
+    setOvMetersBusy(false);
   };
   const [preview, setPreview] = useState(null);
   const [sowFile, setSowFile] = useState(null);
@@ -84,17 +91,17 @@ export default function Admin() {
     <div>
       <h1 className="page">Admin Settings</h1>
 
-      {/* Access controls for the active profile */}
+      {/* Usage-meter visibility for the active profile */}
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-head"><span className="dot-r" /> Presentation access</div>
+        <div className="card-head"><span className="dot-r" /> Usage meters</div>
         <div className="card-body">
           <div className="tgl-row">
             <div className="tgl-txt">
-              <div className="tgl-title">Show usage meters to C-Level</div>
+              <div className="tgl-title">Show in Presentation</div>
               <div className="tgl-sub">
                 {isGeneric
                   ? "Save this project first to change its settings."
-                  : <>When on, the live usage &amp; utilization meters appear as tiles on the Presentation page for executive viewers. Active profile: <b>{profile?.name}</b>.</>}
+                  : <>Live usage &amp; utilization meters appear as tiles on the Presentation page for executive viewers.</>}
               </div>
             </div>
             <button
@@ -102,6 +109,23 @@ export default function Admin() {
               role="switch" aria-checked={metersOn}
               disabled={isGeneric || metersBusy}
               onClick={toggleMeters}>
+              <span className="knob" />
+            </button>
+          </div>
+          <div className="tgl-row" style={{ borderTop: "1px solid var(--hair)", marginTop: 4, paddingTop: 14 }}>
+            <div className="tgl-txt">
+              <div className="tgl-title">Show in Overview</div>
+              <div className="tgl-sub">
+                {isGeneric
+                  ? "Save this project first to change its settings."
+                  : <>Adds a "Show usage metrics" section below the timeline on the Overview. Active profile: <b>{profile?.name}</b>.</>}
+              </div>
+            </div>
+            <button
+              className={"switch" + (ovMetersOn ? " on" : "")}
+              role="switch" aria-checked={ovMetersOn}
+              disabled={isGeneric || ovMetersBusy}
+              onClick={toggleOvMeters}>
               <span className="knob" />
             </button>
           </div>

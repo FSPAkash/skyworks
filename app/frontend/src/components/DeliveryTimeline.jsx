@@ -25,7 +25,6 @@ export default function DeliveryTimeline() {
   const currentWeek = config.client.currentWeek || 0;
   const cols = Array.from({ length: weeks }, (_, i) => i + 1);
   const phaseOf = (id) => config.phases.find((p) => p.id === id);
-  const nowPct = currentWeek > 0 ? Math.min(100, (currentWeek / weeks) * 100) : null;
   const [openReason, setOpenReason] = useState(null);   // deliverable id whose delay reason is shown
 
   return (
@@ -35,9 +34,7 @@ export default function DeliveryTimeline() {
         <div className="dt-row dt-head">
           <div className="dt-label">Deliverable</div>
           <div className="dt-track">
-            {nowPct != null && (
-              <div className="dt-now" style={{ left: `${nowPct}%` }}><span className="dt-now-tag">Now · W{currentWeek}</span></div>
-            )}
+            {currentWeek > 0 && <div className="dt-nowcol" style={{ gridColumn: `${currentWeek} / ${currentWeek + 1}` }} />}
             {cols.map((w) => <div key={w} className={"dt-wk" + (w === currentWeek ? " now" : "")}>W{w}</div>)}
           </div>
         </div>
@@ -46,7 +43,7 @@ export default function DeliveryTimeline() {
         <div className="dt-row dt-phaserow">
           <div className="dt-label dt-phaselbl">Phases</div>
           <div className="dt-track">
-            {nowPct != null && <div className="dt-now line" style={{ left: `${nowPct}%` }} />}
+            {currentWeek > 0 && <div className="dt-nowcol" style={{ gridColumn: `${currentWeek} / ${currentWeek + 1}` }} />}
             {config.phases.map((p) => (
               <div key={p.id} className="dt-phase"
                 style={{ gridColumn: `${p.weekStart} / ${p.weekEnd + 1}` }} title={p.name}>
@@ -73,7 +70,7 @@ export default function DeliveryTimeline() {
                 <b>{d.code}</b> <span className="dt-dname">{d.name}</span>
               </div>
               <div className="dt-track">
-                {nowPct != null && <div className="dt-now line" style={{ left: `${nowPct}%` }} />}
+                {currentWeek > 0 && <div className="dt-nowcol" style={{ gridColumn: `${currentWeek} / ${currentWeek + 1}` }} />}
                 {clickable ? (
                   <a href={d.artifact} target="_blank" rel="noreferrer" className={"dt-bar " + state}
                     style={{ ...span, background: STATUS_COLOR[state] }} title={title}>
@@ -115,6 +112,7 @@ export default function DeliveryTimeline() {
         <span><i style={{ background: "var(--accent)" }} /> In progress</span>
         <span><i style={{ background: "var(--err)" }} /> Delayed</span>
         <span><i style={{ background: "var(--line-strong)" }} /> Planned</span>
+        <span><i className="dt-lg-now" /> Current week</span>
       </div>
 
       <style>{`
@@ -154,15 +152,15 @@ export default function DeliveryTimeline() {
           color:var(--ink-3);padding:0 2px}
         .dt-reason-x:hover{color:var(--ink)}
         .dt-reason p{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--ink);font-weight:500}
-        /* now marker */
-        .dt-now{position:absolute;top:0;bottom:0;left:0;z-index:3;pointer-events:none}
-        .dt-now.line{width:2px;background:var(--fs-green);opacity:.85}
-        .dt-head .dt-now{width:2px;background:var(--fs-green)}
-        .dt-now-tag{position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;
-          text-transform:uppercase;letter-spacing:.05em;color:#fff;background:var(--fs-green);padding:1px 5px;white-space:nowrap}
-        .dt-wk.now{color:var(--accent-ink);font-weight:800}
+        /* current-week highlight column (replaces the old now line) */
+        .dt-nowcol{position:relative;height:100%;min-height:22px;margin:-6px 0;align-self:stretch;
+          background:var(--accent-tint);box-shadow:inset 1px 0 var(--fs-green),inset -1px 0 var(--fs-green);
+          pointer-events:none;z-index:0}
+        .dt-head .dt-nowcol{margin:-7px 0}
+        .dt-wk.now{color:var(--green-ink);font-weight:800}
         .dt-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;font-size:12px;color:var(--ink-3)}
         .dt-legend i{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px}
+        .dt-lg-now{background:var(--accent-tint);box-shadow:inset 1px 0 var(--fs-green),inset -1px 0 var(--fs-green)}
       `}</style>
     </div>
   );

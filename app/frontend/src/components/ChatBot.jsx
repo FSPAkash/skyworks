@@ -206,16 +206,19 @@ export default function ChatBot() {
         /* blur/dim backdrop so a fresh Start-Fresh project must start with the Genie.
            z-index sits BELOW the topbar/footer (z 40) so Sign Out stays reachable as
            an escape hatch, but the whole workspace + sidebar are blocked. */
-        .cb-backdrop{position:fixed;inset:0;z-index:39;background:rgba(27,29,24,.28);
-          backdrop-filter:blur(4px) saturate(.9);-webkit-backdrop-filter:blur(4px) saturate(.9);
+        .cb-backdrop{position:fixed;inset:0;z-index:39;background:rgba(27,29,24,.14);
+          backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);
           animation:cbFade .25s ease both}
         @keyframes cbFade{from{opacity:0}to{opacity:1}}
 
         /* Genie: flat De Stijl block - charcoal frame, white fill, FS-green mark */
         .cb-fab{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);display:flex;align-items:center;gap:12px;
           padding:10px 16px 10px 12px;border:var(--grid-w) solid var(--grid-line);cursor:pointer;border-radius:0;
-          background:var(--paper);z-index:60;text-align:left;box-shadow:var(--halo);transition:background .12s,box-shadow .14s,transform .1s}
-        .cb-fab:hover{background:var(--tile);box-shadow:var(--lift);transform:translateY(-2px)}
+          background:rgba(44,90,168,.45);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);
+          z-index:60;text-align:left;box-shadow:var(--halo);transition:background .12s,box-shadow .14s,transform .1s}
+        .cb-fab:hover{background:rgba(44,90,168,.6);box-shadow:var(--lift);transform:translateY(-2px)}
+        .cb-fab b{color:#fff!important}
+        .cb-fab i{color:rgba(255,255,255,.85)!important}
         .cb-fab-ic{width:36px;height:36px;border:1.5px solid var(--grid-line);border-radius:0;overflow:hidden;
           display:flex;align-items:center;justify-content:center;flex:0 0 auto;background:var(--paper)}
         .cb-fab-ic img{width:100%;height:100%;object-fit:contain;display:block}
@@ -225,10 +228,13 @@ export default function ChatBot() {
 
         .cb-panel{position:fixed;right:22px;bottom:calc(var(--footer-h) + 16px);width:400px;
           max-height:min(660px,calc(100vh - var(--header-h) - var(--footer-h) - 32px));
-          border:var(--grid-w) solid var(--grid-line);border-radius:0;background:var(--paper);
+          border:var(--grid-w) solid var(--grid-line);border-radius:0;
+          background:rgba(70,115,190,.28);backdrop-filter:blur(6px) saturate(1.5);-webkit-backdrop-filter:blur(6px) saturate(1.5);
           box-shadow:var(--halo);display:flex;flex-direction:column;overflow:hidden;z-index:60}
-        .cb-head{background:var(--fs-green);color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;
-          border-bottom:var(--grid-w) solid var(--grid-line)}
+        /* header matches the body glass exactly - one continuous surface */
+        .cb-head{background:transparent;
+          color:#fff;padding:12px 15px;display:flex;align-items:center;gap:10px;
+          border-bottom:var(--grid-w) solid rgba(255,255,255,.4);text-shadow:0 1px 2px rgba(27,29,24,.4)}
         .cb-head-tag{width:26px;height:26px;padding:0;overflow:hidden;border-radius:0;flex:0 0 auto;
           background:var(--paper);border:1.5px solid var(--grid-line);
           display:flex;align-items:center;justify-content:center}
@@ -237,7 +243,7 @@ export default function ChatBot() {
         .cb-progress{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.85);font-weight:700;margin-top:1px}
         .cb-x{background:var(--paper);border:1.5px solid var(--grid-line);color:var(--ink);width:26px;height:26px;font-size:15px;cursor:pointer;font-weight:800;margin-left:auto;border-radius:0}
         .cb-x:hover{background:var(--tile)}
-        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+        .cb-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:transparent}
         .cb-msg{display:flex;flex-direction:column;max-width:88%}
         .cb-msg.bot{align-self:flex-start}
         .cb-msg.user{align-self:flex-end}
@@ -256,7 +262,7 @@ export default function ChatBot() {
         .cb-box{width:14px;height:14px;border:1.5px solid var(--grid-line);border-radius:0;flex:0 0 auto;position:relative;background:var(--paper)}
         .cb-pick.on .cb-box{background:var(--paper)}
         .cb-pick.on .cb-box::after{content:"";position:absolute;left:2px;top:2px;width:6px;height:6px;background:var(--fs-green)}
-        .cb-input{border-top:var(--grid-w) solid var(--grid-line);padding:13px;background:var(--paper)}
+        .cb-input{border-top:var(--grid-w) solid rgba(255,255,255,.4);padding:13px;background:transparent}
 
         /* attention glow while the Start-Fresh project still needs source setup */
         @keyframes cbGlow{

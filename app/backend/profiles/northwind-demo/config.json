@@ -616,6 +616,7 @@
   },
   "isDemo": true,
   "settings": {
-    "metersToCLevel": false
+    "metersOnOverview": false,
+    "metersInPresentation": false
   }
 }

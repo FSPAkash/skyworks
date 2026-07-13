@@ -675,6 +675,7 @@
     "sections": {}
   },
   "settings": {
-    "metersToCLevel": true
+    "metersOnOverview": true,
+    "metersInPresentation": true
   }
 }

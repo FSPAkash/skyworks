@@ -726,10 +726,10 @@ def profile_from_form():
     return jsonify({"ok": True, "id": pid, "name": name})
 
 
-@app.post("/api/settings/meters-clevel")
-def set_meters_clevel():
+@app.post("/api/settings/meters-presentation")
+def set_meters_presentation():
     """Admin toggle: whether C-Level users see the usage meters as tiles on the
-    Overview. Persisted in the profile config under settings.metersToCLevel."""
+    Overview. Persisted in the profile config under settings.metersInPresentation."""
     if request.headers.get("X-Role", "") != "admin":
         return jsonify({"ok": False, "error": "Admin role required."}), 403
     pid = active_pid()
@@ -741,7 +741,28 @@ def set_meters_clevel():
         abort(404)
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
-    cfg.setdefault("settings", {})["metersToCLevel"] = on
+    cfg.setdefault("settings", {})["metersInPresentation"] = on
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({"ok": True, "on": on})
+
+
+@app.post("/api/settings/meters-overview")
+def set_meters_overview():
+    """Admin toggle: whether the usage meters are available (as an expander) on
+    the Overview. Persisted in the profile config under settings.metersOnOverview."""
+    if request.headers.get("X-Role", "") != "admin":
+        return jsonify({"ok": False, "error": "Admin role required."}), 403
+    pid = active_pid()
+    if pid == GENERIC_ID:
+        return jsonify({"ok": False, "error": "Save the project first to change its settings."}), 400
+    on = bool((request.get_json(silent=True) or {}).get("on"))
+    path = _pf(pid, "config.json")
+    if not os.path.exists(path):
+        abort(404)
+    with open(path, encoding="utf-8") as f:
+        cfg = json.load(f)
+    cfg.setdefault("settings", {})["metersOnOverview"] = on
     with open(path, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
     return jsonify({"ok": True, "on": on})

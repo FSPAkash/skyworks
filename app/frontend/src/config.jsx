@@ -165,8 +165,17 @@ export function ConfigProvider({ children }) {
   };
 
   // Admin: toggle whether C-Level sees usage meters on the Overview (active profile)
-  const setMetersCLevel = async (on) => {
-    const res = await fetch("/api/settings/meters-clevel", {
+  const setMetersInPresentation = async (on) => {
+    const res = await fetch("/api/settings/meters-presentation", {
+      method: "POST", headers: hdr({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ on }),
+    });
+    const out = await res.json();
+    if (out.ok) await loadConfig();
+    return out;
+  };
+  const setMetersOverview = async (on) => {
+    const res = await fetch("/api/settings/meters-overview", {
       method: "POST", headers: hdr({ "Content-Type": "application/json" }),
       body: JSON.stringify({ on }),
     });
@@ -212,7 +221,7 @@ export function ConfigProvider({ children }) {
       config, error, botOpen, setBotOpen, users, access, user, profile, profiles,
       login, pickProfile, logout, can, canLayer, canSubpart, rolesLoaded, roleLabel: ROLE_LABEL,
       sources, loadSources, saveConnection, testConnection, runDemo,
-      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersCLevel,
+      selection, saveSelection, createProfile, createFromForm, deleteProfile, loadProfiles, saveNewProject, uploadSow, setMetersInPresentation, setMetersOverview,
       hasUnsavedFresh, genericDirty, pid,
     }}>
       {children}
