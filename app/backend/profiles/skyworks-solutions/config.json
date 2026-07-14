@@ -300,13 +300,42 @@
           "metrics": [
             {
               "label": "Databases",
-              "value": "18"
+              "value": "18",
+              "ref": "asm-counts"
             },
             {
               "label": "Schemas",
-              "value": "109"
+              "value": "109",
+              "ref": "asm-counts"
             }
           ],
+          "review": {
+            "kind": "confirm",
+            "action": "Confirm the automated discovery results and business context before proceeding.",
+            "items": [
+              {
+                "id": "asm-counts",
+                "label": "Discovery scope",
+                "detail": "18 databases · 109 schemas · 5,471 tables",
+                "evidence": "Automated crawl of the ODS estate against the D2 metadata inventory.",
+                "confidence": 96
+              },
+              {
+                "id": "asm-context",
+                "label": "Business context",
+                "detail": "Semiconductor manufacturer operational data store",
+                "evidence": "Inferred from SAP ECC, Skyworks ODS and warehouse composition — sales and demand planning carry the analytical value.",
+                "confidence": 94
+              },
+              {
+                "id": "asm-value",
+                "label": "Value concentration",
+                "detail": "Four estates hold >99% of 28.5B rows",
+                "evidence": "Skyworks_ODS, Skyworks_ODS_Archive, LIB_ECC_RTP, Skyworks_WH.",
+                "confidence": 91
+              }
+            ]
+          },
           "intel": {
             "kind": "inference",
             "title": "BPC inference",
@@ -354,7 +383,42 @@
               "value": "28.5",
               "unit": "B"
             }
-          ]
+          ],
+          "review": {
+            "kind": "approve",
+            "action": "Approve classification tags and sensitive-data flags before the catalog is certified.",
+            "items": [
+              {
+                "id": "cat-factversions",
+                "label": "Skyworks_WH.sd.FactVersions",
+                "detail": "Tag: Gold candidate · high value",
+                "evidence": "Largest fact in the estate (1.09B rows), versioned demand-planning grain, actively maintained.",
+                "confidence": 92
+              },
+              {
+                "id": "cat-jcds",
+                "label": "LIB_ECC_RTP.sap.JCDS / sap.JEST",
+                "detail": "Tag: SAP source-of-truth · conform to Silver",
+                "evidence": "SAP document status change tables (1.08B / 1.05B rows), lineage roots for order and document flows.",
+                "confidence": 90
+              },
+              {
+                "id": "cat-pii-customer",
+                "label": "Skyworks_ODS.dbo.CustomerMaster",
+                "detail": "Sensitive-data flag: PII — name, contact, address",
+                "evidence": "Detected name / email / address columns referenced across downstream marts.",
+                "confidence": 88,
+                "risk": "PII"
+              },
+              {
+                "id": "cat-empty",
+                "label": "558 zero-row tables",
+                "detail": "Tag: Deprecate",
+                "evidence": "Empty tables carrying schema but no data, zero downstream reads.",
+                "confidence": 95
+              }
+            ]
+          }
         },
         {
           "id": "data-enrichment",
@@ -379,6 +443,34 @@
               "value": "69%"
             }
           ],
+          "review": {
+            "kind": "validate",
+            "action": "Validate the enrichment outputs and resolve business-rule exceptions.",
+            "items": [
+              {
+                "id": "enr-usage",
+                "label": "Usage scoring",
+                "detail": "350 of 1,132 agent jobs active",
+                "evidence": "Query-log analysis over the sampled window — hot tables cluster in demand planning and SAP status.",
+                "confidence": 87
+              },
+              {
+                "id": "enr-legacy",
+                "label": "Legacy footprint",
+                "detail": "69% of programmable objects untouched since before 2024",
+                "evidence": "2,891 of 5,108 objects show no recent execution — deprecation candidates.",
+                "confidence": 90
+              },
+              {
+                "id": "enr-nullable",
+                "label": "Constraint exception",
+                "detail": "78% of columns nullable — key integrity uncertain",
+                "evidence": "128,696 of 164,543 columns loosely constrained; weighs against premature Gold.",
+                "confidence": 84,
+                "risk": "Data quality"
+              }
+            ]
+          },
           "intel": {
             "kind": "annotation",
             "title": "BPC data annotation",
@@ -425,7 +517,34 @@
               "label": "Job steps (SSIS)",
               "value": "454"
             }
-          ]
+          ],
+          "review": {
+            "kind": "approve",
+            "action": "Approve the parsed SSIS mappings and transformation logic before execution.",
+            "items": [
+              {
+                "id": "trn-sap-ods",
+                "label": "SAP ECC → ODS load",
+                "detail": "42 packages · document status → order flow",
+                "evidence": "JCDS / JEST staged into ODS order tables; join keys parsed from package XML.",
+                "confidence": 89
+              },
+              {
+                "id": "trn-demand",
+                "label": "Demand-planning conform",
+                "detail": "18 packages → sd.FactVersions",
+                "evidence": "Versioned planning grain assembled from staging; transformation logic mapped end to end.",
+                "confidence": 86
+              },
+              {
+                "id": "trn-orphan",
+                "label": "Orphaned packages",
+                "detail": "31 packages with no active schedule",
+                "evidence": "No agent job references these; candidates to exclude from the transition scope.",
+                "confidence": 82
+              }
+            ]
+          }
         }
       ],
       "meaning": {
@@ -434,14 +553,17 @@
         "author": "BPC \u00b7 Business Process Co-Pilot",
         "questions": [
           {
+            "sourceItem": "asm-counts",
             "q": "What business is this data describing?",
             "a": "A semiconductor manufacturer's operational data store. 18 databases carry the sales, demand-planning and SAP document flows that run the business - 5,471 tables, 164,543 columns, and 28.5 billion rows in all."
           },
           {
+            "sourceItem": "asm-value",
             "q": "Where does the value concentrate?",
             "a": "In four estates. Skyworks_ODS, Skyworks_ODS_Archive, LIB_ECC_RTP and Skyworks_WH together hold over 99% of the 28.5B rows, and the largest tables are demand-planning and SAP fact tables - the high-value analytical core to classify and conform first."
           },
           {
+            "sourceItem": "enr-nullable",
             "q": "What does the data warn us about?",
             "a": "Dormancy and loose constraints. 558 tables are empty and 2,891 programmable objects are untouched since before 2024 - a deprecation tail; and 78% of columns are nullable, a data-quality signal that must weigh in the Bronze/Silver/Gold classification."
           }
@@ -567,9 +689,138 @@
           }
         ]
       },
+      "review": {
+        "certifies": "D3, D4, D5",
+        "tracks": [
+          {
+            "id": "lineage",
+            "name": "Lineage Validation",
+            "type": "lineage",
+            "action": "Confirm lineage accuracy and approve critical upstream / downstream paths before certification.",
+            "items": [
+              {
+                "id": "lin-sap-ods",
+                "label": "LIB_ECC_RTP.sap.JCDS → Skyworks_ODS",
+                "detail": "Upstream · SAP document status feeds ODS order flow",
+                "edge": "FK",
+                "critical": true,
+                "evidence": "Join on document key; feeds every downstream order mart. Coverage confirmed via metadata export.",
+                "confidence": 88
+              },
+              {
+                "id": "lin-ods-wh",
+                "label": "Skyworks_ODS → Skyworks_WH.sd.FactVersions",
+                "detail": "Downstream · ODS conforms into demand-planning fact",
+                "edge": "ELT step",
+                "critical": true,
+                "evidence": "555 SSIS packages assemble the versioned planning grain from ODS staging.",
+                "confidence": 84
+              },
+              {
+                "id": "lin-ods-ea",
+                "label": "Skyworks_WH → Enterprise Analytics",
+                "detail": "Downstream · warehouse feeds BI dashboards",
+                "edge": "Manual",
+                "critical": false,
+                "evidence": "No lineage API on Enterprise Analytics — edge inferred from report metadata, needs analyst confirmation.",
+                "confidence": 61
+              },
+              {
+                "id": "lin-kinaxis",
+                "label": "Kinaxis → Skyworks_ODS",
+                "detail": "Upstream · supply-chain planning feed",
+                "edge": "Manual",
+                "critical": false,
+                "evidence": "Partial metadata access — feed direction confirmed, table-level mapping incomplete.",
+                "confidence": 54
+              }
+            ]
+          },
+          {
+            "id": "ownership",
+            "name": "Ownership Mapping",
+            "type": "ownership",
+            "action": "Assign data owners and stewards, confirm accountability, and resolve cross-domain conflicts.",
+            "items": [
+              {
+                "id": "own-factversions",
+                "label": "Skyworks_WH.sd.FactVersions",
+                "owner": "Demand Planning",
+                "steward": "",
+                "detail": "Steward unresolved — blocks Gold certification",
+                "evidence": "Domain tag = Demand Planning; no steward named in the source system.",
+                "confidence": 70
+              },
+              {
+                "id": "own-jcds",
+                "label": "LIB_ECC_RTP.sap.JCDS",
+                "owner": "SAP Basis",
+                "steward": "R. Chen",
+                "detail": "Owner and steward resolved",
+                "evidence": "Last schema change and access grants attributed to SAP Basis / R. Chen.",
+                "confidence": 86
+              },
+              {
+                "id": "own-customer",
+                "label": "Skyworks_ODS.dbo.CustomerMaster",
+                "owner": "",
+                "steward": "",
+                "detail": "Ownership conflict — Sales and CRM domains both claim",
+                "conflict": ["Sales", "CRM"],
+                "evidence": "Referenced by both Sales marts and the CRM feed; accountability must be resolved by a human.",
+                "confidence": 48,
+                "risk": "Unowned"
+              }
+            ]
+          },
+          {
+            "id": "classification",
+            "name": "Classification Certification",
+            "type": "classification",
+            "action": "Certify the final Bronze / Silver / Gold assignment for each dataset.",
+            "items": [
+              {
+                "id": "cls-factversions",
+                "label": "Skyworks_WH.sd.FactVersions",
+                "layer": "Gold",
+                "detail": "Proposed Gold — demand-planning analytical core",
+                "evidence": "Widest downstream fan-out, actively maintained, highest usage score.",
+                "confidence": 91
+              },
+              {
+                "id": "cls-jcds",
+                "label": "LIB_ECC_RTP.sap.JCDS / sap.JEST",
+                "layer": "Silver",
+                "detail": "Proposed Silver — conform SAP status, do not deprecate",
+                "evidence": "Upstream source-of-truth; conform and cleanse but not a consumption-ready grain.",
+                "confidence": 87
+              },
+              {
+                "id": "cls-customer",
+                "label": "Skyworks_ODS.dbo.CustomerMaster",
+                "layer": "Silver",
+                "detail": "Proposed Silver — PII, mask before promotion",
+                "evidence": "Carries PII; usable as conformed master once masked, gated on ownership resolution.",
+                "confidence": 79,
+                "risk": "PII"
+              },
+              {
+                "id": "cls-staging",
+                "label": "stg_* staging layer",
+                "layer": "Bronze",
+                "detail": "Proposed Bronze — transient staging, no promotion",
+                "evidence": "Reprocessed each load, no direct downstream consumption.",
+                "confidence": 93
+              }
+            ]
+          }
+        ]
+      },
       "presentation": {
         "deliverables": [
-          3
+          3,
+          4,
+          5
         ],
         "statuses": [
           {
@@ -580,6 +831,16 @@
           {
             "label": "Ownership mapped",
             "value": "not yet started",
+            "state": "planned"
+          },
+          {
+            "label": "Datasets classified",
+            "value": "not yet certified",
+            "state": "planned"
+          },
+          {
+            "label": "Architecture baseline",
+            "value": "not yet certified",
             "state": "planned"
           }
         ]
@@ -754,7 +1015,7 @@
       "name": "ODS Dataset Classification Report",
       "purpose": "Usage-score-based Bronze/Silver/Gold classification with rationale",
       "phase": 2,
-      "layer": "presentation",
+      "layer": "unification",
       "weeks": "W4-7",
       "status": "planned",
       "artifact": null,
@@ -766,7 +1027,7 @@
       "name": "Architecture Alignment Baseline",
       "purpose": "Current-state alignment percentage to target medallion architecture with gap analysis",
       "phase": 2,
-      "layer": "presentation",
+      "layer": "unification",
       "weeks": "W6-9",
       "weekStart": 6,
       "weekEnd": 9,

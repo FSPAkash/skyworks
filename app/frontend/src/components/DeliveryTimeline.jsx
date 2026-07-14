@@ -144,8 +144,7 @@ export default function DeliveryTimeline() {
         /* delayed reason popover */
         .dt-barwrap{position:relative;display:flex}
         .dt-reason{position:absolute;top:calc(100% + 6px);left:0;z-index:20;width:280px;max-width:74vw;
-          background:var(--paper);border:1px solid var(--err);box-shadow:var(--halo);padding:11px 13px;
-          border-left:3px solid var(--err)}
+          background:var(--paper);border:1px solid var(--err);box-shadow:var(--halo);padding:11px 13px}
         .dt-reason-head{display:flex;align-items:center;gap:8px}
         .dt-reason-tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--err)}
         .dt-reason-x{margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;

@@ -3,12 +3,45 @@ import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 import AskFindability from "../components/AskFindability.jsx";
 
+// Presentation reports what Unification signed off. The certification record is
+// written client-side when the human certifies the Baseline on the Unification
+// page; here it gates whether the classification deliverables read as certified.
+function CertBanner() {
+  let rec = null;
+  try { rec = (JSON.parse(localStorage.getItem("fs_certify") || "{}"))["unification"]; } catch {}
+  const done = !!rec;
+  return (
+    <div className={"cert-banner" + (done ? " done" : "")}>
+      <span className={"cert-dot" + (done ? " done" : "")} />
+      <div className="cert-txt">
+        <b>{done ? "Baseline certified · D3, D4, D5" : "Baseline pending sign-off"}</b>
+        <span>{done
+          ? `${rec.resolved}/${rec.of} items resolved in Unification · ${rec.edits} edited · ${rec.rejects} rejected`
+          : "Lineage, classification, and ownership await human certification in Unification."}</span>
+      </div>
+      <style>{`
+        .cert-banner{display:flex;align-items:center;gap:13px;margin:0 0 20px;padding:14px 17px;
+          background:var(--paper);border:1px solid var(--hair);box-shadow:var(--soft)}
+        .cert-banner.done{border-color:var(--fs-green);background:var(--accent-tint);box-shadow:var(--halo)}
+        .cert-dot{width:11px;height:11px;flex:0 0 auto;border:1.5px solid var(--grid-line);background:var(--paper)}
+        .cert-dot.done{background:var(--fs-green);border-color:var(--fs-green)}
+        .cert-txt{display:flex;flex-direction:column;gap:2px}
+        .cert-txt b{font-size:13.5px;font-weight:800;color:var(--ink)}
+        .cert-txt span{font-size:11.5px;color:var(--ink-3)}
+      `}</style>
+    </div>
+  );
+}
+
 // Presentation page: the face of the assessment for decision makers - hero,
 // key stats, the engagement narrative, alignment, exec meters and the packaged
 // deliverables. This is the former Overview content, minus the Gantt timeline
 // (the timeline now lives on Overview as the project delivery view).
 
 const STATE_CLASS = { delivered: "delivered", "in-progress": "in-progress", planned: "planned" };
+// short stage badge, matching the Overview timeline pills
+const GROUP_TAG = { Infrastructure: "I", Collection: "C", Unification: "U", BPC: "BPC", "Exec Strategy": "Exec" };
+const groupTag = (d) => GROUP_TAG[d.group] || "";
 
 // radial gauge: an SVG arc that fills to `value` (0-100)
 function MeterGauge({ value = 0, tone = "green" }) {
@@ -103,11 +136,10 @@ function BpcProcessing({ proc }) {
         .bpcp-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
         @media(max-width:900px){.bpcp-flow{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:520px){.bpcp-flow{grid-template-columns:1fr}}
+        /* status stages: state is carried by the dot, not an edge accent */
         .bpcp-stage{position:relative;background:var(--paper);border:1px solid var(--hair);box-shadow:var(--soft);
-          padding:12px 13px;border-top:3px solid var(--ink-4)}
-        .bpcp-stage.delivered{border-top-color:var(--fs-green)}
-        .bpcp-stage.in-progress{border-top-color:var(--ds-blue)}
-        .bpcp-stage.planned{border-top-color:var(--hair)}
+          padding:12px 13px}
+        .bpcp-stage.in-progress{border-color:var(--ds-blue)}
         .bpcp-stage-top{display:flex;align-items:center;gap:7px}
         .bpcp-dot{width:8px;height:8px;flex:0 0 auto;background:var(--ds-yellow);border:1px solid var(--hair)}
         .bpcp-dot.delivered{background:var(--fs-green)}
@@ -150,7 +182,9 @@ function DeliverablesSection({ deliverables, delivered }) {
           {deliverables.map((d, i) => (
             <div key={d.id} className="card lift ov-deliv" style={{ animationDelay: `${i * 45}ms` }}>
               <div className="card-head">
-                <span className="chip accent">{d.code}</span> {d.name}
+                <span className="chip accent">{d.code}</span>
+                {groupTag(d) && <span className="dlv-grp">{groupTag(d)}</span>}
+                {d.name}
                 <span className={"st " + (STATE_CLASS[d.status] || "planned")} style={{ marginLeft: "auto" }}>{d.status}</span>
               </div>
               <div className="card-body">
@@ -175,6 +209,8 @@ function DeliverablesSection({ deliverables, delivered }) {
           background:var(--tile);border:1px solid var(--hair);box-shadow:var(--soft);padding:0 18px;height:46px;font:inherit}
         .dlv-head:hover{background:var(--tile-2,var(--hair))}
         .dlv-count{font-size:10px;font-weight:800;color:var(--accent-ink);background:var(--accent-tint);padding:2px 8px;letter-spacing:.04em}
+        .dlv-grp{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);
+          border:1px solid var(--line-strong);border-radius:999px;padding:1px 6px;flex:0 0 auto}
         .dlv-chev{margin-left:auto;font-size:12px;color:var(--ink-4)}
       `}</style>
     </div>
@@ -201,6 +237,9 @@ export default function Presentation() {
 
       {/* Gen-AI assistant: ask about the study data beyond the deliverables */}
       <AskFindability />
+
+      {/* reports the Unification sign-off state */}
+      <CertBanner />
 
       {showDesc && (
         <>
@@ -270,9 +309,9 @@ export default function Presentation() {
 
         .ov-hl{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 22px}
         @media(max-width:820px){.ov-hl{grid-template-columns:repeat(2,1fr)}}
+        /* hero highlight metrics: whole-card halo, no edge accent */
         .ov-hl-tile{position:relative;padding:13px 15px;background:var(--paper);
-          border:1px solid var(--hair);box-shadow:var(--soft);animation:ovRise .45s ease both;
-          border-top:3px solid var(--fs-green)}
+          border:1px solid var(--fs-green);box-shadow:var(--halo);animation:ovRise .45s ease both}
         .ov-hl-val{font-size:25px;font-weight:800;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
         .ov-hl-val .u{font-size:13px;color:var(--accent-ink);font-weight:700}
         .ov-hl-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--ink-3);margin-top:4px}

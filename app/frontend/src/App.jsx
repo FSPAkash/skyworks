@@ -20,6 +20,14 @@ function Topbar() {
   const [err, setErr] = useState(null);
   const [demoBusy, setDemoBusy] = useState(false);
 
+  // lock page scroll while the save-before-signout modal is open
+  useEffect(() => {
+    if (!prompt) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [prompt]);
+
   // Run full project connects everything server-side and populates the layers.
   const runFull = async () => { setDemoBusy(true); await runDemo(); setDemoBusy(false); };
   const showRunFull = profile?.mode === "generic" && can && can("layers");
@@ -79,7 +87,7 @@ function Topbar() {
             <button className="so-cancel" disabled={busy} onClick={() => setPrompt(false)}>Cancel</button>
           </div>
           <style>{`
-            .so-overlay{position:fixed;inset:0;z-index:200;background:rgba(20,24,18,.34);
+            .so-overlay{position:fixed;inset:0;z-index:200;background:rgba(20,24,18,.34);overflow:hidden;
               backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center}
             .so-modal{width:420px;max-width:92vw;background:var(--paper);border:1px solid var(--hair);
               box-shadow:var(--halo);padding:22px 22px 16px}

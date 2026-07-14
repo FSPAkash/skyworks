@@ -187,7 +187,21 @@
       "Bash(PORT=5057 python app.py)",
       "Bash(curl -s -H \"X-Profile: skyworks-solutions\" -H \"X-Session: t1\" http://localhost:5057/api/config)",
       "Bash(python -c \"import sys,json; c=json.load\\(sys.stdin\\); d=[x for x in c['deliverables'] if x['code']=='D2'][0]; print\\('D2:',d['status'],'|',d.get\\('delayReason'\\),'| group=',d.get\\('group'\\)\\); print\\('groups:',[x.get\\('group'\\) for x in c['deliverables']]\\)\")",
-      "Read(//c/Users/AkashPatil/**)"
+      "Read(//c/Users/AkashPatil/**)",
+      "Bash(npx vite *)",
+      "Bash(node -e \"console.log\\(require\\('playwright'\\)?'pw':''\\)\")",
+      "Bash(npm --version)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('deps:', list\\(d.get\\('dependencies',{}\\).keys\\(\\)\\)\\); print\\('devDeps:', list\\(d.get\\('devDependencies',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(npx playwright *)",
+      "Bash(node -e \"const{chromium}=require\\('playwright'\\); chromium.launch\\(\\).then\\(async b=>{const p=await b.newPage\\(\\); await p.goto\\('data:text/html,<h1>ok</h1>'\\); console.log\\('launched:', await p.title\\(\\) || 'blank', '- chromium works'\\); await b.close\\(\\);}\\).catch\\(e=>{console.error\\('FAIL', e.message\\); process.exit\\(1\\);}\\)\")",
+      "Bash(curl -s http://localhost:5059/api/users)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\([{'id':u['id'],'role':u['role']} for u in d['users']]\\)\")",
+      "Bash(grep -n \"cty-btn\\\\|cty-disp\\\\|✕\\\\|✗\\\\|\\\\\\\\\\\\\\\\2715\\\\|content:\" src/pages/LayerPage.jsx)",
+      "Bash(node drive3.mjs)",
+      "Bash(rm -f app/frontend/drive3.mjs app/frontend/drive4.mjs)",
+      "Bash(pkill -f app.py)",
+      "Bash(rm -f app/frontend/drive6.mjs)",
+      "Bash(rm -f app/frontend/drive7.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",

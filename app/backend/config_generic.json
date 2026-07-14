@@ -71,7 +71,16 @@
       ],
       "subparts": [
         { "id": "domain-intelligence", "name": "Domain Intelligence", "desc": "Business domain context and data ownership captured with subject-matter experts.", "state": "planned",
-          "demoMetrics": [ { "label": "Domains", "value": "11" }, { "label": "Owners mapped", "value": "86%" } ],
+          "demoMetrics": [ { "label": "Domains", "value": "11", "ref": "asm-counts" }, { "label": "Owners mapped", "value": "86%" } ],
+          "review": {
+            "kind": "confirm",
+            "action": "Confirm the automated discovery results and business context before proceeding.",
+            "items": [
+              { "id": "asm-counts", "label": "Discovery scope", "detail": "11 domains · schemas and tables cataloged", "evidence": "Automated crawl of the estate against the metadata inventory.", "confidence": 92 },
+              { "id": "asm-context", "label": "Business context", "detail": "Enterprise data-warehouse operation", "evidence": "Fact/dimension modeling across staging, conformed, and mart layers.", "confidence": 90 },
+              { "id": "asm-value", "label": "Value concentration", "detail": "Conformed fact tables carry most rows and joins", "evidence": "A small set of wide facts anchors the analytical core.", "confidence": 88 }
+            ]
+          },
           "demoIntel": {
             "kind": "inference",
             "title": "BPC inference",
@@ -84,9 +93,28 @@
             ]
           } },
         { "id": "automated-data-catalog", "name": "Automated Data Catalog", "desc": "Automated ingestion of tables, schemas, columns, and sizes.", "state": "planned",
-          "demoMetrics": [ { "label": "Tables", "value": "6,200" }, { "label": "Columns profiled", "value": "182,000" }, { "label": "Schemas", "value": "58" } ] },
+          "demoMetrics": [ { "label": "Tables", "value": "6,200" }, { "label": "Columns profiled", "value": "182,000" }, { "label": "Schemas", "value": "58" } ],
+          "review": {
+            "kind": "approve",
+            "action": "Approve classification tags and sensitive-data flags before the catalog is certified.",
+            "items": [
+              { "id": "cat-fact", "label": "fct_sales_conformed", "detail": "Tag: Gold candidate · high value", "evidence": "Central conformed sales fact, queried by 40+ BI reports/day.", "confidence": 90 },
+              { "id": "cat-dim", "label": "dim_customer", "detail": "Tag: conform to Silver", "evidence": "Shared conformed dimension referenced across marts.", "confidence": 88 },
+              { "id": "cat-pii", "label": "dim_customer (PII columns)", "detail": "Sensitive-data flag: PII — name, email, address", "evidence": "Detected contact columns; referenced by 20+ downstream marts.", "confidence": 86, "risk": "PII" },
+              { "id": "cat-empty", "label": "480 orphaned staging tables", "detail": "Tag: Deprecate", "evidence": "No downstream lineage, zero reads in 90 days.", "confidence": 94 }
+            ]
+          } },
         { "id": "data-enrichment", "name": "Data Enrichment", "desc": "Usage patterns, access tools, and frequency from log analysis.", "state": "planned",
           "demoMetrics": [ { "label": "Usage scored", "value": "90%" }, { "label": "Hot tables", "value": "480" } ],
+          "review": {
+            "kind": "validate",
+            "action": "Validate the enrichment outputs and resolve business-rule exceptions.",
+            "items": [
+              { "id": "enr-usage", "label": "Usage scoring", "detail": "480 hot tables identified", "evidence": "Log analysis over the sampled window — hot tables cluster in the conformed marts.", "confidence": 87 },
+              { "id": "enr-legacy", "label": "Dormant tail", "detail": "Staging and orphaned tables untouched", "evidence": "No recent execution — deprecation candidates for the backlog.", "confidence": 89 },
+              { "id": "enr-nullable", "label": "Constraint exception", "detail": "High nullability — key integrity uncertain", "evidence": "Loosely constrained columns weigh against premature Gold.", "confidence": 83, "risk": "Data quality" }
+            ]
+          },
           "demoIntel": {
             "kind": "annotation",
             "title": "BPC data annotation",
@@ -99,16 +127,25 @@
             ]
           } },
         { "id": "transformation", "name": "Transformation", "desc": "Pipeline parsing and ETL / database assessment of transformation logic.", "state": "planned",
-          "demoMetrics": [ { "label": "Pipelines parsed", "value": "94" }, { "label": "Transform steps", "value": "1,120" } ] }
+          "demoMetrics": [ { "label": "Pipelines parsed", "value": "94" }, { "label": "Transform steps", "value": "1,120" } ],
+          "review": {
+            "kind": "approve",
+            "action": "Approve the parsed pipeline mappings and transformation logic before execution.",
+            "items": [
+              { "id": "trn-load", "label": "Source → staging load", "detail": "Ingest packages mapped end to end", "evidence": "Join keys parsed from pipeline definitions.", "confidence": 88 },
+              { "id": "trn-conform", "label": "Staging → conformed mart", "detail": "Conform logic to fct_sales_conformed", "evidence": "Transformation steps mapped from staging to the sales fact.", "confidence": 85 },
+              { "id": "trn-orphan", "label": "Orphaned pipelines", "detail": "Pipelines with no active schedule", "evidence": "No job references — candidates to exclude from scope.", "confidence": 82 }
+            ]
+          } }
       ],
       "demoMeaning": {
         "title": "What does the data mean?",
         "subtitle": "BPC reads the catalog and answers in business terms - not just what the tables are, but what they say about the business.",
         "author": "BPC · Business Process Co-Pilot",
         "questions": [
-          { "q": "What business is this data describing?", "a": "A large enterprise data-warehouse operation. The catalog is fact/dimension modeled across staging, conformed, and mart layers - the analytical backbone that BI and reporting run on, spanning 11 business domains." },
-          { "q": "Where does the value concentrate?", "a": "In the conformed fact tables and shared dimensions. A small set of wide sales, finance, and operations facts carry most rows and every important join, so those and the conformed dimensions are what to promote to Gold first." },
-          { "q": "What does the data warn us about?", "a": "Sprawl and PII. Hundreds of staging and orphaned tables inflate the estate without downstream value, and conformed customer dimensions carry PII that must be masked before the Silver layer." }
+          { "sourceItem": "asm-counts", "q": "What business is this data describing?", "a": "A large enterprise data-warehouse operation. The catalog is fact/dimension modeled across staging, conformed, and mart layers - the analytical backbone that BI and reporting run on, spanning 11 business domains." },
+          { "sourceItem": "asm-value", "q": "Where does the value concentrate?", "a": "In the conformed fact tables and shared dimensions. A small set of wide sales, finance, and operations facts carry most rows and every important join, so those and the conformed dimensions are what to promote to Gold first." },
+          { "sourceItem": "enr-nullable", "q": "What does the data warn us about?", "a": "Sprawl and PII. Hundreds of staging and orphaned tables inflate the estate without downstream value, and conformed customer dimensions carry PII that must be masked before the Silver layer." }
         ]
       },
       "presentation": { "deliverables": [2], "statuses": [
@@ -146,6 +183,37 @@
           { "signal": "Ownership resolution", "topic": "Ownership Mapping", "weight": 74, "why": "An unowned dataset can't be promoted or governed; unresolved ownership is the gating risk for classification sign-off." },
           { "signal": "Load-order / ELT dependency", "topic": "Manual Additions", "weight": 58, "why": "Staging-to-mart load order defines what breaks when a source shifts - the main place automated lineage needs analyst confirmation." },
           { "signal": "Conformed-dimension drift", "topic": "Ownership Mapping", "weight": 45, "why": "Shared dimensions feed every mart - stale conformed master data ripples across the whole warehouse but changes slowly." }
+        ]
+      },
+      "review": {
+        "certifies": "D3",
+        "tracks": [
+          {
+            "id": "lineage", "name": "Lineage Validation", "type": "lineage",
+            "action": "Confirm lineage accuracy and approve critical upstream / downstream paths before certification.",
+            "items": [
+              { "id": "lin-erp-ods", "label": "ERP → core database", "detail": "Upstream · master data feeds the estate", "edge": "FK", "critical": true, "evidence": "Join on source key; feeds every downstream mart.", "confidence": 87 },
+              { "id": "lin-conform", "label": "Staging → fct_sales_conformed", "detail": "Downstream · staging conforms into sales fact", "edge": "ELT step", "critical": true, "evidence": "Pipelines assemble the conformed grain from staging.", "confidence": 84 },
+              { "id": "lin-bi", "label": "Conformed mart → BI reports", "detail": "Downstream · marts feed dashboards", "edge": "Manual", "critical": false, "evidence": "No lineage API on the BI tool — edge inferred from report metadata, needs confirmation.", "confidence": 60 }
+            ]
+          },
+          {
+            "id": "ownership", "name": "Ownership Mapping", "type": "ownership",
+            "action": "Assign data owners and stewards, confirm accountability, and resolve cross-domain conflicts.",
+            "items": [
+              { "id": "own-fact", "label": "fct_sales_conformed", "owner": "Sales Analytics", "steward": "", "detail": "Steward unresolved — blocks Gold certification", "evidence": "Domain tag = Sales; no steward named.", "confidence": 70 },
+              { "id": "own-dim", "label": "dim_customer", "owner": "", "steward": "", "detail": "Ownership conflict — Sales and CRM both claim", "conflict": ["Sales", "CRM"], "evidence": "Referenced by both Sales marts and the CRM feed.", "confidence": 48, "risk": "Unowned" }
+            ]
+          },
+          {
+            "id": "classification", "name": "Classification Certification", "type": "classification",
+            "action": "Certify the final Bronze / Silver / Gold assignment for each dataset.",
+            "items": [
+              { "id": "cls-fact", "label": "fct_sales_conformed", "layer": "Gold", "detail": "Proposed Gold — analytical core", "evidence": "Widest downstream fan-out, highest usage score.", "confidence": 90 },
+              { "id": "cls-dim", "label": "dim_customer", "layer": "Silver", "detail": "Proposed Silver — PII, mask before promotion", "evidence": "Carries PII; usable as conformed master once masked.", "confidence": 79, "risk": "PII" },
+              { "id": "cls-staging", "label": "stg_* staging layer", "layer": "Bronze", "detail": "Proposed Bronze — transient staging", "evidence": "Reprocessed each load, no direct consumption.", "confidence": 93 }
+            ]
+          }
         ]
       },
       "presentation": { "deliverables": [3], "statuses": [

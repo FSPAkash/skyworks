@@ -72,6 +72,15 @@ export default function AskFindability() {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [msgs, typing]);
 
+  // lock the page body scroll while the panel is open, so only the chat log
+  // scrolls (avoids a second scrollbar from the page behind the scrim)
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+
   const ask = (item) => {
     if (typing) return;
     setMsgs((m) => [...m, { from: "user", text: item.q }]);
@@ -137,17 +146,17 @@ export default function AskFindability() {
           </div>
 
           <style>{`
-            .af-scrim{position:fixed;inset:0;z-index:210;display:flex;justify-content:flex-end;
+            .af-scrim{position:fixed;inset:0;z-index:210;display:flex;justify-content:flex-end;overflow:hidden;
               background:rgba(24,40,70,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
               animation:afFade .2s ease both}
             @keyframes afFade{from{opacity:0}to{opacity:1}}
-            .af-panel{width:min(440px,100vw);height:100vh;display:flex;flex-direction:column;
+            .af-panel{width:min(440px,100vw);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;
               background:linear-gradient(180deg,rgba(70,120,200,.34),rgba(44,90,168,.30));
               backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);
               border-left:1px solid rgba(255,255,255,.35);box-shadow:-18px 0 50px -20px rgba(20,40,80,.5);
               animation:afSlide .28s cubic-bezier(.2,.7,.3,1) both}
             @keyframes afSlide{from{transform:translateX(30px);opacity:.4}to{transform:none;opacity:1}}
-            .af-head{display:flex;align-items:center;gap:12px;padding:16px 18px;
+            .af-head{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:16px 18px;
               border-bottom:1px solid rgba(255,255,255,.3);text-shadow:0 1px 2px rgba(20,40,80,.35)}
             .af-head-ic{width:34px;height:34px;flex:0 0 auto;border:1.5px solid rgba(255,255,255,.6);
               background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -157,7 +166,7 @@ export default function AskFindability() {
             .af-x{margin-left:auto;flex:0 0 auto;width:30px;height:30px;border:1px solid rgba(255,255,255,.55);
               background:rgba(255,255,255,.28);color:#fff;cursor:pointer;font-size:13px}
             .af-x:hover{background:rgba(255,255,255,.45)}
-            .af-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+            .af-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
             .af-msg{display:flex;gap:9px;max-width:92%}
             .af-msg.bot{align-self:flex-start}
             .af-msg.user{align-self:flex-end;flex-direction:row-reverse}
@@ -175,7 +184,8 @@ export default function AskFindability() {
             .af-typing span:nth-child(2){animation-delay:.18s}
             .af-typing span:nth-child(3){animation-delay:.36s}
             @keyframes afBlink{0%,60%,100%{opacity:.25}30%{opacity:1}}
-            .af-suggest{border-top:1px solid rgba(255,255,255,.3);padding:14px 18px 18px;background:rgba(255,255,255,.08)}
+            .af-suggest{flex:0 0 auto;max-height:42vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,.3);
+              padding:14px 18px 18px;background:rgba(255,255,255,.08)}
             .af-suggest-lbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
               color:rgba(255,255,255,.85);margin-bottom:10px;line-height:1.5}
             .af-chips{display:flex;flex-direction:column;gap:8px}
