@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useConfig } from "../config.jsx";
 import { GENIE_LOGO } from "../genielogo.js";
 
-// Ask Findability: a full-height, right-side Gen-AI assistant on the Presentation
+// Omni ICU: a full-height, right-side Gen-AI assistant on the Presentation
 // page. Answers go *beyond* what the deliverables show - the underlying data the
 // study drew on, methodology, and judgement calls - using canned mock Q&A tailored
 // per profile (Skyworks vs the generic DEMO). Blue translucent glass, FS mark.
@@ -63,7 +63,7 @@ export default function AskFindability() {
   // greet on first open
   useEffect(() => {
     if (open && msgs.length === 0) {
-      setMsgs([{ from: "bot", text: `Hi - I'm Findability, the assistant for the ${clientName} assessment. Ask me about the data behind the study: what it ran on, how value and quality were judged, and the calls that sit under the deliverables.` }]);
+      setMsgs([{ from: "bot", text: `Hi - I'm Omni ICU, the assistant for the ${clientName} assessment. Ask me about the data behind the study: what it ran on, how value and quality were judged, and the calls that sit under the deliverables.` }]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -98,17 +98,17 @@ export default function AskFindability() {
   return (
     <>
       <button className="af-fab" onClick={() => setOpen(true)}>
-        <span className="af-fab-ic"><img src={GENIE_LOGO} alt="Findability" /></span>
-        <span className="af-fab-txt"><b>Ask Findability</b><i>Questions about the study data</i></span>
+        <span className="af-fab-ic"><img src={GENIE_LOGO} alt="Omni ICU" /></span>
+        <span className="af-fab-txt"><b>Omni ICU</b><i>Questions about the study data</i></span>
       </button>
 
       {open && createPortal(
         <div className="af-scrim" onClick={() => setOpen(false)}>
           <div className="af-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="af-head">
-              <span className="af-head-ic"><img src={GENIE_LOGO} alt="Findability" /></span>
+              <span className="af-head-ic"><img src={GENIE_LOGO} alt="Omni ICU" /></span>
               <div className="af-head-txt">
-                <div className="af-title">Ask Findability</div>
+                <div className="af-title">Omni ICU</div>
                 <div className="af-sub">{clientName} · data behind the study</div>
               </div>
               <button className="af-x" onClick={() => setOpen(false)} aria-label="Close">✕</button>

@@ -1116,13 +1116,23 @@
         "name": "Classify",
         "state": "in-progress",
         "throughput": "D4 pending",
-        "detail": "Lineage (D3) proceeding; Bronze / Silver / Gold classification starts W4."
+        "detail": "Lineage (D3) proceeding; Bronze / Silver / Gold classification starts W4.",
+        "certifiedBy": "unification",
+        "certified": {
+          "throughput": "D3, D4, D5 certified",
+          "detail": "Lineage, ownership, and Bronze / Silver / Gold classification signed off in Unification."
+        }
       },
       {
         "name": "Recommend",
         "state": "planned",
         "throughput": "phase 3-4",
-        "detail": "Cost/performance simulation, transition backlog, playbook, and exec summary."
+        "detail": "Cost/performance simulation, transition backlog, playbook, and exec summary.",
+        "unlockedBy": "unification",
+        "unlocked": {
+          "throughput": "phase 3-4 ready",
+          "detail": "Baseline certified — cost/performance simulation, transition backlog, playbook, and exec summary can proceed."
+        }
       }
     ],
     "confidence": {

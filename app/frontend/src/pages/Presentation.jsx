@@ -1,14 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 import AskFindability from "../components/AskFindability.jsx";
+
+// mirrors fs_certify (the Unification Baseline sign-off) and re-renders when it
+// changes, so everything Presentation reports stays live with certification.
+function useCertify() {
+  const read = () => { try { return JSON.parse(localStorage.getItem("fs_certify") || "{}"); } catch { return {}; } };
+  const [c, setC] = useState(read);
+  useEffect(() => {
+    const on = () => setC(read());
+    window.addEventListener("fs_certify_sync", on);
+    window.addEventListener("focus", on);   // catch a sign-off made on another page
+    return () => { window.removeEventListener("fs_certify_sync", on); window.removeEventListener("focus", on); };
+  }, []);
+  return c;
+}
 
 // Presentation reports what Unification signed off. The certification record is
 // written client-side when the human certifies the Baseline on the Unification
 // page; here it gates whether the classification deliverables read as certified.
 function CertBanner() {
-  let rec = null;
-  try { rec = (JSON.parse(localStorage.getItem("fs_certify") || "{}"))["unification"]; } catch {}
+  const rec = useCertify()["unification"] || null;
   const done = !!rec;
   return (
     <div className={"cert-banner" + (done ? " done" : "")}>
@@ -84,13 +97,22 @@ function MeterTiles({ meters }) {
 // estate - stages, a model-confidence gauge, and the reasoning workload. This is
 // the "more than meters" view of BPC at work for decision makers.
 function BpcProcessing({ proc }) {
+  const certify = useCertify();
   if (!proc || !(proc.stages || []).length) return null;
   const conf = proc.confidence;
+  // a stage tied to a certification (certifiedBy) flips to delivered once that
+  // sign-off exists; a stage gated by one (unlockedBy) advances to in-progress.
+  const liveStage = (s) => {
+    if (s.certifiedBy && certify[s.certifiedBy]) return { ...s, state: "delivered", ...(s.certified || {}) };
+    if (s.unlockedBy && certify[s.unlockedBy] && s.state === "planned") return { ...s, state: "in-progress", ...(s.unlocked || {}) };
+    return s;
+  };
+  const stages = proc.stages.map(liveStage);
   return (
     <div className="bpcp">
       {/* pipeline stages */}
       <div className="bpcp-flow">
-        {proc.stages.map((s, i) => (
+        {stages.map((s, i) => (
           <div key={s.name} className={"bpcp-stage " + (STATE_CLASS[s.state] || "planned")}>
             <div className="bpcp-stage-top">
               <span className={"bpcp-dot " + (STATE_CLASS[s.state] || "planned")} />
@@ -98,7 +120,7 @@ function BpcProcessing({ proc }) {
             </div>
             <div className="bpcp-stage-thru">{s.throughput}</div>
             <div className="bpcp-stage-detail">{s.detail}</div>
-            {i < proc.stages.length - 1 && <span className="bpcp-arrow">›</span>}
+            {i < stages.length - 1 && <span className="bpcp-arrow">›</span>}
           </div>
         ))}
       </div>
