@@ -6,9 +6,17 @@
     "SQL",
     "Oracle",
     "Db2",
+    "ODS schemas",
     "CRM",
     "PLM",
     "EDI",
+    "SSIS packages",
+    "Query logs (usage)",
+    "Bloomberg",
+    "Manufacturing Data",
+    "Weather",
+    "London Metal Exchange",
+    "News Data",
     "Microsoft Fabric",
     "Warehouse",
     "Metadata Ingest Model",
@@ -18,8 +26,7 @@
   ],
   "collection": [
     "ODS schemas",
-    "Tables & columns",
-    "~250 SSIS packages",
+    "SSIS packages",
     "Query logs (usage)"
   ],
   "unification": [

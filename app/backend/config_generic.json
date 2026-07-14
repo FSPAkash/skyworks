@@ -30,9 +30,11 @@
       "sourceGroups": [
         { "label": "ERP", "category": "sources", "subcat": "internal-structured", "items": ["SAP", "ECC", "S/4 HANA", "PeopleSoft"] },
         { "label": "Databases", "category": "sources", "subcat": "internal-structured", "items": ["SQL", "Oracle", "Db2"] },
-        { "label": "Email & Documents", "category": "sources", "subcat": "internal-unstructured", "items": ["Exchange", "Microsoft 365", "Google Workspace"] },
-        { "label": "CRM", "category": "sources", "subcat": "external-structured", "items": ["Salesforce", "Dynamics 365", "HubSpot"] },
-        { "label": "External Feeds", "category": "sources", "subcat": "external-unstructured", "items": ["Partner PDFs", "Web / Market Data", "Support Tickets"] },
+        { "label": "Metadata", "category": "sources", "subcat": "internal-structured", "items": ["Schemas"] },
+        { "label": "Applications", "category": "sources", "subcat": "internal-unstructured", "items": ["CRM", "PLM", "EDI"] },
+        { "label": "Pipelines & Logs", "category": "sources", "subcat": "internal-unstructured", "items": ["SSIS packages", "Query logs"] },
+        { "label": "Market & Reference Feeds", "category": "sources", "subcat": "external-structured", "items": ["Bloomberg", "Manufacturing Data", "Weather", "London Metal Exchange"] },
+        { "label": "External Feeds", "category": "sources", "subcat": "external-unstructured", "items": ["News Data"] },
         { "label": "Cloud Platform", "category": "cloud", "items": ["Cloud Platform", "Data Lake"] },
         { "label": "BPC Models", "category": "llm", "items": ["BPC Models"] }
       ],

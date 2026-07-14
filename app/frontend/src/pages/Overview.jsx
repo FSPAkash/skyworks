@@ -62,8 +62,12 @@ export default function Overview() {
   const laneEnds = { above: [], below: [] };
   const items = deliverables.map((d, idx) => {
     const p = phaseOf(d.phase) || { weekStart: 1, weekEnd: 1, name: "" };
-    const ws = Math.max(1, Math.min(weeks || 1, p.weekStart || 1));
-    const we = Math.max(ws, Math.min(weeks || 1, p.weekEnd || ws));
+    // a deliverable may override the phase span with its own weekStart/weekEnd
+    // (used to shift a single deliverable off its phase, e.g. a slip).
+    const baseStart = d.weekStart ?? p.weekStart ?? 1;
+    const baseEnd = d.weekEnd ?? p.weekEnd ?? baseStart;
+    const ws = Math.max(1, Math.min(weeks || 1, baseStart));
+    const we = Math.max(ws, Math.min(weeks || 1, baseEnd));
     const side = idx % 2 === 0 ? "above" : "below";
     let lane = laneEnds[side].findIndex((end) => ws > end);
     if (lane === -1) { lane = laneEnds[side].length; laneEnds[side].push(we); }

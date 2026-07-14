@@ -110,19 +110,17 @@
           ]
         },
         {
-          "label": "Internal Documents",
+          "label": "ODS Metadata",
           "category": "sources",
-          "subcat": "internal-unstructured",
+          "subcat": "internal-structured",
           "items": [
-            "SharePoint",
-            "Confluence Wiki",
-            "Email Archives"
+            "ODS schemas"
           ]
         },
         {
           "label": "Applications",
           "category": "sources",
-          "subcat": "external-structured",
+          "subcat": "internal-unstructured",
           "items": [
             "CRM",
             "PLM",
@@ -130,13 +128,31 @@
           ]
         },
         {
+          "label": "Pipelines & Logs",
+          "category": "sources",
+          "subcat": "internal-unstructured",
+          "items": [
+            "SSIS packages",
+            "Query logs (usage)"
+          ]
+        },
+        {
+          "label": "Market & Reference Feeds",
+          "category": "sources",
+          "subcat": "external-structured",
+          "items": [
+            "Bloomberg",
+            "Manufacturing Data",
+            "Weather",
+            "London Metal Exchange"
+          ]
+        },
+        {
           "label": "External Feeds",
           "category": "sources",
           "subcat": "external-unstructured",
           "items": [
-            "Supplier PDFs",
-            "Web / Market Data",
-            "Support Tickets"
+            "News Data"
           ]
         },
         {
@@ -264,8 +280,7 @@
           "category": "sources",
           "items": [
             "ODS schemas",
-            "Tables & columns",
-            "555 SSIS packages"
+            "SSIS packages"
           ]
         },
         {
@@ -752,7 +767,9 @@
       "purpose": "Current-state alignment percentage to target medallion architecture with gap analysis",
       "phase": 2,
       "layer": "presentation",
-      "weeks": "W4-7",
+      "weeks": "W6-9",
+      "weekStart": 6,
+      "weekEnd": 9,
       "status": "planned",
       "artifact": null,
       "group": "BPC"

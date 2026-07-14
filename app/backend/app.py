@@ -131,6 +131,14 @@ CONNECTORS = {
     "Usage Scoring Model":   {"kind": "llm", "fields": LLM_FIELDS},
     "Classification Model":  {"kind": "llm", "fields": LLM_FIELDS},
     "Summarization Model":   {"kind": "llm", "fields": LLM_FIELDS},
+    # ODS metadata (structured relational catalog)
+    "ODS schemas":       {"kind": "db", "fields": DB_FIELDS},
+    "Schemas":           {"kind": "db", "fields": DB_FIELDS},
+    "Tables & columns":  {"kind": "db", "fields": DB_FIELDS},
+    # ETL pipelines + logs (semi/unstructured internal artifacts)
+    "SSIS packages":     {"kind": "docs", "fields": FILE_FIELDS},
+    "Query logs (usage)": {"kind": "docs", "fields": FILE_FIELDS},
+    "Query logs":        {"kind": "docs", "fields": FILE_FIELDS},
     # unstructured document / feed sources
     "SharePoint":        {"kind": "docs", "fields": FILE_FIELDS},
     "Confluence Wiki":   {"kind": "docs", "fields": FILE_FIELDS},
@@ -139,13 +147,19 @@ CONNECTORS = {
     "Supplier PDFs":     {"kind": "docs", "fields": FILE_FIELDS},
     "Web / Market Data": {"kind": "docs", "fields": FILE_FIELDS},
     "Support Tickets":   {"kind": "docs", "fields": FILE_FIELDS},
+    # external market / reference data feeds
+    "Bloomberg":            {"kind": "feed", "fields": API_FIELDS},
+    "Manufacturing Data":   {"kind": "feed", "fields": API_FIELDS},
+    "Weather":              {"kind": "feed", "fields": API_FIELDS},
+    "London Metal Exchange": {"kind": "feed", "fields": API_FIELDS},
+    "News Data":            {"kind": "feed", "fields": API_FIELDS},
 }
 DEFAULT_CONNECTOR = {"kind": "external", "fields": FILE_FIELDS}
 
 # kind -> top-level connection category shown in Infrastructure
 CATEGORY_BY_KIND = {
     "erp": "sources", "crm": "sources", "db": "sources", "mail": "sources",
-    "docs": "sources", "external": "sources",
+    "docs": "sources", "feed": "sources", "external": "sources",
     "cloud": "cloud", "llm": "llm",
 }
 CATEGORY_LABEL = {"sources": "Sources", "cloud": "Cloud", "llm": "LLM"}

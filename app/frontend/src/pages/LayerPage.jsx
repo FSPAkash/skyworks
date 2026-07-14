@@ -4,7 +4,7 @@ import { useConfig } from "../config.jsx";
 import Presentation from "./Presentation.jsx";
 import { downloadBpcPdf } from "../pdfReport.js";
 
-const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", docs: "Documents", cloud: "Cloud", llm: "LLM", external: "External" };
+const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", docs: "Documents", feed: "Feed", cloud: "Cloud", llm: "LLM", external: "External" };
 const STATE_CLASS = { delivered: "delivered", "in-progress": "in-progress", planned: "planned" };
 // sub-part / status work-state labels. "delivered" would read as a deliverable,
 // so completed collection/unification work is labelled "Ready" instead.
@@ -87,11 +87,17 @@ const SUBCAT_ORDER = [
   { key: "external-unstructured", label: "External · Unstructured" },
 ];
 
+const CAT_LABEL = { sources: "Sources", cloud: "Cloud", llm: "LLM" };
+
 function InfraConnections() {
   const { sources } = useConfig();
   const cats = ["sources", "cloud", "llm"];
-  const catMeta = sources.categories || {};
-  const hasAny = (sources.targets || []).length > 0;
+  // Only the Infrastructure layer's own targets belong here. Collection and
+  // Unification also declare `category:"sources"` source groups (schemas, logs,
+  // lineage feeds) - those are their own layer's inputs, not infra connections,
+  // so they must never leak onto this page.
+  const infraTargets = (sources.targets || []).filter((t) => t.layer === "infrastructure");
+  const hasAny = infraTargets.length > 0;
 
   return (
     <div>
@@ -106,10 +112,10 @@ function InfraConnections() {
       )}
 
       {cats.map((cat) => {
-        const cm = catMeta[cat];
-        if (!cm || cm.total === 0) return null;
-        const targets = (sources.targets || []).filter((t) => t.category === cat);
-        const complete = cm.connected === cm.total;
+        const targets = infraTargets.filter((t) => t.category === cat);
+        if (targets.length === 0) return null;
+        const connected = targets.filter((t) => (t.connection || {}).status === "connected").length;
+        const complete = connected === targets.length;
         // Sources: render each subcategory bucket with its own sub-header. Any
         // target without a subcat falls into an "Other" bucket at the end.
         const buckets = cat === "sources"
@@ -118,15 +124,15 @@ function InfraConnections() {
                 .map((s) => ({ ...s, items: targets.filter((t) => t.subcat === s.key) }))
                 .filter((s) => s.items.length);
               const other = targets.filter((t) => !SUBCAT_ORDER.some((s) => s.key === t.subcat));
-              return other.length ? [...known, { key: "other", label: "Unstructured / Other", items: other }] : known;
+              return other.length ? [...known, { key: "other", label: "Other", items: other }] : known;
             })()
           : null;
         return (
           <div key={cat} className="card" style={{ marginBottom: 14 }}>
             <div className="card-head">
-              <span className="chip accent">{cm.label}</span>
-              <span className={"conncount " + (complete ? "ok" : cm.connected ? "part" : "none")}>
-                {cm.connected}/{cm.total} · connected
+              <span className="chip accent">{CAT_LABEL[cat]}</span>
+              <span className={"conncount " + (complete ? "ok" : connected ? "part" : "none")}>
+                {connected}/{targets.length} · connected
               </span>
             </div>
             <div className="card-body" style={{ padding: 12 }}>
