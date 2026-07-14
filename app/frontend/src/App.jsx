@@ -8,6 +8,7 @@ import Overview from "./pages/Overview.jsx";
 import LayerPage from "./pages/LayerPage.jsx";
 import Admin from "./pages/Admin.jsx";
 import Login from "./pages/Login.jsx";
+import ChangeRole from "./components/ChangeRole.jsx";
 
 function Topbar() {
   const { config, user, logout, roleLabel, hasUnsavedFresh, saveNewProject, profile, runDemo, can } = useConfig();
@@ -15,6 +16,7 @@ function Topbar() {
   // Skyworks engagement, not for user-saved projects that cloned the template.
   const skyBrand = config?.brand === "skyworks";
   const [prompt, setPrompt] = useState(false);   // save-before-signout prompt
+  const [notifOpen, setNotifOpen] = useState(false);   // admin notifications popup
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -67,6 +69,32 @@ function Topbar() {
             title="Populate the whole project">
             {demoBusy ? "Running…" : "Run full project"}
           </button>
+        )}
+        {user?.role === "admin" && (
+          <div className="tb-notif">
+            <button className="tb-bell" onClick={() => setNotifOpen((o) => !o)} title="Notifications">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
+              </svg>
+              Notifications
+              <span className="tb-bell-badge">1</span>
+            </button>
+            {notifOpen && (
+              <>
+                <div className="tb-notif-scrim" onClick={() => setNotifOpen(false)} />
+                <div className="tb-notif-pop" role="dialog">
+                  <div className="tb-notif-head">Notifications</div>
+                  <div className="tb-notif-item">
+                    <span className="tb-notif-dot" />
+                    <div className="tb-notif-txt">
+                      <b>AI Factory</b>
+                      <span>needs your attention</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         )}
         {user && <div className="tb-user"><span className="tb-urole">{roleLabel[user.role]}</span></div>}
         {user && <button className="tb-logout" onClick={onSignOut}>Sign out</button>}
@@ -266,6 +294,7 @@ function Shell() {
         )}
       </main>
       <Footer />
+      <ChangeRole />
     </div>
   );
 }

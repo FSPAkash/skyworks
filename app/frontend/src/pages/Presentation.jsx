@@ -241,12 +241,18 @@ function DeliverablesSection({ deliverables, delivered }) {
 
 export default function Presentation() {
   const { config, sources } = useConfig();
+  const certify = useCertify();
   const { client, deliverables } = config;
   const ov = config.overview || {};
   const layer = (config.layers || []).find((l) => l.key === "presentation");
   const delivered = deliverables.filter((d) => d.status === "delivered").length;
   const align = ov.alignment;
-  const alignCurrent = Math.max(0, Math.min(100, Number(align?.current) || 0));
+  // the medallion alignment baseline is D5 - it only exists once the human
+  // certifies the Baseline in Unification. Before that it reads "not yet
+  // baselined"; after, it jumps to the certified figure.
+  const baselined = !!certify.unification;
+  const alignCurrent = Math.max(0, Math.min(100,
+    Number(baselined ? (align?.certifiedCurrent ?? align?.current) : align?.current) || 0));
   const showMeters = !!config.settings?.metersInPresentation && (sources.meters || []).length > 0;
   // Project-description intro (narrative + highlight tiles + engagement stats) is
   // clutter on the reporting page by default; an admin toggle opts it back in.
@@ -304,13 +310,20 @@ export default function Presentation() {
           <div className="card-head">{align?.label || "Alignment"}</div>
           <div className="card-body">
             {align && (
-              <>
-                <div className="ov-align-top">
-                  <span className="ov-align-pct">{alignCurrent}<span className="ov-align-sym">%</span></span>
-                  <span className="ov-align-goal">toward {align.target}% target</span>
+              baselined ? (
+                <>
+                  <div className="ov-align-top">
+                    <span className="ov-align-pct">{alignCurrent}<span className="ov-align-sym">%</span></span>
+                    <span className="ov-align-goal">toward {align.target}% target · baselined</span>
+                  </div>
+                  <div className="align-track"><div className="align-fill" style={{ width: `${alignCurrent}%` }} /></div>
+                </>
+              ) : (
+                <div className="ov-align-pending">
+                  <b>Not yet baselined</b>
+                  <span>Certify the Baseline (D5) in Unification to measure current-state medallion alignment.</span>
                 </div>
-                <div className="align-track"><div className="align-fill" style={{ width: `${alignCurrent}%` }} /></div>
-              </>
+              )
             )}
           </div>
         </div>
@@ -366,6 +379,9 @@ export default function Presentation() {
         .ov-align-goal{font-size:12px;color:var(--ink-3)}
         .align-track{height:12px;background:var(--tile);border:1px solid var(--hair);overflow:hidden}
         .align-fill{height:100%;background:var(--fs-green);transition:width .7s cubic-bezier(.2,.7,.3,1)}
+        .ov-align-pending{display:flex;flex-direction:column;gap:5px}
+        .ov-align-pending b{font-size:15px;font-weight:800;color:var(--ink-3)}
+        .ov-align-pending span{font-size:12px;color:var(--ink-3);line-height:1.45}
         .ms-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair)}
         .ms-row:last-child{border-bottom:none}
         .ms-dot{width:9px;height:9px;border-radius:0;flex:0 0 auto;background:var(--ds-yellow);border:1px solid var(--hair)}

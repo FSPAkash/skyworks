@@ -11,6 +11,17 @@ const ROLE_LABEL = {
   "admin": "Admin",
 };
 
+// Concise description of what each role does on the engagement (shown in the
+// Change Role genie), not the pages they can open.
+export const ROLE_SHOWS = {
+  "c-level": "Tracks progress and outcomes at a glance.",
+  "architect": "Shapes target architecture and lineage.",
+  "engineer": "Builds connections and ingests metadata.",
+  "analyst": "Classifies, enriches and interprets the data.",
+  "delivery": "Runs the engagement end to end.",
+  "admin": "Configures the workspace and onboards projects.",
+};
+
 export function ConfigProvider({ children }) {
   const [config, setConfig] = useState(null);
   const [error, setError] = useState(null);

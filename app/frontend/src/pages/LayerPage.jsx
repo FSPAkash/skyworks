@@ -92,9 +92,68 @@ const SUBCAT_ORDER = [
 
 const CAT_LABEL = { sources: "Sources", cloud: "Cloud", llm: "LLM" };
 
+// A connection list capped at 2 rows, with expand-to-see-the-rest. Keeps each
+// category compact when the SOW pulled in many sources.
+function ConnList({ items }) {
+  const [open, setOpen] = useState(false);
+  const CAP = 2;
+  const shown = open ? items : items.slice(0, CAP);
+  const more = items.length - CAP;
+  return (
+    <>
+      {shown.map((t) => <ConnForm key={t.id} target={t} />)}
+      {more > 0 && (
+        <button className="conn-more" onClick={() => setOpen((o) => !o)}>
+          {open ? "Show less" : `Show ${more} more`}
+        </button>
+      )}
+    </>
+  );
+}
+
+// A connection added on the page because it was missed in the SOW. Purely
+// client-side and mock: naming it and hitting Connect flips it green. No server.
+function ManualConn({ conn, onConnect }) {
+  const [open, setOpen] = useState(!conn.connected);
+  const [name, setName] = useState(conn.name || "");
+  const [host, setHost] = useState(conn.host || "");
+  const connected = conn.connected;
+  const doConnect = () => { if (!name.trim()) return; onConnect(conn.id, { name: name.trim(), host: host.trim() }); setOpen(false); };
+  return (
+    <div className={"conn " + (connected ? "connected" : "not-configured")}>
+      <div className="conn-head" onClick={() => setOpen((o) => !o)}>
+        <span className={"cdot " + (connected ? "connected" : "not-configured")} />
+        <span className="conn-src">{connected ? name : (name || "New connection")}</span>
+        <span className="chip">manual</span>
+        <span className="conn-status-txt">{connected ? "Connected" : "Not connected"}</span>
+        <span className="conn-toggle">{open ? "Close" : connected ? "Edit" : "Connect"}</span>
+      </div>
+      {open && (
+        <div className="conn-body">
+          <div className="conn-fields">
+            <label className="fld"><span className="fld-lbl">Name<i> *</i></span>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. PLM archive" autoFocus /></label>
+            <label className="fld"><span className="fld-lbl">Host / endpoint</span>
+              <input value={host} onChange={(e) => setHost(e.target.value)} placeholder="e.g. plm.internal:1521" /></label>
+          </div>
+          <div className="conn-actions">
+            <button className="btn primary" onClick={doConnect} disabled={!name.trim()}>Connect</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function InfraConnections() {
   const { sources } = useConfig();
   const cats = ["sources", "cloud", "llm"];
+  // manually-added connections per category (client-side only, mock)
+  const [manual, setManual] = useState({});
+  const addManual = (cat) => setManual((m) => ({ ...m, [cat]: [...(m[cat] || []), { id: `man-${cat}-${Date.now()}`, connected: false }] }));
+  const connectManual = (cat, id, vals) => setManual((m) => ({
+    ...m, [cat]: (m[cat] || []).map((c) => c.id === id ? { ...c, ...vals, connected: true } : c),
+  }));
   // Only the Infrastructure layer's own targets belong here. Collection and
   // Unification also declare `category:"sources"` source groups (schemas, logs,
   // lineage feeds) - those are their own layer's inputs, not infra connections,
@@ -116,9 +175,20 @@ function InfraConnections() {
 
       {cats.map((cat) => {
         const targets = infraTargets.filter((t) => t.category === cat);
-        if (targets.length === 0) return null;
-        const connected = targets.filter((t) => (t.connection || {}).status === "connected").length;
-        const complete = connected === targets.length;
+        const manualCat = manual[cat] || [];
+        if (targets.length === 0 && manualCat.length === 0 && !hasAny) return null;
+        if (targets.length === 0 && manualCat.length === 0) return (
+          <div key={cat} className="card" style={{ marginBottom: 14 }}>
+            <div className="card-head">
+              <span className="chip accent">{CAT_LABEL[cat]}</span>
+              <button className="conn-add" onClick={() => addManual(cat)}>+ Add connection</button>
+            </div>
+          </div>
+        );
+        const manConnected = manualCat.filter((c) => c.connected).length;
+        const connected = targets.filter((t) => (t.connection || {}).status === "connected").length + manConnected;
+        const total = targets.length + manualCat.length;
+        const complete = total > 0 && connected === total;
         // Sources: render each subcategory bucket with its own sub-header. Any
         // target without a subcat falls into an "Other" bucket at the end.
         const buckets = cat === "sources"
@@ -135,24 +205,38 @@ function InfraConnections() {
             <div className="card-head">
               <span className="chip accent">{CAT_LABEL[cat]}</span>
               <span className={"conncount " + (complete ? "ok" : connected ? "part" : "none")}>
-                {connected}/{targets.length} · connected
+                {connected}/{total} · connected
               </span>
+              <button className="conn-add" onClick={() => addManual(cat)}>+ Add connection</button>
             </div>
             <div className="card-body" style={{ padding: 12 }}>
               {buckets
                 ? buckets.map((b) => (
                     <div key={b.key} className="subcat">
                       <div className="subcat-label">{b.label}</div>
-                      {b.items.map((t) => <ConnForm key={t.id} target={t} />)}
+                      <ConnList items={b.items} />
                     </div>
                   ))
-                : targets.map((t) => <ConnForm key={t.id} target={t} />)}
+                : <ConnList items={targets} />}
+              {manualCat.length > 0 && (
+                <div className="subcat">
+                  <div className="subcat-label">Added on page</div>
+                  {manualCat.map((c) => <ManualConn key={c.id} conn={c} onConnect={(id, vals) => connectManual(cat, id, vals)} />)}
+                </div>
+              )}
             </div>
           </div>
         );
       })}
 
       <style>{`
+        .conn-add{margin-left:12px;flex:0 0 auto;background:var(--paper);border:1px solid var(--accent-ink);
+          color:var(--accent-ink);cursor:pointer;font:800 9.5px var(--font);text-transform:uppercase;
+          letter-spacing:.05em;padding:5px 11px}
+        .conn-add:hover{background:var(--accent-tint)}
+        .conn-more{width:100%;background:var(--tile);border:1px dashed var(--grid-line);color:var(--ink-2);
+          cursor:pointer;font:800 10px var(--font);text-transform:uppercase;letter-spacing:.06em;padding:8px;margin-top:2px}
+        .conn-more:hover{background:var(--paper);border-color:var(--accent-ink);color:var(--accent-ink)}
         .conncount{margin-left:auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
           padding:3px 9px;border-radius:0;border:1.5px solid var(--grid-line)}
         .conncount.ok{color:#fff;background:var(--fs-green)}
@@ -825,12 +909,64 @@ function UniItemModal({ track, item, dec, set, close }) {
   );
 }
 
+// Fake connect to the FS EDA (Enterprise Data Assessment) tool, shown above the
+// lineage tracks. Mock only: hitting Connect flips the box green. Persists per
+// profile so the demo keeps the connection across a reload.
+function EdaConnect() {
+  const { pid } = useConfig();
+  const key = `fs_eda_${pid}`;
+  const [connected, setConnected] = useState(() => {
+    try { return localStorage.getItem(key) === "1"; } catch { return false; }
+  });
+  const [busy, setBusy] = useState(false);
+  const connect = () => {
+    setBusy(true);
+    setTimeout(() => {
+      setBusy(false); setConnected(true);
+      try { localStorage.setItem(key, "1"); } catch {}
+    }, 650);
+  };
+  return (
+    <div className={"eda" + (connected ? " on" : "")}>
+      <span className={"eda-dot" + (connected ? " on" : "")} />
+      <div className="eda-txt">
+        <b>{connected ? "Connected to FS EDA tool" : "Connect to FS EDA tool"}</b>
+        <span>{connected
+          ? "Lineage feeds and dependency graph are streaming from the Enterprise Data Assessment engine."
+          : "Pull upstream / downstream lineage from the Enterprise Data Assessment engine."}</span>
+      </div>
+      {connected
+        ? <span className="eda-badge">Live</span>
+        : <button className="btn primary" onClick={connect} disabled={busy}>{busy ? "Connecting…" : "Connect"}</button>}
+      <style>{`
+        .eda{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:14px 17px;
+          background:var(--paper);border:1px solid var(--hair);box-shadow:var(--soft)}
+        .eda.on{border-color:var(--fs-green);background:var(--accent-tint);box-shadow:var(--halo)}
+        .eda-dot{width:11px;height:11px;flex:0 0 auto;border:1.5px solid var(--grid-line);background:var(--paper)}
+        .eda-dot.on{background:var(--fs-green);border-color:var(--fs-green)}
+        .eda-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+        .eda-txt b{font-size:13.5px;font-weight:800;color:var(--ink)}
+        .eda-txt span{font-size:11.5px;color:var(--ink-3);line-height:1.4}
+        .eda .btn{flex:0 0 auto}
+        .eda-badge{flex:0 0 auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+          color:#fff;background:var(--fs-green);padding:4px 10px}
+      `}</style>
+    </div>
+  );
+}
+
 function UnificationReview({ layer, state, set, reset }) {
   const rv = layer.review;
+  const { canSubpart } = useConfig();
   const [signed, setSigned] = useState(() => {
     try { return JSON.parse(localStorage.getItem("fs_certify") || "{}"); } catch { return {}; }
   });
   if (!rv || !(rv.tracks || []).length) return null;
+  // role-scoped: a track the current role doesn't work on is hidden, and drops
+  // out of the certify math so the gate reflects only what this role can act on
+  const tracks = rv.tracks.filter((t) => canSubpart(t.id));
+  const hiddenCount = rv.tracks.length - tracks.length;
+  if (!tracks.length) return null;
 
   const writeSigned = (next) => {
     setSigned(next);
@@ -843,17 +979,17 @@ function UnificationReview({ layer, state, set, reset }) {
     const next = { ...signed }; delete next[layer.key];
     writeSigned(next);
   };
-  const anyWork = !!signed[layer.key] || rv.tracks.some((t) =>
+  const anyWork = !!signed[layer.key] || tracks.some((t) =>
     [...t.items, ...(state[`__added_${t.id}`]?.items || [])].some((i) => state[i.id]?.decision));
 
-  const allItems = rv.tracks.flatMap((t) => {
+  const allItems = tracks.flatMap((t) => {
     const addedItems = (state[`__added_${t.id}`]?.items || []);
     return [...t.items, ...addedItems].map((i) => ({ ...i, _type: t.type }));
   });
   const resolved = allItems.filter((i) => state[i.id]?.decision).length;
   // ack-risks are PII / data-quality; "Unowned" is resolved by assigning an owner
   const risksOpen = allItems.filter((i) => i.risk && i.risk !== "Unowned" && !state[i.id]?.ack).length;
-  const own = rv.tracks.find((t) => t.type === "ownership");
+  const own = tracks.find((t) => t.type === "ownership");
   // any ownership item still missing an owner blocks certification
   const unownedOpen = (own?.items || []).filter((i) => isUnowned(i, state)).length;
   const blockers = [];
@@ -866,8 +1002,8 @@ function UnificationReview({ layer, state, set, reset }) {
   // sequence: classification is locked until lineage and ownership resolve. You
   // can't certify a medallion layer on unconfirmed lineage or unowned data.
   const trackDone = (type) => {
-    const t = rv.tracks.find((x) => x.type === type);
-    if (!t) return false;
+    const t = tracks.find((x) => x.type === type);
+    if (!t) return true;   // a track not visible to this role doesn't gate them
     const all = [...t.items, ...(state[`__added_${t.id}`]?.items || [])];
     return all.every((i) => state[i.id]?.decision);
   };
@@ -883,11 +1019,15 @@ function UnificationReview({ layer, state, set, reset }) {
 
   return (
     <div style={{ marginBottom: 20 }}>
-      {rv.tracks.map((t) => (
+      <EdaConnect />
+      {tracks.map((t) => (
         <UniTrack key={t.id} track={t} state={state} set={set}
           locked={t.type === "classification" && clsLocked}
           lockReason={clsLockReason} />
       ))}
+      {hiddenCount > 0 && (
+        <div className="rvw-scoped">{hiddenCount} track{hiddenCount > 1 ? "s" : ""} outside your role are hidden from this view.</div>
+      )}
 
       <div className={"rvw-gate" + (ready ? " ready" : "") + (isSigned ? " signed" : "")}>
         {isSigned ? (
@@ -1096,6 +1236,9 @@ function ReviewStyles() {
       .rvw-seg-btn.on.gold{background:var(--ds-yellow);color:var(--ink)}
       .rvw-modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px;padding-top:16px;
         border-top:1px solid var(--hair)}
+      /* note when some tracks are hidden by role scope */
+      .rvw-scoped{margin:0 0 16px;padding:10px 14px;font-size:11.5px;color:var(--ink-3);font-weight:600;
+        background:var(--tile);border:1px solid var(--hair)}
       /* the sign-off gate */
       .rvw-gate{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--paper);
         border:1px solid var(--hair);box-shadow:var(--soft)}
@@ -1580,7 +1723,9 @@ export default function LayerPage() {
 
       {(key === "collection" || key === "unification") && <WorkingOn layerKey={key} />}
 
-      {key === "infrastructure" && <InfraConnections />}
+      {key === "infrastructure" && (canSubpart("infra-connections")
+        ? <InfraConnections />
+        : <div className="rvw-scoped">Connection setup is handled by the Data Engineer role. Switch roles to configure connections.</div>)}
       {/* Unification's work now lives in the review tracks below, so the static
           sub-part status rows are dropped there to avoid duplicating them. */}
       {key !== "infrastructure" && key !== "unification" &&

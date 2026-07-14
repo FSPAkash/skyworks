@@ -68,7 +68,11 @@ export default function Overview() {
     const baseEnd = d.weekEnd ?? p.weekEnd ?? baseStart;
     const ws = Math.max(1, Math.min(weeks || 1, baseStart));
     const we = Math.max(ws, Math.min(weeks || 1, baseEnd));
-    const side = idx % 2 === 0 ? "above" : "below";
+    // a deliverable may pin itself to a side (e.g. D4/D5 sit together below);
+    // otherwise it alternates above/below by index
+    const side = d.timelineSide === "above" || d.timelineSide === "below"
+      ? d.timelineSide
+      : (idx % 2 === 0 ? "above" : "below");
     let lane = laneEnds[side].findIndex((end) => ws > end);
     if (lane === -1) { lane = laneEnds[side].length; laneEnds[side].push(we); }
     else laneEnds[side][lane] = we;

@@ -40,6 +40,7 @@
     ],
     "alignment": {
       "current": 0,
+      "certifiedCurrent": 58,
       "target": 100,
       "label": "Current medallion alignment"
     },
@@ -1016,7 +1017,10 @@
       "purpose": "Usage-score-based Bronze/Silver/Gold classification with rationale",
       "phase": 2,
       "layer": "unification",
-      "weeks": "W4-7",
+      "weeks": "W4-5",
+      "weekStart": 4,
+      "weekEnd": 5,
+      "timelineSide": "below",
       "status": "planned",
       "artifact": null,
       "group": "BPC"
@@ -1028,9 +1032,10 @@
       "purpose": "Current-state alignment percentage to target medallion architecture with gap analysis",
       "phase": 2,
       "layer": "unification",
-      "weeks": "W6-9",
+      "weeks": "W6-7",
       "weekStart": 6,
-      "weekEnd": 9,
+      "weekEnd": 7,
+      "timelineSide": "below",
       "status": "planned",
       "artifact": null,
       "group": "BPC"

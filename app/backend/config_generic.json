@@ -14,7 +14,7 @@
     "background": "BPC connects the source systems, cloud platform, and models the assessment runs on, ingests metadata, enriches it with usage context, maps end-to-end lineage, and packages findings and recommendations for handover.",
     "outcome": "Findings, lineage, and recommendations are delivered as final outputs the client owns.",
     "highlights": [],
-    "alignment": { "current": 0, "target": 100, "label": "Assessment progress" },
+    "alignment": { "current": 0, "certifiedCurrent": 62, "target": 100, "label": "Assessment progress" },
     "milestones": [
       { "name": "Setup & Discovery", "when": "Phase 1", "trigger": "Connectivity and metadata inventory", "status": "planned" },
       { "name": "Mapping & Classification", "when": "Phase 2", "trigger": "Lineage and classification", "status": "planned" },

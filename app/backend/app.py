@@ -198,14 +198,23 @@ ROLE_LAYERS = {
     "admin":     _ALL_LAYERS,
 }
 
-# which Collection sub-parts a role works on (sub-part id -> roles). PM/Admin see
-# all. Sub-parts a role can't see are hidden. Layers other than Collection show
-# all their sub-parts to any role that can open the layer.
+# Which sub-parts / sections a role works on (section id -> roles). Gating goes
+# BEYOND whole pages: individual Collection sub-parts AND key sections inside
+# other layers (Unification tracks, Infra connection setup) are role-scoped.
+# PM/Admin see everything. An id not listed here is visible to any role that can
+# open its layer. A role that can't see a section has it hidden entirely.
 ROLE_SUBPARTS = {
+    # ---- Collection sub-parts ----
     "domain-intelligence":   ["analyst", "delivery", "admin"],
     "automated-data-catalog":["engineer", "analyst", "delivery", "admin"],
     "data-enrichment":       ["analyst", "delivery", "admin"],
     "transformation":        ["engineer", "delivery", "admin"],   # ETL / DB assessment
+    # ---- Unification tracks ----
+    "lineage":               ["architect", "engineer", "delivery", "admin"],  # lineage is architecture/eng work
+    "ownership":             ["architect", "analyst", "delivery", "admin"],   # data ownership is analyst/architect
+    "classification":        ["analyst", "architect", "delivery", "admin"],   # Bronze/Silver/Gold certification
+    # ---- Infrastructure ----
+    "infra-connections":     ["engineer", "delivery", "admin"],   # only engineers set up connections
 }
 
 app = Flask(__name__, static_folder=None)

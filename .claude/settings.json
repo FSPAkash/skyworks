@@ -201,7 +201,8 @@
       "Bash(rm -f app/frontend/drive3.mjs app/frontend/drive4.mjs)",
       "Bash(pkill -f app.py)",
       "Bash(rm -f app/frontend/drive6.mjs)",
-      "Bash(rm -f app/frontend/drive7.mjs)"
+      "Bash(rm -f app/frontend/drive7.mjs)",
+      "Bash(rm -f app/frontend/driveN.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",
