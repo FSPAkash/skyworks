@@ -202,7 +202,13 @@
       "Bash(pkill -f app.py)",
       "Bash(rm -f app/frontend/drive6.mjs)",
       "Bash(rm -f app/frontend/drive7.mjs)",
-      "Bash(rm -f app/frontend/driveN.mjs)"
+      "Bash(rm -f app/frontend/driveN.mjs)",
+      "Bash(rm -f app/frontend/driveI.mjs)",
+      "Bash(rm -f app/frontend/driveH.mjs)",
+      "Bash(unzip -p BPC4Data.docx word/document.xml)",
+      "Bash(mv inspect.py xlsx_inspect.py)",
+      "Bash(python xlsx_inspect.py)",
+      "Bash(grep -i '~\\\\$')"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",

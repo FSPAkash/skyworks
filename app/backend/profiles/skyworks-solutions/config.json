@@ -8,6 +8,7 @@
   },
   "client": {
     "name": "Skyworks Solutions",
+    "dataOwner": "Skyworks Inc",
     "engagement": "ODS Assessment & Medallion Transition Planning",
     "framework": "Assessment",
     "durationWeeks": 16,

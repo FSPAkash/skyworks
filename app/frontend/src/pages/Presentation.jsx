@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useConfig } from "../config.jsx";
 import { FS_LOGO } from "../fslogo.js";
 import AskFindability from "../components/AskFindability.jsx";
+import StageOwner from "../components/StageOwner.jsx";
 
 // mirrors fs_certify (the Unification Baseline sign-off) and re-renders when it
 // changes, so everything Presentation reports stays live with certification.
@@ -261,7 +262,11 @@ export default function Presentation() {
   return (
     <div className="ov">
       {/* header */}
-      <h1 className="page">{layer?.name || "Presentation"}</h1>
+      <div className="page-hd">
+        <h1 className="page">{layer?.name || "Presentation"}</h1>
+        {/* who owns the data at this stage, and where it lives */}
+        <StageOwner />
+      </div>
 
       {/* Gen-AI assistant: ask about the study data beyond the deliverables */}
       <AskFindability />

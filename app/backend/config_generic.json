@@ -3,6 +3,7 @@
   "product": { "name": "BPC for Data", "short": "BPC", "bpcFull": "Business Process Co-Pilot" },
   "client": {
     "name": "DEMO",
+    "dataOwner": "the client",
     "engagement": "New Data Assessment",
     "framework": "Assessment",
     "durationWeeks": 0,

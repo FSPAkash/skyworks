@@ -8,5 +8,8 @@ venv/
 .DS_Store
 Thumbs.db
 
+# office lock/temp files
+~$*
+
 # NOTE: app/frontend/dist/ is intentionally committed (see app/.gitignore) so the
 # Python host can serve the built SPA without a Node build step.

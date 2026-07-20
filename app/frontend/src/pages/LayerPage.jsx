@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useConfig } from "../config.jsx";
 import Presentation from "./Presentation.jsx";
+import StageOwner from "../components/StageOwner.jsx";
 import { downloadBpcPdf } from "../pdfReport.js";
 
 const KIND_LABEL = { db: "Database", erp: "ERP", crm: "CRM", mail: "Mail", docs: "Documents", feed: "Feed", cloud: "Cloud", llm: "LLM", external: "External" };
@@ -1719,7 +1720,10 @@ export default function LayerPage() {
     <div>
       <BpcStyles />
       <ReviewStyles />
-      <h1 className="page">{layer.name}</h1>
+      <div className="page-hd">
+        <h1 className="page">{layer.name}</h1>
+        <StageOwner variant={key === "infrastructure" ? "infra" : undefined} />
+      </div>
 
       {(key === "collection" || key === "unification") && <WorkingOn layerKey={key} />}
 
