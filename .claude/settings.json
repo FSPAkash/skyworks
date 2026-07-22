@@ -208,7 +208,9 @@
       "Bash(unzip -p BPC4Data.docx word/document.xml)",
       "Bash(mv inspect.py xlsx_inspect.py)",
       "Bash(python xlsx_inspect.py)",
-      "Bash(grep -i '~\\\\$')"
+      "Bash(grep -i '~\\\\$')",
+      "Bash(python \"C:/Users/AKASHP~1/AppData/Local/Temp/claude/c--Users-AkashPatil-Skyworks/1031fdae-e13b-404e-a832-2d95d676834a/scratchpad/build_d4.py\")",
+      "Bash(bash \"C:/Users/AKASHP~1/AppData/Local/Temp/claude/c--Users-AkashPatil-Skyworks/1031fdae-e13b-404e-a832-2d95d676834a/scratchpad/shoot4.sh\" 1)"
     ],
     "additionalDirectories": [
       "C:\\Users\\AkashPatil\\Skyworks\\D1",
