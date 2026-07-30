@@ -181,6 +181,7 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
     <p class="sub reveal d2">A complete catalog of the Skyworks ODS estate: every database, table, view, column, and programmable object, profiled to depth. Completed in Phase 1, this inventory becomes the foundation for the Phase 2 lineage map and Bronze / Silver / Gold classification.</p>
     <div class="meta reveal d3">
       <div class="m"><div class="k">Engagement</div><div class="v">Skyworks ODS Assessment</div></div>
+      <div class="m"><div class="k">Environment</div><div class="v">Sandbox &middot; db-ivnEntODSsbx01</div></div>
       <div class="m"><div class="k">Phase</div><div class="v">Phase 1 &middot; weeks 1-3</div></div>
       <div class="m"><div class="k">Scope</div><div class="v">18 databases, full metadata</div></div>
     </div>
@@ -194,45 +195,43 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
   <div class="body">
     <div class="reveal d1 eyebrow"><span class="bar"></span>Inventory at a Glance</div>
     <h2 class="reveal d1">One catalog, profiled to the column</h2>
-    <p class="lede reveal d1">Across all 18 in-scope databases, the inventory captures structural metadata at every level: for each column, its data type and nullability, plus key details where the column carries a key role.</p>
+    <p class="lede reveal d1">Profiled against the Sandbox environment (db-ivnEntODSsbx01). Across all 18 in-scope databases, the inventory captures structural metadata at every level: for each column, its data type and nullability, plus key details where the column carries a key role.</p>
     <div class="hero reveal d2">
       <div class="herobig">
         <div class="k">Columns profiled</div>
-        <div class="n">164,543</div>
+        <div class="n">273,012</div>
         <div class="d">Each column carries its data type and nullability, the granularity lineage tracing and layer classification require.</div>
       </div>
       <div class="herogrid">
         <div class="stat"><div class="label">Databases</div><div class="value">18</div></div>
-        <div class="stat"><div class="label">Tables</div><div class="value">5,471</div></div>
-        <div class="stat"><div class="label">Views</div><div class="value">4,134</div></div>
-        <div class="stat"><div class="label">Programmable objects</div><div class="value">5,108</div></div>
+        <div class="stat"><div class="label">Tables</div><div class="value">5,141</div></div>
+        <div class="stat"><div class="label">Views</div><div class="value">4,060</div></div>
+        <div class="stat"><div class="label">Programmable objects</div><div class="value">4,145</div></div>
       </div>
     </div>
     <div class="notebar reveal d3" style="margin-top:14px">
-      <div class="blk"><div class="h">Programmable objects breakdown</div><p><b>4,697</b> stored procedures &middot; <b>388</b> functions &middot; <b>23</b> triggers &middot; the transformation logic that will be parsed for lineage.</p></div>
+      <div class="blk"><div class="h">Programmable objects breakdown</div><p><b>3,867</b> stored procedures &middot; <b>255</b> functions &middot; <b>23</b> triggers &middot; the transformation logic that will be parsed for lineage.</p></div>
       <div class="vd"></div>
-      <div class="blk"><div class="h">Deepest catalog</div><p><b>Skyworks_ODS</b> alone holds <b>71,664</b> columns across <b>2,773</b> tables &middot; the central hub anchoring the assessment.</p></div>
+      <div class="blk"><div class="h">Deepest catalog</div><p><b>Skyworks_ODS</b> alone holds <b>109,581</b> columns across <b>2,711</b> tables &middot; the central hub anchoring the assessment.</p></div>
     </div>
-    <div class="srcnote reveal d4"><span class="mk">Note</span><span>Table, view, and object totals are the workbook grand totals; column counts are aggregated across all 18 per-database sheets. The stored-procedure figure combines both catalog buckets (4,693 + 4).</span></div>
   </div>
 </section><section class="slide">
   <div class="topbar"><div class="tl"><span class="skybrand"><span class="skx"></span><span class="skw"></span></span><span class="sep"></span><span class="layer">02 &middot; Volume</span></div><div class="tc">Data Volume Landscape</div><div class="tr"><b>03</b> / 06</div></div><div class="brandstrip"></div>
   <div class="body">
     <div class="reveal d1 eyebrow"><span class="bar"></span>Data Volume Landscape</div>
-    <h2 class="reveal d1">28.5 billion rows, concentrated in four estates</h2>
+    <h2 class="reveal d1">28.2 billion rows, concentrated in four estates</h2>
     <p class="lede reveal d1">Row-count profiling shows volume is heavily concentrated: four databases each hold 6 to 9 billion rows, together over 99% of all rows in the estate. This concentration is where classification and cost-simulation effort will focus.</p>
     <div class="panels reveal d2">
-      <div class="card"><div class="card-head"><span class="dot-r"></span>Row count by database (of 28.5B)</div>
-        <div class="card-body"><div class="barrow"><span class="barn">Skyworks_ODS</span><div class="bar"><i style="width:100%"></i></div><span class="barv">9.09B</span></div><div class="barrow"><span class="barn">Skyworks_ODS_Archive</span><div class="bar"><i style="width:74%"></i></div><span class="barv">6.76B</span></div><div class="barrow"><span class="barn">LIB_ECC_RTP</span><div class="bar"><i style="width:72%"></i></div><span class="barv">6.51B</span></div><div class="barrow"><span class="barn">Skyworks_WH</span><div class="bar"><i style="width:67%"></i></div><span class="barv">6.08B</span></div><div class="barrow"><span class="barn">SAP_Snapshot_AdvPlan</span><div class="bar"><i style="width:1%"></i></div><span class="barv">43.0M</span></div><div class="barrow"><span class="barn">All others</span><div class="bar"><i style="width:1%"></i></div><span class="barv">26.4M</span></div></div></div>
+      <div class="card"><div class="card-head"><span class="dot-r"></span>Row count by database (of 28.2B)</div>
+        <div class="card-body"><div class="barrow"><span class="barn">Skyworks_ODS</span><div class="bar"><i style="width:100%"></i></div><span class="barv">9.20B</span></div><div class="barrow"><span class="barn">LIB_ECC_RTP</span><div class="bar"><i style="width:73.5%"></i></div><span class="barv">6.76B</span></div><div class="barrow"><span class="barn">Skyworks_WH</span><div class="bar"><i style="width:66.8%"></i></div><span class="barv">6.15B</span></div><div class="barrow"><span class="barn">Skyworks_ODS_Archive</span><div class="bar"><i style="width:65.8%"></i></div><span class="barv">6.05B</span></div><div class="barrow"><span class="barn">All others</span><div class="bar"><i style="width:1.4%"></i></div><span class="barv">44.5M</span></div><div class="barrow"><span class="barn">SAP_Snapshot_AdvPlan</span><div class="bar"><i style="width:1.2%"></i></div><span class="barv">36.4M</span></div></div></div>
       <div class="card"><div class="card-head"><span class="dot-r"></span>Largest individual tables</div>
-        <div class="card-body"><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactVersions</span><span class="v">1.09B</span></div><div class="bar"><i style="width:100%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JCDS</span><span class="v">1.08B</span></div><div class="bar"><i style="width:88%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JEST</span><span class="v">1.05B</span></div><div class="bar"><i style="width:76%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactSalesAndDemandPlanningArchive</span><span class="v">952M</span></div><div class="bar"><i style="width:64%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_ODS_Archive.</span>sdplanning.FactPlanningAllocatedVersions_Archive</span><span class="v">823M</span></div><div class="bar"><i style="width:52%"></i></div></div></div></div>
+        <div class="card-body"><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JCDS</span><span class="v">1.12B</span></div><div class="bar"><i style="width:100%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactVersions</span><span class="v">1.10B</span></div><div class="bar"><i style="width:98.3%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">LIB_ECC_RTP.</span>sap.JEST</span><span class="v">1.09B</span></div><div class="bar"><i style="width:96.8%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_ODS_Archive.</span>sdendcustomer.FactEndCustomerVersions_Archive</span><span class="v">953.7M</span></div><div class="bar"><i style="width:84.9%"></i></div></div><div class="trow"><div class="tn"><span class="nm"><span class="db">Skyworks_WH.</span>sd.FactSalesAndDemandPlanningArchive</span><span class="v">952.3M</span></div><div class="bar"><i style="width:84.8%"></i></div></div></div></div>
     </div>
     <div class="notebar reveal d3" style="margin-top:14px">
-      <div class="blk"><div class="h">Long tail</div><p><b>558</b> tables are empty (0 rows), candidate deprecations to weigh in the transition backlog.</p></div>
+      <div class="blk"><div class="h">Long tail</div><p><b>443</b> tables are empty (0 rows), candidate deprecations to weigh in the transition backlog.</p></div>
       <div class="vd"></div>
       <div class="blk"><div class="h">Fact-heavy warehouse</div><p>The largest tables are demand-planning and SAP document fact tables &middot; the high-value analytical core.</p></div>
     </div>
-    <div class="srcnote reveal d4"><span class="mk">Note</span><span>Row counts are summed per database across all 5,471 tables; "all others" aggregates the remaining 13 databases, and the concentration share is derived from these totals.</span></div>
   </div>
 </section><section class="slide">
   <div class="topbar"><div class="tl"><span class="skybrand"><span class="skx"></span><span class="skw"></span></span><span class="sep"></span><span class="layer">03 &middot; Composition</span></div><div class="tc">Object & Column Composition</div><div class="tr"><b>04</b> / 06</div></div><div class="brandstrip"></div>
@@ -241,18 +240,17 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
     <h2 class="reveal d1">What the catalog is made of</h2>
     <p class="lede reveal d1">Data-type and activity profiling surface both the shape of the data and how much of the estate is actively maintained versus dormant.</p>
     <div class="panels reveal d2">
-      <div class="card"><div class="card-head"><span class="dot-r"></span>Column data types (164,543 total)</div>
-        <div class="card-body"><div class="barrow"><span class="barn">nvarchar</span><div class="bar"><i style="width:100%"></i></div><span class="barv">86,429</span></div><div class="barrow"><span class="barn">decimal</span><div class="bar"><i style="width:26%"></i></div><span class="barv">22,203</span></div><div class="barrow"><span class="barn">int</span><div class="bar"><i style="width:21%"></i></div><span class="barv">17,817</span></div><div class="barrow"><span class="barn">date</span><div class="bar"><i style="width:9%"></i></div><span class="barv">7,981</span></div><div class="barrow"><span class="barn">bigint</span><div class="bar"><i style="width:8%"></i></div><span class="barv">6,516</span></div><div class="barrow"><span class="barn">money / float</span><div class="bar"><i style="width:11%"></i></div><span class="barv">9,109</span></div></div></div>
+      <div class="card"><div class="card-head"><span class="dot-r"></span>Column data types (273,012 total)</div>
+        <div class="card-body"><div class="barrow"><span class="barn">nvarchar</span><div class="bar"><i style="width:100%"></i></div><span class="barv">157,424</span></div><div class="barrow"><span class="barn">decimal</span><div class="bar"><i style="width:24.4%"></i></div><span class="barv">38,342</span></div><div class="barrow"><span class="barn">int</span><div class="bar"><i style="width:14.0%"></i></div><span class="barv">22,113</span></div><div class="barrow"><span class="barn">date</span><div class="bar"><i style="width:7.9%"></i></div><span class="barv">12,515</span></div><div class="barrow"><span class="barn">bigint</span><div class="bar"><i style="width:5.4%"></i></div><span class="barv">8,440</span></div><div class="barrow"><span class="barn">float</span><div class="bar"><i style="width:4.0%"></i></div><span class="barv">6,247</span></div></div></div>
       <div class="finds">
-        <div class="find"><div class="big"><div class="n">78<small>%</small></div><div class="nu">Nullable</div></div>
-          <div class="txt"><h4>Loosely constrained</h4><p><b>128,696</b> of 164,543 columns are nullable &middot; a data-quality signal to weigh during classification.</p></div></div>
-        <div class="find"><div class="big"><div class="n">2,217</div><div class="nu">Active objects</div></div>
-          <div class="txt"><h4>Modified 2024 or later</h4><p>Of 5,108 programmable objects, <b>2,217</b> were touched recently; <b>2,891</b> are older &middot; a dormant tail for lineage context.</p></div></div>
-        <div class="find"><div class="big"><div class="n">5,206</div><div class="nu">Keyed columns</div></div>
+        <div class="find"><div class="big"><div class="n">66<small>%</small></div><div class="nu">Nullable</div></div>
+          <div class="txt"><h4>Loosely constrained</h4><p><b>178,969</b> of 273,012 columns are nullable &middot; a data-quality signal to weigh during classification.</p></div></div>
+        <div class="find"><div class="big"><div class="n">1,707</div><div class="nu">Active objects</div></div>
+          <div class="txt"><h4>Modified 2024 or later</h4><p>Of 4,145 programmable objects, <b>1,707</b> were touched recently; <b>2,438</b> are older &middot; a dormant tail for lineage context.</p></div></div>
+        <div class="find"><div class="big"><div class="n">5,179</div><div class="nu">Keyed columns</div></div>
           <div class="txt"><h4>Join backbone</h4><p>Columns carrying key roles define the relationships that drive downstream lineage and join-complexity scoring.</p></div></div>
       </div>
     </div>
-    <div class="srcnote reveal d4"><span class="mk">Note</span><span>Type, nullability, and key counts are tallied across all 164,543 columns; the activity split counts the 5,108 objects by last-modified year. "money / float" combines two types (4,089 + 5,020) and the nullable share is derived.</span></div>
   </div>
 </section><section class="slide">
   <div class="topbar"><div class="tl"><span class="skybrand"><span class="skx"></span><span class="skw"></span></span><span class="sep"></span><span class="layer">04 &middot; Next</span></div><div class="tc">What This Enables</div><div class="tr"><b>05</b> / 06</div></div><div class="brandstrip"></div>
@@ -262,14 +260,14 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
     <p class="lede reveal d1">With the full metadata catalog in place, the engagement moves into lineage mapping and classification. Each downstream deliverable draws directly on this inventory.</p>
     <div class="feeds reveal d2">
       <div class="feed"><div class="h"><span class="dn">D3</span>ODS Lineage Map</div>
-        <div class="b">Column-level metadata and the <b>5,108</b> inventoried programmable objects feed end-to-end lineage from upstream sources through transformations to consumption.</div></div>
+        <div class="b">Column-level metadata and the <b>4,145</b> inventoried programmable objects feed end-to-end lineage from upstream sources through transformations to consumption.</div></div>
       <div class="feed"><div class="h"><span class="dn">D4</span>Dataset Classification</div>
         <div class="b">Row counts, key structure, and nullability inform usage scoring to classify every dataset into <b>Bronze / Silver / Gold</b> layers.</div></div>
       <div class="feed"><div class="h"><span class="dn">D5</span>Architecture Baseline</div>
-        <div class="b">The volume profile of <b>28.5 billion</b> rows anchors the current-state alignment percentage and gap analysis against the target medallion architecture.</div></div>
+        <div class="b">The volume profile of <b>28.2 billion</b> rows anchors the current-state alignment percentage and gap analysis against the target medallion architecture.</div></div>
     </div>
     <div class="notebar reveal d3" style="margin-top:16px">
-      <div class="blk"><div class="h">Delivered</div><p>Full inventory delivered as an Excel workbook, 36 sheets spanning summary aggregates, object lists, and per-database column detail.</p></div>
+      <div class="blk"><div class="h">Delivered</div><p>Full inventory delivered as an Excel workbook, 22 sheets spanning summary aggregates, object lists, and per-database column detail.</p></div>
       <div class="vd"></div>
       <div class="blk"><div class="h">Next</div><p>Query-log analysis and SSIS package parsing proceed in parallel to complete the lineage inputs.</p></div>
     </div>
@@ -282,8 +280,8 @@ h2{font-size:25px;font-weight:800;letter-spacing:-0.01em;color:var(--navy);margi
     <p class="sub reveal d2">Prepared by Findability Sciences as part of the Skyworks Solutions ODS Assessment engagement. Every database, table, view, column, and programmable object across the 18 in-scope databases is now inventoried to depth. The engagement now proceeds to lineage mapping and dataset classification.</p>
     <div class="meta reveal d2">
       <div class="m"><div class="k">Deliverable</div><div class="v">D2 &middot; Complete</div></div>
-      <div class="m"><div class="k">Columns profiled</div><div class="v">164,543</div></div>
-      <div class="m"><div class="k">Rows cataloged</div><div class="v">28.5 billion</div></div>
+      <div class="m"><div class="k">Columns profiled</div><div class="v">273,012</div></div>
+      <div class="m"><div class="k">Rows cataloged</div><div class="v">28.2 billion</div></div>
       <div class="m"><div class="k">Next</div><div class="v">D3 &middot; ODS Lineage Map</div></div>
     </div>
     <div class="lockups reveal d3">
