@@ -440,18 +440,18 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
     <div class="brandstrip"></div>
     <div class="body">
       <div class="reveal d1 eyebrow"><span class="bar"></span>Current State</div>
-      <h2 class="reveal d1 title">One Data Store, two jobs, spread across eighteen databases.</h2>
-      <p class="reveal d2 lede">The ODS carries both transactional processing and analytical reporting on the same footprint: roughly 6.9 TB across 18 databases, 9,214 tables and views, and 563 SSIS packages moving data between them. That overlap is where performance ceilings, governance blind spots, and compute inefficiency originate.</p>
+      <h2 class="reveal d1 title">One Data Store, two jobs, and the cost shows up at peak.</h2>
+      <p class="reveal d2 lede">The ODS carries both transactional processing and analytical reporting on the same footprint. That overlap is where performance ceilings, governance blind spots, and compute inefficiency originate.</p>
 
       <div class="reveal d3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:20px">
-        <div class="stat"><div class="label">ODS volume</div><div class="value">~6.9<span class="u">TB</span></div></div>
-        <div class="stat"><div class="label">Databases in scope</div><div class="value">18</div></div>
-        <div class="stat"><div class="label">Tables &amp; views</div><div class="value">9,214</div></div>
-        <div class="stat"><div class="label">SSIS packages</div><div class="value">563</div></div>
+        <div class="stat"><div class="label">ODS size</div><div class="value">1.7<span class="u">TB</span></div></div>
+        <div class="stat"><div class="label">Compute</div><div class="value">22<span class="u">CPUs</span></div></div>
+        <div class="stat"><div class="label">Active SSIS jobs</div><div class="value">~250</div></div>
+        <div class="stat"><div class="label">Peak concurrency</div><div class="value">1,231<span class="u">batch/s</span></div></div>
       </div>
 
       <div class="reveal d4" style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:18px">
-        <div class="card"><div class="card-head">Performance</div><div class="card-body" style="padding:12px 14px;font-size:12px;color:var(--ink-2);line-height:1.5">Transactional and analytical workloads contend for the same resources. Three databases carry roughly 86% of the footprint, concentrating the load.</div></div>
+        <div class="card"><div class="card-head">Performance</div><div class="card-body" style="padding:12px 14px;font-size:12px;color:var(--ink-2);line-height:1.5">Transactional and analytical workloads contend for the same resources, constraining throughput at peak batch concurrency.</div></div>
         <div class="card"><div class="card-head">Governance</div><div class="card-body" style="padding:12px 14px;font-size:12px;color:var(--ink-2);line-height:1.5">Limited lineage and metadata visibility makes ownership, dependencies, and downstream impact hard to see.</div></div>
         <div class="card"><div class="card-head">Cost</div><div class="card-body" style="padding:12px 14px;font-size:12px;color:var(--ink-2);line-height:1.5">A single tier doing both jobs leaves compute spend poorly matched to the value each dataset actually delivers.</div></div>
       </div>
@@ -517,11 +517,10 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
         <div class="card" style="width:320px">
           <div class="card-head">Current ODS · confirmed</div>
           <div class="card-body" style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="field" style="grid-column:1 / -1"><span class="field-label">Environment</span><input class="ro mono" value="db-ivnEntODSsbx01" readonly></div>
-            <div class="field"><span class="field-label">Volume</span><input class="ro mono" value="~6.9 TB" readonly></div>
-            <div class="field"><span class="field-label">Databases</span><input class="ro mono" value="18 in scope" readonly></div>
-            <div class="field"><span class="field-label">Tables &amp; views</span><input class="ro mono" value="9,214" readonly></div>
-            <div class="field"><span class="field-label">SSIS packages</span><input class="ro mono" value="563" readonly></div>
+            <div class="field"><span class="field-label">Size</span><input class="ro mono" value="1.7 TB" readonly></div>
+            <div class="field"><span class="field-label">Compute</span><input class="ro mono" value="22 CPUs" readonly></div>
+            <div class="field"><span class="field-label">SSIS jobs</span><input class="ro mono" value="~250" readonly></div>
+            <div class="field"><span class="field-label">Peak</span><input class="ro mono" value="1,231 b/s" readonly></div>
           </div>
         </div>
         <div class="card fill">
@@ -567,7 +566,7 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
       <div class="ghost">C</div>
       <div class="reveal d1 eyebrow"><span class="bar"></span>C · Collection</div>
       <h2 class="reveal d1 title">Assemble the raw material: metadata, logs, pipelines.</h2>
-      <p class="reveal d2 lede sm">Connect to the ODS and capture everything the later layers depend on: the 18 database catalogs, the SSISDeployment package folder, SQL Server Agent job and step metadata, and Power BI report metadata. Read-only, automated where possible, and surfaced as a clean inventory.</p>
+      <p class="reveal d2 lede sm">Connect to the ODS and capture everything the later layers depend on. Read-only, automated where possible, and surfaced as a clean inventory.</p>
 
       <div class="reveal d3 row" style="margin-top:16px;gap:14px;align-items:stretch">
         <div class="card fill">
@@ -601,7 +600,7 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
       <div class="ghost">U</div>
       <div class="reveal d1 eyebrow"><span class="bar"></span>U · Unification</div>
       <h2 class="reveal d1 title">Make it coherent: lineage across the whole estate.</h2>
-      <p class="reveal d2 lede sm">Trace each ODS dataset from where it originates to where it is consumed, across 18 database catalogs, 563 SSIS packages and the Power BI reports drawing from them. Reference systems give context for lineage only, with no deep ingestion of them.</p>
+      <p class="reveal d2 lede sm">Trace each ODS dataset from where it originates to where it is consumed. Reference systems give context for lineage only, with no deep ingestion of them.</p>
 
       <div class="reveal d3 card" style="margin-top:14px">
         <div class="card-head">End-to-end ODS lineage · reference context</div>
@@ -615,11 +614,11 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
             </div>
             <div class="flow-arr" style="grid-column:2;grid-row:2"><span class="ar">&rarr;</span><span class="arl">feeds</span></div>
             <div class="flow-mid" style="grid-column:3;grid-row:2">
-              <div class="flow-core"><div class="cn">ODS</div><div class="cs">18 databases &middot; primary assessment target</div></div>
+              <div class="flow-core"><div class="cn">ODS</div><div class="cs">primary assessment target</div></div>
             </div>
             <div class="flow-arr" style="grid-column:4;grid-row:2"><span class="ar">&rarr;</span><span class="arl">serves</span></div>
             <div class="flow-col" style="grid-column:5;grid-row:2">
-              <div class="fnode">Warehouse</div><div class="fnode">Power BI</div><div class="fnode">Enterprise Analytics</div>
+              <div class="fnode">Warehouse</div><div class="fnode">Enterprise Analytics</div>
             </div>
           </div>
         </div>
